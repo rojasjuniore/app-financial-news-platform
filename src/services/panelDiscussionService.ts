@@ -41,12 +41,27 @@ export interface MarketData {
   signals?: {
     recommendation: string;
   };
+  events?: MarketEvent[];
+}
+
+export interface MarketEvent {
+  type: 'earnings' | 'economic' | 'dividend' | 'split';
+  ticker: string;
+  date: string;
+  time?: string;
+  title: string;
+  description: string;
+  importance: 'low' | 'medium' | 'high';
+  impact: string;
+  forecast?: string;
+  previous?: string;
 }
 
 export interface PanelDiscussionResponse {
   discussion: LLMOpinion[];
   consensus?: ConsensusData;
   marketData?: {[key: string]: MarketData};
+  economicCalendar?: MarketEvent[];
   cached: boolean;
 }
 

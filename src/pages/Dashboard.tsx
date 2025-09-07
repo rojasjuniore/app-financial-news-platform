@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import Navbar from '../components/Layout/Navbar';
 import MarketCard from '../components/MarketOverview/MarketCard';
+import { MarketEventsPage } from '../components/MarketEvents';
 import {
   TrendingUp,
   DollarSign,
@@ -95,6 +96,7 @@ const Dashboard: React.FC = () => {
     qualityScore: '92.4%',
     lastUpdate: new Date().toLocaleTimeString()
   });
+  const [showMarketEvents, setShowMarketEvents] = useState(false);
 
   // Fetch real statistics from API
   const fetchStatistics = async () => {
@@ -622,17 +624,27 @@ const Dashboard: React.FC = () => {
                 ? 'Calendario económico y earnings de empresas importantes'
                 : 'Economic calendar and earnings from major companies'}
             </p>
-            <button className="w-full py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium">
+            <button 
+              onClick={() => setShowMarketEvents(true)}
+              className="w-full py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium hover:scale-105 transform duration-200"
+            >
               <span className="flex items-center justify-center gap-2">
                 {t('common.locale') === 'es-ES' ? 'Ver Calendario' : 'View Calendar'} →
-                <span className="text-xs opacity-75">
-                  {t('common.locale') === 'es-ES' ? 'muy pronto' : 'coming soon'}
-                </span>
               </span>
             </button>
           </div>
         </motion.div>
       </div>
+      
+      {/* Market Events Modal */}
+      {showMarketEvents && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50" onClick={() => setShowMarketEvents(false)} />
+          <div className="relative z-50">
+            <MarketEventsPage onClose={() => setShowMarketEvents(false)} />
+          </div>
+        </div>
+      )}
       
     </div>
   );
