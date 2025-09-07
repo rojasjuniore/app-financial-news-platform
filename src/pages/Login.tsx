@@ -212,10 +212,10 @@ const Login: React.FC = () => {
         <div className="relative z-10 flex flex-col justify-center px-12 lg:px-16 xl:px-20">
           <div className="max-w-lg">
             <h1 className="text-5xl font-bold text-white mb-6">
-              Financial News AI
+              {t('app.title')}
             </h1>
             <p className="text-xl text-white/90 mb-12 leading-relaxed">
-              Análisis inteligente de mercados, noticias personalizadas y alertas en tiempo real para tomar las mejores decisiones de inversión.
+              {t('auth.heroDescription')}
             </p>
 
             {/* Features */}
@@ -227,8 +227,8 @@ const Login: React.FC = () => {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-white">Análisis en Tiempo Real</h3>
-                  <p className="mt-1 text-white/80">Procesamiento instantáneo de noticias con IA avanzada</p>
+                  <h3 className="text-lg font-semibold text-white">{t('features.realTimeAnalysis')}</h3>
+                  <p className="mt-1 text-white/80">{t('features.realTimeAnalysisDesc')}</p>
                 </div>
               </div>
 
@@ -239,8 +239,8 @@ const Login: React.FC = () => {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-white">Trading Inteligente</h3>
-                  <p className="mt-1 text-white/80">Señales de trading basadas en análisis técnico y fundamental</p>
+                  <h3 className="text-lg font-semibold text-white">{t('features.smartTrading')}</h3>
+                  <p className="mt-1 text-white/80">{t('features.smartTradingDesc')}</p>
                 </div>
               </div>
 
@@ -251,8 +251,8 @@ const Login: React.FC = () => {
                   </div>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-white">Seguridad Garantizada</h3>
-                  <p className="mt-1 text-white/80">Encriptación de nivel bancario para proteger tus datos</p>
+                  <h3 className="text-lg font-semibold text-white">{t('features.guaranteedSecurity')}</h3>
+                  <p className="mt-1 text-white/80">{t('features.guaranteedSecurityDesc')}</p>
                 </div>
               </div>
             </div>
@@ -262,15 +262,15 @@ const Login: React.FC = () => {
               <div className="grid grid-cols-3 gap-8">
                 <div>
                   <div className="text-3xl font-bold text-white">10K+</div>
-                  <div className="text-sm text-white/80 mt-1">Usuarios Activos</div>
+                  <div className="text-sm text-white/80 mt-1">{t('stats.activeUsers')}</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white">500+</div>
-                  <div className="text-sm text-white/80 mt-1">Fuentes de Datos</div>
+                  <div className="text-sm text-white/80 mt-1">{t('stats.dataSources')}</div>
                 </div>
                 <div>
                   <div className="text-3xl font-bold text-white">99.9%</div>
-                  <div className="text-sm text-white/80 mt-1">Disponibilidad</div>
+                  <div className="text-sm text-white/80 mt-1">{t('stats.availability')}</div>
                 </div>
               </div>
             </div>

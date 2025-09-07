@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Financial News AI"
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Error",
@@ -56,7 +59,8 @@
     "hide": "Ocultar",
     "show": "Mostrar",
     "rememberMe": "Recordarme",
-    "orContinueWith": "O continúa con"
+    "orContinueWith": "O continúa con",
+    "heroDescription": "Análisis inteligente de mercados, noticias personalizadas y alertas en tiempo real para tomar las mejores decisiones de inversión"
   },
   "feed": {
     "title": "Últimas Noticias",
@@ -275,6 +279,19 @@
     "lastWeek": "Semana pasada",
     "thisMonth": "Este mes",
     "lastMonth": "Mes pasado"
+  },
+  "features": {
+    "realTimeAnalysis": "Análisis en Tiempo Real",
+    "realTimeAnalysisDesc": "Procesamiento instantáneo de noticias con IA avanzada",
+    "smartTrading": "Trading Inteligente",
+    "smartTradingDesc": "Señales de trading basadas en análisis técnico y fundamental",
+    "guaranteedSecurity": "Seguridad Garantizada",
+    "guaranteedSecurityDesc": "Encriptación de nivel bancario para proteger tus datos"
+  },
+  "stats": {
+    "activeUsers": "Usuarios Activos",
+    "dataSources": "Fuentes de Datos",
+    "availability": "Disponibilidad"
   },
   "errors": {
     "generic": "Algo salió mal. Por favor, intenta de nuevo.",
