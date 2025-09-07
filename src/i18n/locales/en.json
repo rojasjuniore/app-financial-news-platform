@@ -166,11 +166,31 @@
     "retry": "Retry",
     "newChat": "New conversation",
     "clearChat": "Clear chat",
+    "preparingAssistant": "Preparing assistant...",
+    "greeting": "Hello! I'm your AI assistant",
+    "greetingDescription": "I can help you analyze this news and its impact on the markets",
+    "alwaysReady": "Always ready to help",
+    "realTimeAnalysis": "Real-time analysis",
+    "selectAIModel": "Select your AI model",
+    "eachModelUnique": "Each model has a unique approach",
+    "eachModelUniqueAnalysis": "Each model has a unique analysis approach",
+    "preciseConservative": "Precise and conservative analysis",
+    "detailedStructured": "Detailed and structured analysis",
+    "globalMultimodal": "Multimodal global context",
+    "directUnique": "Direct and unique perspective",
+    "poweredByAI": "Powered by AI • Instant responses",
+    "openChat": "Open chat",
     "suggestions": {
       "analyze": "Analyze this article",
       "summary": "Article summary",
       "implications": "What are the implications?",
       "trading": "How does it affect trading?"
+    },
+    "quickPrompts": {
+      "analyzeMarket": "Analyze market impact",
+      "recommendation": "What's your recommendation?",
+      "relatedNews": "Search related news",
+      "technicalIndicators": "What do technical indicators say?"
     }
   },
   "dashboard": {

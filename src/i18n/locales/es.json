@@ -166,11 +166,31 @@
     "retry": "Reintentar",
     "newChat": "Nueva conversación",
     "clearChat": "Limpiar chat",
+    "preparingAssistant": "Preparando asistente...",
+    "greeting": "¡Hola! Soy tu asistente de IA",
+    "greetingDescription": "Puedo ayudarte a analizar esta noticia y su impacto en los mercados",
+    "alwaysReady": "Siempre listo para ayudarte",
+    "realTimeAnalysis": "Análisis en tiempo real",
+    "selectAIModel": "Selecciona tu modelo de IA",
+    "eachModelUnique": "Cada modelo tiene un enfoque único",
+    "eachModelUniqueAnalysis": "Cada modelo tiene un enfoque único de análisis",
+    "preciseConservative": "Análisis preciso y conservador",
+    "detailedStructured": "Análisis detallado y estructurado",
+    "globalMultimodal": "Contexto global multimodal",
+    "directUnique": "Perspectiva directa y única",
+    "poweredByAI": "Powered by AI • Respuestas instantáneas",
+    "openChat": "Abrir chat",
     "suggestions": {
       "analyze": "Analizar este artículo",
       "summary": "Resumen del artículo",
       "implications": "¿Cuáles son las implicaciones?",
       "trading": "¿Cómo afecta al trading?"
+    },
+    "quickPrompts": {
+      "analyzeMarket": "Analiza el impacto en el mercado",
+      "recommendation": "¿Cuál es tu recomendación?",
+      "relatedNews": "Busca noticias relacionadas",
+      "technicalIndicators": "¿Qué dicen los indicadores técnicos?"
     }
   },
   "dashboard": {
