@@ -22,9 +22,31 @@ export interface ConsensusData {
   keyPoints: string[];
 }
 
+export interface MarketData {
+  ticker: string;
+  price: {
+    current: number;
+    changePercent: number;
+    volume: number;
+  };
+  technicals?: {
+    rsi: string;
+    sma20: string;
+    sma50: string;
+  };
+  levels?: {
+    support: string[];
+    resistance: string[];
+  };
+  signals?: {
+    recommendation: string;
+  };
+}
+
 export interface PanelDiscussionResponse {
   discussion: LLMOpinion[];
   consensus?: ConsensusData;
+  marketData?: {[key: string]: MarketData};
   cached: boolean;
 }
 

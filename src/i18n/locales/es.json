@@ -184,7 +184,9 @@
         "riskEvaluation": "Evaluación de riesgos",
         "metricsPatterns": "Métricas y patrones",
         "finalConsensus": "Consenso final"
-      }
+      },
+      "realTimeData": "Datos de Mercado en Tiempo Real",
+      "marketDataSubtitle": "Precios en vivo e indicadores técnicos vía Polygon.io"
     }
   },
   "chat": {

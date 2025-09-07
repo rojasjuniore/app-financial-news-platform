@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Users, Brain, RefreshCw, ChevronDown, ChevronUp, Loader, 
   TrendingUp, Target, Shield, Clock, BarChart, CheckCircle,
-  Info, ChevronRight, Zap
+  Info, ChevronRight, Zap, DollarSign, Activity, Volume2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
@@ -21,6 +21,27 @@ interface LLMOpinion {
   disagreesWithPoints?: string[];
   newInsights?: string[];
   consensus?: any;
+}
+
+interface MarketData {
+  ticker: string;
+  price: {
+    current: number;
+    changePercent: number;
+    volume: number;
+  };
+  technicals?: {
+    rsi: string;
+    sma20: string;
+    sma50: string;
+  };
+  levels?: {
+    support: string[];
+    resistance: string[];
+  };
+  signals?: {
+    recommendation: string;
+  };
 }
 
 interface LLMPanelDiscussionV2Props {
@@ -46,6 +67,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   const [expandedExpert, setExpandedExpert] = useState<string | null>(null);
   const [showFullPanel, setShowFullPanel] = useState(false);
   const [lastGeneratedLanguage, setLastGeneratedLanguage] = useState<string | null>(null);
+  const [marketData, setMarketData] = useState<{[key: string]: MarketData}>({});
 
   const llmExperts = [
     {
@@ -100,6 +122,11 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
 
     try {
       const response = await panelDiscussionService.generatePanelDiscussion(articleId, regenerate);
+      
+      // Extract market data from response if available
+      if (response.marketData) {
+        setMarketData(response.marketData);
+      }
       
       if (response.cached) {
         setDiscussion(response.discussion.map(d => ({
@@ -182,6 +209,9 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   };
 
   const metrics = calculateMetrics();
+
+  // Format market data for display  
+  const marketDataFormatted = Object.values(marketData);
 
   return (
     <div className="space-y-4">
@@ -295,6 +325,108 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
           )}
         </div>
       </div>
+
+      {/* Market Data Section */}
+      {marketDataFormatted.length > 0 && (
+        <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-[1px] rounded-xl animate-fadeIn">
+          <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <DollarSign className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
+                  {t('analysis.panel.realTimeData')}
+                </h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {t('analysis.panel.marketDataSubtitle')}
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {marketDataFormatted.map((ticker) => (
+                <div key={ticker.ticker} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-sm text-gray-900 dark:text-white">
+                      {ticker.ticker}
+                    </span>
+                    {ticker.signals?.recommendation && (
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        ticker.signals.recommendation === 'BUY' 
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          : ticker.signals.recommendation === 'SELL'
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                          : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
+                      }`}>
+                        {ticker.signals.recommendation}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">Price:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          ${ticker.price.current.toFixed(2)}
+                        </span>
+                        <span className={`text-xs ${
+                          ticker.price.changePercent >= 0 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
+                          {ticker.price.changePercent >= 0 ? '+' : ''}{ticker.price.changePercent}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {ticker.technicals?.rsi && (
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-1">
+                          <Activity className="w-3 h-3 text-gray-400" />
+                          <span className="text-xs text-gray-500">RSI:</span>
+                        </div>
+                        <span className="text-xs text-gray-700 dark:text-gray-300">
+                          {ticker.technicals.rsi}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-1">
+                        <Volume2 className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs text-gray-500">Volume:</span>
+                      </div>
+                      <span className="text-xs text-gray-700 dark:text-gray-300">
+                        {ticker.price.volume?.toLocaleString() || 'N/A'}
+                      </span>
+                    </div>
+                    
+                    {ticker.levels?.support?.[0] && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Support:</span>
+                        <span className="text-xs text-gray-700 dark:text-gray-300">
+                          ${parseFloat(ticker.levels.support[0]).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {ticker.levels?.resistance?.[0] && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-500">Resistance:</span>
+                        <span className="text-xs text-gray-700 dark:text-gray-300">
+                          ${parseFloat(ticker.levels.resistance[0]).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Resumen Ejecutivo (siempre visible si hay consenso) */}
       {consensusReached && finalSynthesis && (
