@@ -68,6 +68,7 @@
     "allNews": "All News",
     "todayNews": "Today's News",
     "thisWeek": "This Week",
+    "latestNews": "Latest News",
     "noArticles": "No articles available",
     "loadingArticles": "Loading articles...",
     "errorLoading": "Error loading articles",
