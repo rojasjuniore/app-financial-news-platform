@@ -11,6 +11,7 @@ import {
   Save,
   Plus,
   X,
+  Bot,
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,18 +19,13 @@ import Navbar from '../components/Layout/Navbar';
 import { feedService } from '../services/feedService';
 import toast from 'react-hot-toast';
 
+import type { UserPreferences } from '../types';
+
 interface UserInterests {
   tickers: string[];
   sectors: string[];
   topics: string[];
   marketTypes: string[];
-}
-
-interface UserPreferences {
-  sentimentBias: 'bullish' | 'bearish' | 'balanced';
-  riskTolerance: 'low' | 'medium' | 'high';
-  timeHorizon: 'day_trading' | 'short_term' | 'medium_term' | 'long_term';
-  newsFrequency: 'high' | 'moderate' | 'low';
 }
 
 const Settings: React.FC = () => {
@@ -51,6 +47,7 @@ const Settings: React.FC = () => {
     riskTolerance: 'medium',
     timeHorizon: 'medium_term',
     newsFrequency: 'moderate',
+    defaultLLMModel: 'openai',
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +61,11 @@ const Settings: React.FC = () => {
   // Cargar configuraciones actuales del usuario
   useEffect(() => {
     loadUserSettings();
+    // Load default LLM from localStorage if exists
+    const savedLLM = localStorage.getItem('userDefaultLLM');
+    if (savedLLM) {
+      setPreferences(prev => ({ ...prev, defaultLLMModel: savedLLM as any }));
+    }
   }, []);
 
   const loadUserSettings = async () => {
@@ -89,7 +91,10 @@ const Settings: React.FC = () => {
       
       if (profile && profile.preferences) {
         console.log('✅ Cargando preferencias:', profile.preferences);
-        setPreferences(profile.preferences);
+        setPreferences({
+          ...profile.preferences,
+          defaultLLMModel: profile.preferences.defaultLLMModel || 'openai'
+        });
       }
       
     } catch (error: any) {
@@ -293,6 +298,69 @@ const Settings: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400 text-sm">
               {t('settings.themeDescription')}
             </p>
+          </motion.div>
+
+          {/* Modelo LLM por defecto */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <Bot className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('settings.defaultAIModel')}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {t('settings.defaultAIModelDescription')}
+            </p>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { id: 'openai' as const, name: 'GPT-4', icon: '🤖', color: 'green' },
+                { id: 'claude' as const, name: 'Claude', icon: '🧠', color: 'purple' },
+                { id: 'gemini' as const, name: 'Gemini', icon: '✨', color: 'blue' },
+                { id: 'grok' as const, name: 'Grok', icon: '⚡', color: 'orange' }
+              ].map((model) => (
+                <button
+                  key={model.id}
+                  onClick={async () => {
+                    const newPreferences = { ...preferences, defaultLLMModel: model.id };
+                    setPreferences(newPreferences);
+                    // Save to localStorage for immediate use
+                    localStorage.setItem('userDefaultLLM', model.id);
+                    // Save to backend
+                    try {
+                      setIsSaving(true);
+                      if (user) {
+                        await feedService.updatePreferences(newPreferences);
+                        toast.success(t('settings.changesSaved'));
+                      }
+                    } catch (error) {
+                      console.error('Error saving LLM preference:', error);
+                      toast.error(t('errors.generic'));
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  className={`p-3 rounded-lg border-2 transition-all duration-200 ${
+                    preferences.defaultLLMModel === model.id
+                      ? `border-${model.color}-500 bg-${model.color}-50 dark:bg-${model.color}-900/20`
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{model.icon}</div>
+                  <div className="font-medium text-sm text-gray-900 dark:text-white">{model.name}</div>
+                  {preferences.defaultLLMModel === model.id && (
+                    <div className={`text-xs text-${model.color}-600 dark:text-${model.color}-400 mt-1`}>
+                      {t('common.selected')}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </motion.div>
 
           {/* Intereses - Tickers */}

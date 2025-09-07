@@ -1,6 +1,10 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "FNAI",
+  "name": "Financial News AI - Análisis Inteligente",
+  "description": "Plataforma de análisis financiero con IA. Noticias en tiempo real, señales de trading y análisis de mercado personalizado.",
+  "categories": ["finance", "news", "business", "productivity"],
+  "lang": "es-ES",
+  "dir": "ltr",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,18 +12,83 @@
       "type": "image/x-icon"
     },
     {
+      "src": "favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "screenshots": [
+    {
+      "src": "screenshot1.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "label": "Dashboard principal con análisis en tiempo real"
+    },
+    {
+      "src": "screenshot2.jpg",
+      "sizes": "1280x720",
+      "type": "image/jpeg",
+      "label": "Feed personalizado de noticias"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
+  "theme_color": "#3b82f6",
+  "background_color": "#ffffff",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Feed de Noticias",
+      "short_name": "Feed",
+      "description": "Ver las últimas noticias financieras",
+      "url": "/feed",
+      "icons": [
+        {
+          "src": "feed-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver análisis y estadísticas",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "dashboard-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

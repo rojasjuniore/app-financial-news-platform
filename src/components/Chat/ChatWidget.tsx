@@ -2,20 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useChat } from '../../hooks/useChat';
 import { Send, Bot, User, X, Loader, MessageCircle, Sparkles, Minimize2, Maximize2, ChevronDown, Brain, Zap, Cpu, Rocket } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useTranslation } from 'react-i18next';
 
 interface ChatWidgetProps {
   articleId: string;
   integrated?: boolean;
 }
 
-// Configuración de modelos LLM
-const LLM_MODELS = [
+// Configuración de modelos LLM (se actualizará con traducciones dinámicamente)
+const LLM_MODELS_CONFIG = [
   {
     id: 'openai',
     name: 'GPT-4',
     icon: Brain,
     color: 'from-green-500 to-emerald-600',
-    description: 'Análisis preciso y conservador',
+    descriptionKey: 'chat.preciseConservative',
     badge: 'PRO'
   },
   {
@@ -23,7 +24,7 @@ const LLM_MODELS = [
     name: 'Claude 3',
     icon: Bot,
     color: 'from-orange-500 to-red-600',
-    description: 'Análisis detallado y estructurado',
+    descriptionKey: 'chat.detailedStructured',
     badge: 'SMART'
   },
   {
@@ -31,7 +32,7 @@ const LLM_MODELS = [
     name: 'Gemini',
     icon: Zap,
     color: 'from-blue-500 to-indigo-600',
-    description: 'Contexto global multimodal',
+    descriptionKey: 'chat.globalMultimodal',
     badge: 'FAST'
   },
   {
@@ -39,18 +40,29 @@ const LLM_MODELS = [
     name: 'Grok',
     icon: Rocket,
     color: 'from-purple-500 to-pink-600',
-    description: 'Perspectiva directa y única',
+    descriptionKey: 'chat.directUnique',
     badge: 'BOLD'
   }
 ];
 
 const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }) => {
+  const { t } = useTranslation();
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(!integrated); // Si está integrado, siempre abierto
   const [isMinimized, setIsMinimized] = useState(false);
-  const [selectedModel, setSelectedModel] = useState(LLM_MODELS[0]); // Por defecto GPT-4
   const [showModelSelector, setShowModelSelector] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Crear modelos con traducciones
+  const LLM_MODELS = LLM_MODELS_CONFIG.map(model => ({
+    ...model,
+    description: t(model.descriptionKey)
+  }));
+  
+  // Get default model from localStorage
+  const defaultModelId = localStorage.getItem('userDefaultLLM') || 'openai';
+  const defaultModel = LLM_MODELS.find(m => m.id === defaultModelId) || LLM_MODELS[0];
+  const [selectedModel, setSelectedModel] = useState(defaultModel);
   
   const {
     messages,
@@ -66,6 +78,20 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Listen for changes in default model preference
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newDefaultModelId = localStorage.getItem('userDefaultLLM') || 'openai';
+      const newDefaultModel = LLM_MODELS.find(m => m.id === newDefaultModelId);
+      if (newDefaultModel && newDefaultModel.id !== selectedModel.id) {
+        setSelectedModel(newDefaultModel);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [selectedModel, LLM_MODELS]);
 
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
@@ -83,10 +109,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
   };
 
   const quickPrompts = [
-    '📊 Analiza el impacto en el mercado',
-    '💡 ¿Cuál es tu recomendación?',
-    '🔍 Busca noticias relacionadas',
-    '📈 ¿Qué dicen los indicadores técnicos?'
+    `📊 ${t('chat.quickPrompts.analyzeMarket')}`,
+    `💡 ${t('chat.quickPrompts.recommendation')}`,
+    `🔍 ${t('chat.quickPrompts.relatedNews')}`,
+    `📈 ${t('chat.quickPrompts.technicalIndicators')}`
   ];
 
   // Renderizado para modo integrado
@@ -101,10 +127,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
             </div>
             <div>
               <h3 className="font-semibold flex items-center gap-2">
-                AI Assistant 
+                {t('chat.aiAssistant')} 
                 <Sparkles className="w-4 h-4" />
               </h3>
-              <p className="text-xs text-white/80">Análisis en tiempo real</p>
+              <p className="text-xs text-white/80">{t('chat.realTimeAnalysis')}</p>
             </div>
           </div>
           
@@ -128,8 +154,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
             {showModelSelector && (
               <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                 <div className="p-3 border-b border-gray-100 dark:border-gray-700">
-                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Selecciona tu modelo de IA</h4>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cada modelo tiene un enfoque único de análisis</p>
+                  <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{t('chat.selectAIModel')}</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('chat.eachModelUniqueAnalysis')}</p>
                 </div>
                 
                 <div className="max-h-96 overflow-y-auto">
@@ -173,7 +199,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
             <div className="flex justify-center items-center h-full">
               <div className="text-center">
                 <Loader className="animate-spin w-10 h-10 text-indigo-600 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">Preparando asistente...</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">{t('chat.preparingAssistant')}</p>
               </div>
             </div>
           ) : messages.length === 0 ? (
@@ -182,10 +208,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
                 <Bot className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
               </div>
               <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
-                ¡Hola! Soy tu asistente de IA
+                {t('chat.greeting')}
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 transition-colors duration-300">
-                Puedo ayudarte a analizar esta noticia y su impacto en los mercados
+                {t('chat.greetingDescription')}
               </p>
               
               {/* Quick prompts integrado */}
@@ -281,7 +307,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Escribe tu pregunta..."
+              placeholder={t('chat.placeholder')}
               className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500"
               disabled={isLoading}
             />
@@ -309,7 +335,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 transition-all duration-300 z-50 ${isOpen ? 'scale-0' : 'scale-100'}`}
-        aria-label="Abrir chat"
+        aria-label={t('chat.openChat')}
       >
         <MessageCircle className="w-6 h-6" />
         <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
@@ -328,10 +354,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
               </div>
               <div>
                 <h3 className="font-semibold flex items-center gap-2">
-                  AI Assistant 
+                  {t('chat.aiAssistant')} 
                   <Sparkles className="w-4 h-4" />
                 </h3>
-                {!isMinimized && <p className="text-xs text-white/80">Siempre listo para ayudarte</p>}
+                {!isMinimized && <p className="text-xs text-white/80">{t('chat.alwaysReady')}</p>}
               </div>
             </div>
             
@@ -353,8 +379,8 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
                   {showModelSelector && (
                     <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
                       <div className="p-3 border-b border-gray-100 dark:border-gray-700">
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Selecciona tu modelo de IA</h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Cada modelo tiene un enfoque único</p>
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm">{t('chat.selectAIModel')}</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('chat.eachModelUnique')}</p>
                       </div>
                       
                       <div className="max-h-80 overflow-y-auto">
@@ -415,7 +441,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
                   <div className="flex justify-center items-center h-full">
                     <div className="text-center">
                       <Loader className="animate-spin w-10 h-10 text-indigo-600 mx-auto mb-3" />
-                      <p className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">Preparando asistente...</p>
+                      <p className="text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300">{t('chat.preparingAssistant')}</p>
                     </div>
                   </div>
                 ) : messages.length === 0 ? (
@@ -424,10 +450,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
                       <Bot className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 transition-colors duration-300">
-                      ¡Hola! Soy tu asistente de IA
+                      {t('chat.greeting')}
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 transition-colors duration-300">
-                      Puedo ayudarte a analizar esta noticia y su impacto en los mercados
+                      {t('chat.greetingDescription')}
                     </p>
                     
                     {/* Quick prompts */}
@@ -523,7 +549,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Escribe tu pregunta..."
+                    placeholder={t('chat.placeholder')}
                     className="flex-1 px-4 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-2xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all placeholder-gray-400 dark:placeholder-gray-500"
                     disabled={isLoading}
                   />
@@ -541,7 +567,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
                 </div>
                 
                 <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-2 transition-colors duration-300">
-                  Powered by AI • Respuestas instantáneas
+                  {t('chat.poweredByAI')}
                 </p>
               </div>
             </>

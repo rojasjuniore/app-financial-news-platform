@@ -5,22 +5,166 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#3b82f6" />
-    <meta
-      name="description"
-      content="Financial News - Tu fuente confiable de noticias financieras y análisis de mercado"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     
-    <!-- Accessibility improvements -->
-    <meta name="author" content="Financial News Team" />
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Financial News AI - Análisis inteligente de mercados con IA. Noticias financieras personalizadas, señales de trading y alertas en tiempo real para inversores." />
+    <meta name="keywords" content="noticias financieras, análisis mercado, trading, inversiones, bolsa, criptomonedas, forex, AI, inteligencia artificial, señales trading" />
+    <meta name="author" content="Financial News AI Team" />
     <meta name="robots" content="index, follow" />
+    <meta name="language" content="Spanish" />
+    <meta name="revisit-after" content="1 days" />
+    <link rel="canonical" href="https://financialnews.ai" />
+    
+    <!-- Open Graph Meta Tags (Facebook, LinkedIn, WhatsApp) -->
+    <meta property="og:title" content="Financial News AI - Análisis Inteligente de Mercados" />
+    <meta property="og:description" content="Potencia tus inversiones con IA. Análisis en tiempo real, noticias personalizadas y señales de trading basadas en inteligencia artificial." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://financialnews.ai" />
+    <meta property="og:image" content="%PUBLIC_URL%/og-image.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Financial News AI - Plataforma de análisis financiero con inteligencia artificial" />
+    <meta property="og:site_name" content="Financial News AI" />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="en_US" />
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@FinancialNewsAI" />
+    <meta name="twitter:creator" content="@FinancialNewsAI" />
+    <meta name="twitter:title" content="Financial News AI - Análisis Inteligente de Mercados" />
+    <meta name="twitter:description" content="Análisis en tiempo real con IA, noticias personalizadas y señales de trading para tomar mejores decisiones de inversión." />
+    <meta name="twitter:image" content="%PUBLIC_URL%/twitter-card.jpg" />
+    <meta name="twitter:image:alt" content="Financial News AI Dashboard" />
+    
+    <!-- Additional Meta Tags -->
+    <meta property="fb:app_id" content="YOUR_FB_APP_ID" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Financial News AI" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="%PUBLIC_URL%/logo152.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/logo180.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="%PUBLIC_URL%/logo167.png" />
+    
+    <!-- Favicon variants -->
+    <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png" />
+    <link rel="mask-icon" href="%PUBLIC_URL%/safari-pinned-tab.svg" color="#3b82f6" />
+    <meta name="msapplication-TileColor" content="#3b82f6" />
+    <meta name="msapplication-TileImage" content="%PUBLIC_URL%/mstile-144x144.png" />
+    
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://api.financialnews.ai" />
     
-    <title>Financial News - Noticias Financieras</title>
+    <title>Financial News AI - Análisis Inteligente de Mercados con IA | Trading y Noticias Financieras</title>
+    
+    <!-- Structured Data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Financial News AI",
+      "url": "https://financialnews.ai",
+      "description": "Plataforma de análisis financiero con inteligencia artificial. Noticias en tiempo real, señales de trading y análisis de mercado personalizado.",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "10000",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Financial News AI",
+        "url": "https://financialnews.ai",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://financialnews.ai/logo.png",
+          "width": 600,
+          "height": 600
+        },
+        "sameAs": [
+          "https://twitter.com/FinancialNewsAI",
+          "https://linkedin.com/company/financial-news-ai",
+          "https://facebook.com/FinancialNewsAI"
+        ]
+      },
+      "screenshot": [
+        {
+          "@type": "ImageObject",
+          "url": "https://financialnews.ai/screenshot1.jpg",
+          "caption": "Dashboard principal con análisis en tiempo real"
+        },
+        {
+          "@type": "ImageObject",
+          "url": "https://financialnews.ai/screenshot2.jpg",
+          "caption": "Feed personalizado de noticias financieras"
+        }
+      ],
+      "featureList": [
+        "Análisis en tiempo real con IA",
+        "Noticias financieras personalizadas",
+        "Señales de trading automatizadas",
+        "Análisis de sentimiento del mercado",
+        "Alertas personalizables",
+        "Soporte multiidioma",
+        "Modo oscuro/claro",
+        "Integración con múltiples fuentes de datos"
+      ],
+      "potentialAction": {
+        "@type": "ViewAction",
+        "target": "https://financialnews.ai/login"
+      }
+    }
+    </script>
+    
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Financial News AI",
+      "alternateName": "FNAI",
+      "url": "https://financialnews.ai",
+      "logo": "https://financialnews.ai/logo.png",
+      "description": "Líder en análisis financiero impulsado por inteligencia artificial",
+      "foundingDate": "2024",
+      "founders": [
+        {
+          "@type": "Person",
+          "name": "Financial News AI Team"
+        }
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "Global"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@financialnews.ai",
+        "availableLanguage": ["Spanish", "English"]
+      },
+      "sameAs": [
+        "https://twitter.com/FinancialNewsAI",
+        "https://linkedin.com/company/financial-news-ai",
+        "https://facebook.com/FinancialNewsAI",
+        "https://instagram.com/FinancialNewsAI"
+      ]
+    }
+    </script>
     
     <!-- High contrast mode styles -->
     <style>

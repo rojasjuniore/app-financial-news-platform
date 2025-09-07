@@ -140,6 +140,7 @@ export interface UserPreferences {
   riskTolerance: 'low' | 'medium' | 'high';
   timeHorizon: 'day_trading' | 'short_term' | 'medium_term' | 'long_term';
   newsFrequency: 'high' | 'moderate' | 'low';
+  defaultLLMModel?: 'openai' | 'claude' | 'gemini' | 'grok';
 }
 
 export interface UserBehavior {

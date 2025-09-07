@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Financial News AI"
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Error",
@@ -56,7 +59,8 @@
     "hide": "Ocultar",
     "show": "Mostrar",
     "rememberMe": "Recordarme",
-    "orContinueWith": "O continúa con"
+    "orContinueWith": "O continúa con",
+    "heroDescription": "Análisis inteligente de mercados, noticias personalizadas y alertas en tiempo real para tomar las mejores decisiones de inversión"
   },
   "feed": {
     "title": "Últimas Noticias",
@@ -64,6 +68,7 @@
     "allNews": "Todas las Noticias",
     "todayNews": "Noticias de Hoy",
     "thisWeek": "Esta Semana",
+    "latestNews": "Últimas Noticias",
     "noArticles": "No hay artículos disponibles",
     "loadingArticles": "Cargando artículos...",
     "errorLoading": "Error al cargar los artículos",
@@ -115,6 +120,8 @@
     "regenerate": "Regenerar análisis",
     "chooseModel": "Elige tu modelo de IA:",
     "generating": "Generando análisis...",
+    "generatingAutomatically": "Generando análisis automáticamente",
+    "usingModel": "Usando",
     "generatedWith": "Generado con",
     "technicalAnalysis": "Análisis Técnico",
     "sentimentAnalysis": "Análisis de Sentimiento",
@@ -147,6 +154,39 @@
         "name": "X.AI Grok",
         "description": "Perspectiva directa y única"
       }
+    },
+    "panel": {
+      "title": "Panel de Expertos IA",
+      "subtitle": "GPT-4, Claude, Gemini y Grok analizan colaborativamente",
+      "premiumBadge": "ANÁLISIS PREMIUM",
+      "multiLLM": "Multi-LLM",
+      "startAnalysis": "Iniciar Análisis",
+      "analyzing": "Analizando...",
+      "executiveSummary": "Resumen Ejecutivo",
+      "recommendation": "Recomendación",
+      "confidence": "Confianza",
+      "timeframe": "Horizonte",
+      "risk": "Riesgo",
+      "consensus": "Consenso",
+      "analysisCount": "Análisis",
+      "insights": "Insights",
+      "uniqueInsights": "Insights únicos",
+      "waitingTurn": "Esperando turno...",
+      "panelCompleted": "Panel de discusión completado",
+      "roles": {
+        "mainAnalyst": "Analista Principal",
+        "criticalReviewer": "Revisor Crítico",
+        "dataAnalyst": "Analista de Datos",
+        "synthesizer": "Sintetizador"
+      },
+      "expertise": {
+        "technicalFundamental": "Análisis técnico y fundamental",
+        "riskEvaluation": "Evaluación de riesgos",
+        "metricsPatterns": "Métricas y patrones",
+        "finalConsensus": "Consenso final"
+      },
+      "realTimeData": "Datos de Mercado en Tiempo Real",
+      "marketDataSubtitle": "Precios en vivo e indicadores técnicos vía Polygon.io"
     }
   },
   "chat": {
@@ -162,11 +202,31 @@
     "retry": "Reintentar",
     "newChat": "Nueva conversación",
     "clearChat": "Limpiar chat",
+    "preparingAssistant": "Preparando asistente...",
+    "greeting": "¡Hola! Soy tu asistente de IA",
+    "greetingDescription": "Puedo ayudarte a analizar esta noticia y su impacto en los mercados",
+    "alwaysReady": "Siempre listo para ayudarte",
+    "realTimeAnalysis": "Análisis en tiempo real",
+    "selectAIModel": "Selecciona tu modelo de IA",
+    "eachModelUnique": "Cada modelo tiene un enfoque único",
+    "eachModelUniqueAnalysis": "Cada modelo tiene un enfoque único de análisis",
+    "preciseConservative": "Análisis preciso y conservador",
+    "detailedStructured": "Análisis detallado y estructurado",
+    "globalMultimodal": "Contexto global multimodal",
+    "directUnique": "Perspectiva directa y única",
+    "poweredByAI": "Powered by AI • Respuestas instantáneas",
+    "openChat": "Abrir chat",
     "suggestions": {
       "analyze": "Analizar este artículo",
       "summary": "Resumen del artículo",
       "implications": "¿Cuáles son las implicaciones?",
       "trading": "¿Cómo afecta al trading?"
+    },
+    "quickPrompts": {
+      "analyzeMarket": "Analiza el impacto en el mercado",
+      "recommendation": "¿Cuál es tu recomendación?",
+      "relatedNews": "Busca noticias relacionadas",
+      "technicalIndicators": "¿Qué dicen los indicadores técnicos?"
     }
   },
   "dashboard": {
@@ -211,6 +271,8 @@
     "appearance": "Apariencia",
     "language": "Idioma",
     "theme": "Tema",
+    "defaultAIModel": "Modelo de IA por Defecto",
+    "defaultAIModelDescription": "Selecciona el modelo de IA que prefieres para análisis automáticos y chat",
     "interests": "Intereses",
     "updateInterests": "Actualizar intereses",
     "selectMarkets": "Selecciona tus mercados de interés",
@@ -276,6 +338,19 @@
     "thisMonth": "Este mes",
     "lastMonth": "Mes pasado"
   },
+  "features": {
+    "realTimeAnalysis": "Análisis en Tiempo Real",
+    "realTimeAnalysisDesc": "Procesamiento instantáneo de noticias con IA avanzada",
+    "smartTrading": "Trading Inteligente",
+    "smartTradingDesc": "Señales de trading basadas en análisis técnico y fundamental",
+    "guaranteedSecurity": "Seguridad Garantizada",
+    "guaranteedSecurityDesc": "Encriptación de nivel bancario para proteger tus datos"
+  },
+  "stats": {
+    "activeUsers": "Usuarios Activos",
+    "dataSources": "Fuentes de Datos",
+    "availability": "Disponibilidad"
+  },
   "errors": {
     "generic": "Algo salió mal. Por favor, intenta de nuevo.",
     "network": "Error de conexión. Verifica tu internet.",
@@ -283,7 +358,10 @@
     "unauthorized": "No autorizado",
     "forbidden": "Acceso denegado",
     "serverError": "Error del servidor",
-    "timeout": "La solicitud tardó demasiado tiempo"
+    "timeout": "La solicitud tardó demasiado tiempo",
+    "apiOverloaded": "El servicio de IA está saturado. Intentando con servicio de respaldo...",
+    "fallbackSuccess": "Análisis generado usando servicio de IA de respaldo",
+    "allServicesFailed": "Todos los servicios de IA no están disponibles. Intenta más tarde."
   },
   "markets": {
     "stocks": "Acciones",

@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import ChatWidget from '../components/Chat/ChatWidget';
 import Navbar from '../components/Layout/Navbar';
-import PolygonDataCard from '../components/Analysis/PolygonDataCard';
-import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, RefreshCw, MessageCircle, X } from 'lucide-react';
+import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
+import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
+import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, RefreshCw, MessageCircle, X, Users } from 'lucide-react';
 import { Article, FirestoreTimestamp } from '../types';
 import { feedService } from '../services/feedService';
 import toast from 'react-hot-toast';
@@ -15,7 +16,9 @@ const ArticleDetail: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [selectedAI, setSelectedAI] = useState<'openai' | 'claude' | 'gemini' | 'grok'>('openai');
+  // Get default LLM model from user preferences (stored in localStorage for now)
+  const defaultLLM = localStorage.getItem('userDefaultLLM') || 'openai';
+  const [selectedAI, setSelectedAI] = useState<'openai' | 'claude' | 'gemini' | 'grok'>(defaultLLM as any);
   const [showAnalysisGenerator, setShowAnalysisGenerator] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
@@ -35,13 +38,27 @@ const ArticleDetail: React.FC = () => {
     mutationFn: ({ aiModel, forceRegenerate }: { aiModel: 'openai' | 'claude' | 'gemini' | 'grok'; forceRegenerate?: boolean }) => 
       feedService.generateAnalysis(articleId!, aiModel, forceRegenerate || false),
     onSuccess: (data) => {
-      toast.success(`✨ ${t('analysis.generatedWith')} ${data.aiModel?.toUpperCase()}`);
+      // Check if this was a fallback response
+      if (data._fallback) {
+        toast.success(`🔄 ${t('errors.fallbackSuccess')} (${data._fallback.fallback_model.toUpperCase()})`, { duration: 4000 });
+      } else {
+        toast.success(`✨ ${t('analysis.generatedWith')} ${data.aiModel?.toUpperCase()}`);
+      }
       // Refrescar el artículo para mostrar el nuevo análisis
       queryClient.invalidateQueries({ queryKey: ['article', articleId] });
       setShowAnalysisGenerator(false);
     },
     onError: (error: any) => {
-      toast.error(`❌ ${t('errors.generic')}: ${error.response?.data?.error || error.message}`);
+      const errorMessage = error.response?.data?.error || error.message;
+      
+      // Check for specific error types
+      if (errorMessage.toLowerCase().includes('overloaded')) {
+        toast.error(`⚡ ${t('errors.apiOverloaded')}`);
+      } else if (errorMessage.toLowerCase().includes('all ai services')) {
+        toast.error(`❌ ${t('errors.allServicesFailed')}`);
+      } else {
+        toast.error(`❌ ${t('errors.generic')}: ${errorMessage}`);
+      }
     }
   });
 
@@ -50,9 +67,13 @@ const ArticleDetail: React.FC = () => {
       // Trackear vista
       feedService.trackInteraction(articleId, 'view');
       
-      // 🤖 Verificar si necesita generar análisis automáticamente
+      // 🤖 Auto-generar análisis si no existe (usando modelo por defecto del usuario)
       if (!article.llm_analysis) {
-        setShowAnalysisGenerator(true);
+        // Auto-generate analysis with user's default model
+        generateAnalysisMutation.mutate({ 
+          aiModel: selectedAI, 
+          forceRegenerate: false 
+        });
       }
     }
   }, [article, articleId]);
@@ -229,8 +250,34 @@ const ArticleDetail: React.FC = () => {
                 )}
               </div>
 
-              {/* 🤖 GENERADOR DE ANÁLISIS CON IA */}
-              {showAnalysisGenerator && !article.llm_analysis && (
+              {/* 🤖 INDICADOR DE GENERACIÓN AUTOMÁTICA */}
+              {generateAnalysisMutation.isPending && !article.llm_analysis && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8 transition-colors">
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-4 sm:p-6 transition-colors animate-pulse">
+                    <div className="flex items-center justify-center">
+                      <Loader className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400 mr-3" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {t('analysis.generatingAutomatically')}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {t('analysis.usingModel')} {aiModels.find(m => m.id === selectedAI)?.name}...
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 🤖 GENERADOR DE ANÁLISIS CON IA (Manual) */}
+              {showAnalysisGenerator && !article.llm_analysis && !generateAnalysisMutation.isPending && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8 transition-colors">
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 sm:p-6 transition-colors">
                     <div className="flex items-center mb-3 sm:mb-4">
@@ -295,10 +342,20 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
+              {/* Panel de Expertos IA - Sección Premium Separada */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mt-8">
+                <LLMPanelDiscussionV2
+                  articleId={articleId!}
+                  articleTitle={article.title}
+                  tickers={article.tickers}
+                  existingAnalysis={article.llm_analysis}
+                />
+              </div>
+
               {/* Datos en tiempo real de Polygon.io */}
               {article.llm_analysis?.polygon_data && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8">
-                  <PolygonDataCard 
+                  <PolygonDataCardFixed 
                     polygonData={article.llm_analysis.polygon_data}
                     ticker={article.tickers?.[0]}
                   />
@@ -317,6 +374,7 @@ const ArticleDetail: React.FC = () => {
                         <span className="px-2 sm:px-3 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium transition-colors">
                           {t('analysis.generatedWith')} {article.llm_analysis.model_used.toUpperCase()}
                         </span>
+                        
                         <button
                           onClick={() => handleGenerateAnalysis(true)}
                           disabled={generateAnalysisMutation.isPending}
@@ -377,6 +435,7 @@ const ArticleDetail: React.FC = () => {
                       </div>
                     </div>
                   )}
+
 
                   {/* Análisis de Sentimiento */}
                   {article.llm_analysis.sentiment_analysis && (

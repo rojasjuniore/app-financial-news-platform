@@ -1,4 +1,7 @@
 {
+  "app": {
+    "title": "Financial News AI"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",
@@ -56,7 +59,8 @@
     "hide": "Hide",
     "show": "Show",
     "rememberMe": "Remember me",
-    "orContinueWith": "Or continue with"
+    "orContinueWith": "Or continue with",
+    "heroDescription": "Intelligent market analysis, personalized news and real-time alerts to make the best investment decisions"
   },
   "feed": {
     "title": "Latest News",
@@ -64,6 +68,7 @@
     "allNews": "All News",
     "todayNews": "Today's News",
     "thisWeek": "This Week",
+    "latestNews": "Latest News",
     "noArticles": "No articles available",
     "loadingArticles": "Loading articles...",
     "errorLoading": "Error loading articles",
@@ -115,6 +120,8 @@
     "regenerate": "Regenerate analysis",
     "chooseModel": "Choose your AI model:",
     "generating": "Generating analysis...",
+    "generatingAutomatically": "Generating analysis automatically",
+    "usingModel": "Using",
     "generatedWith": "Generated with",
     "technicalAnalysis": "Technical Analysis",
     "sentimentAnalysis": "Sentiment Analysis",
@@ -147,6 +154,39 @@
         "name": "X.AI Grok",
         "description": "Direct and unique perspective"
       }
+    },
+    "panel": {
+      "title": "AI Expert Panel",
+      "subtitle": "GPT-4, Claude, Gemini and Grok analyze collaboratively",
+      "premiumBadge": "PREMIUM ANALYSIS",
+      "multiLLM": "Multi-LLM",
+      "startAnalysis": "Start Analysis",
+      "analyzing": "Analyzing...",
+      "executiveSummary": "Executive Summary",
+      "recommendation": "Recommendation",
+      "confidence": "Confidence",
+      "timeframe": "Timeframe",
+      "risk": "Risk",
+      "consensus": "Consensus",
+      "analysisCount": "Analysis",
+      "insights": "Insights",
+      "uniqueInsights": "Unique insights",
+      "waitingTurn": "Waiting turn...",
+      "panelCompleted": "Panel discussion completed",
+      "roles": {
+        "mainAnalyst": "Main Analyst",
+        "criticalReviewer": "Critical Reviewer",
+        "dataAnalyst": "Data Analyst",
+        "synthesizer": "Synthesizer"
+      },
+      "expertise": {
+        "technicalFundamental": "Technical and fundamental analysis",
+        "riskEvaluation": "Risk evaluation",
+        "metricsPatterns": "Metrics and patterns",
+        "finalConsensus": "Final consensus"
+      },
+      "realTimeData": "Real-Time Market Data",
+      "marketDataSubtitle": "Live prices and technical indicators via Polygon.io"
     }
   },
   "chat": {
@@ -162,11 +202,31 @@
     "retry": "Retry",
     "newChat": "New conversation",
     "clearChat": "Clear chat",
+    "preparingAssistant": "Preparing assistant...",
+    "greeting": "Hello! I'm your AI assistant",
+    "greetingDescription": "I can help you analyze this news and its impact on the markets",
+    "alwaysReady": "Always ready to help",
+    "realTimeAnalysis": "Real-time analysis",
+    "selectAIModel": "Select your AI model",
+    "eachModelUnique": "Each model has a unique approach",
+    "eachModelUniqueAnalysis": "Each model has a unique analysis approach",
+    "preciseConservative": "Precise and conservative analysis",
+    "detailedStructured": "Detailed and structured analysis",
+    "globalMultimodal": "Multimodal global context",
+    "directUnique": "Direct and unique perspective",
+    "poweredByAI": "Powered by AI • Instant responses",
+    "openChat": "Open chat",
     "suggestions": {
       "analyze": "Analyze this article",
       "summary": "Article summary",
       "implications": "What are the implications?",
       "trading": "How does it affect trading?"
+    },
+    "quickPrompts": {
+      "analyzeMarket": "Analyze market impact",
+      "recommendation": "What's your recommendation?",
+      "relatedNews": "Search related news",
+      "technicalIndicators": "What do technical indicators say?"
     }
   },
   "dashboard": {
@@ -211,6 +271,8 @@
     "appearance": "Appearance",
     "language": "Language",
     "theme": "Theme",
+    "defaultAIModel": "Default AI Model",
+    "defaultAIModelDescription": "Select your preferred AI model for automatic analysis and chat",
     "interests": "Interests",
     "updateInterests": "Update interests",
     "selectMarkets": "Select your markets of interest",
@@ -276,6 +338,19 @@
     "thisMonth": "This month",
     "lastMonth": "Last month"
   },
+  "features": {
+    "realTimeAnalysis": "Real-Time Analysis",
+    "realTimeAnalysisDesc": "Instant news processing with advanced AI",
+    "smartTrading": "Smart Trading",
+    "smartTradingDesc": "Trading signals based on technical and fundamental analysis",
+    "guaranteedSecurity": "Guaranteed Security",
+    "guaranteedSecurityDesc": "Bank-level encryption to protect your data"
+  },
+  "stats": {
+    "activeUsers": "Active Users",
+    "dataSources": "Data Sources",
+    "availability": "Availability"
+  },
   "errors": {
     "generic": "Something went wrong. Please try again.",
     "network": "Connection error. Check your internet.",
@@ -283,7 +358,10 @@
     "unauthorized": "Unauthorized",
     "forbidden": "Access denied",
     "serverError": "Server error",
-    "timeout": "Request timeout"
+    "timeout": "Request timeout",
+    "apiOverloaded": "AI service is overloaded. Trying backup service...",
+    "fallbackSuccess": "Analysis generated using backup AI service",
+    "allServicesFailed": "All AI services are currently unavailable. Please try again later."
   },
   "markets": {
     "stocks": "Stocks",

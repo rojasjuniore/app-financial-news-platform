@@ -1,279 +1,221 @@
-# 🐳 Docker Quick Start Guide
+# 🐳 Docker Quickstart - Financial News App
 
-## Prerequisitos
+Este documento te guía rápidamente para ejecutar la aplicación Financial News App usando Docker.
 
-1. **Instalar Docker Desktop**
-   - Mac: https://docs.docker.com/desktop/mac/install/
-   - Windows: https://docs.docker.com/desktop/windows/install/
-   - Linux: https://docs.docker.com/desktop/linux/install/
+## 🚀 Inicio Rápido
 
-2. **Iniciar Docker Desktop**
-   - Abre Docker Desktop desde tus aplicaciones
-   - Espera a que el icono de Docker en la barra de menú muestre "Docker Desktop is running"
-
-## 🚀 Inicio Rápido (3 comandos)
+### Opción 1: Usando Make (Recomendado)
 
 ```bash
-# 1. Configurar variables de entorno
-cp .env.example .env
+# Configurar el proyecto
+make setup
 
-# 2. Construir la imagen
-docker build -t financial-news-app .
+# Desarrollo con Docker
+make docker-dev
 
-# 3. Ejecutar el contenedor
-docker run -p 80:80 financial-news-app
+# Producción con Docker
+make docker-build
+make docker-run
 ```
 
-La aplicación estará disponible en: http://localhost
-
-## 📦 Opciones de Build
-
-### Opción 1: Build de Producción (Recomendado)
+### Opción 2: Usando Scripts Directos
 
 ```bash
-# Construir imagen optimizada
-docker build -t financial-news-app:prod .
+# Desarrollo
+./scripts/docker-dev.sh
 
-# Ejecutar
-docker run -d \
-  --name financial-news \
-  -p 80:80 \
-  --env-file .env \
-  financial-news-app:prod
-
-# Ver logs
-docker logs -f financial-news
+# Producción
+./scripts/docker-build.sh
+./scripts/docker-run.sh
 ```
 
-### Opción 2: Build de Desarrollo (Con Hot Reload)
-
-```bash
-# Construir imagen de desarrollo
-docker build -f Dockerfile.dev -t financial-news-app:dev .
-
-# Ejecutar con volúmenes para hot reload
-docker run -d \
-  --name financial-news-dev \
-  -p 3001:3001 \
-  -v $(pwd)/src:/app/src \
-  -v $(pwd)/public:/app/public \
-  --env-file .env \
-  financial-news-app:dev
-```
-
-Acceder en: http://localhost:3001
-
-### Opción 3: Docker Compose (Stack Completo)
+### Opción 3: Usando Docker Compose
 
 ```bash
 # Desarrollo
 docker-compose -f docker-compose.dev.yml up
 
 # Producción
-docker-compose up
-```
-
-## 🧪 Probar los Builds
-
-Usa el script de prueba incluido:
-
-```bash
-# Ejecutar script de prueba interactivo
-./scripts/test-docker-build.sh
-```
-
-Este script te permite:
-- Verificar que Docker está funcionando
-- Construir imágenes de producción y desarrollo
-- Probar los contenedores
-- Ver información de las imágenes
-
-## 🛠️ Comandos Útiles
-
-### Gestión de Contenedores
-
-```bash
-# Ver contenedores en ejecución
-docker ps
-
-# Ver todos los contenedores
-docker ps -a
-
-# Detener contenedor
-docker stop financial-news
-
-# Eliminar contenedor
-docker rm financial-news
-
-# Ver logs
-docker logs financial-news
-
-# Entrar al contenedor
-docker exec -it financial-news sh
-```
-
-### Gestión de Imágenes
-
-```bash
-# Ver imágenes
-docker images
-
-# Eliminar imagen
-docker rmi financial-news-app
-
-# Limpiar imágenes no usadas
-docker image prune
-```
-
-### Docker Compose
-
-```bash
-# Iniciar servicios
 docker-compose up -d
+```
 
-# Ver logs
+## 📋 Comandos Disponibles
+
+### Desarrollo
+- `make dev` - Desarrollo local (sin Docker)
+- `make docker-dev` - Desarrollo con Docker (hot reload)
+- `make compose-dev` - Desarrollo con docker-compose
+
+### Producción
+- `make build` - Build local
+- `make docker-build` - Build con Docker
+- `make docker-run` - Ejecutar contenedor
+- `make deploy` - Build + Run completo
+
+### Utilidades
+- `make logs` - Ver logs del contenedor
+- `make shell` - Acceder al shell del contenedor
+- `make status` - Estado de contenedores
+- `make clean` - Limpiar archivos locales
+- `make docker-clean` - Limpiar recursos Docker
+
+## 🔧 Configuración
+
+### Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
+NODE_ENV=production
+REACT_APP_API_URL=https://api.tu-dominio.com
+REACT_APP_FIREBASE_API_KEY=tu-api-key
+```
+
+### Puertos
+
+- **Desarrollo**: http://localhost:3001
+- **Producción**: http://localhost:3000
+- **Health Check**: http://localhost:3000/health
+
+## 🏗️ Arquitectura Docker
+
+### Multi-Stage Build
+
+El Dockerfile utiliza un build multi-stage para optimizar el tamaño:
+
+1. **Builder Stage**: Construye la aplicación React
+2. **Production Stage**: Sirve la aplicación con Nginx
+
+### Optimizaciones Incluidas
+
+- ✅ Multi-stage build para reducir tamaño
+- ✅ Nginx optimizado con compresión gzip
+- ✅ Headers de seguridad
+- ✅ Cache de assets estáticos
+- ✅ Health checks
+- ✅ Usuario no-root para seguridad
+- ✅ Alpine Linux para menor tamaño
+
+## 📊 Monitoreo
+
+### Health Check
+
+La aplicación incluye un endpoint de health check:
+
+```bash
+curl http://localhost:3000/health
+```
+
+### Logs
+
+```bash
+# Ver logs en tiempo real
+make logs
+
+# Ver logs específicos
+docker logs financial-news-app-latest
+```
+
+## 🧹 Limpieza
+
+### Limpieza Básica
+```bash
+make docker-clean
+```
+
+### Limpieza Completa
+```bash
+make docker-clean-all
+```
+
+## 🚀 Despliegue
+
+### Railway
+
+El proyecto está configurado para Railway con `nixpacks.toml`:
+
+```bash
+# Conectar a Railway
+railway login
+railway link
+railway up
+```
+
+### Docker Hub
+
+```bash
+# Tag para Docker Hub
+docker tag financial-news-app:latest tu-usuario/financial-news-app:latest
+
+# Push a Docker Hub
+docker push tu-usuario/financial-news-app:latest
+```
+
+## 🔍 Troubleshooting
+
+### Problemas Comunes
+
+1. **Puerto en uso**:
+   ```bash
+   # Cambiar puerto
+   make docker-run TAG=latest PORT=3001
+   ```
+
+2. **Permisos de scripts**:
+   ```bash
+   chmod +x scripts/*.sh
+   ```
+
+3. **Limpiar cache de Docker**:
+   ```bash
+   make docker-clean-all
+   ```
+
+### Logs de Debug
+
+```bash
+# Ver logs detallados
 docker-compose logs -f
 
-# Detener servicios
-docker-compose down
-
-# Reconstruir y reiniciar
-docker-compose up --build
-
-# Limpiar todo (incluyendo volúmenes)
-docker-compose down -v
+# Ver logs de build
+docker build --no-cache -t financial-news-app .
 ```
 
-## 🔧 Solución de Problemas
+## 📈 Performance
 
-### Docker no está corriendo
+### Métricas de la Imagen
 
-```bash
-# Mac/Windows
-# Abre Docker Desktop desde tus aplicaciones
+- **Tamaño**: ~50MB (Alpine + Nginx)
+- **Tiempo de inicio**: ~2-3 segundos
+- **Memoria**: ~20-30MB en runtime
 
-# Linux
-sudo systemctl start docker
-```
+### Optimizaciones Aplicadas
 
-### Puerto en uso
+- Compresión gzip habilitada
+- Cache de assets por 1 año
+- Headers de seguridad
+- Nginx optimizado para SPA
+- Multi-stage build
 
-```bash
-# Ver qué está usando el puerto 80
-lsof -i :80
+## 🤝 Contribución
 
-# Cambiar puerto en el comando run
-docker run -p 8080:80 financial-news-app
-```
+Para contribuir al proyecto:
 
-### Problemas de permisos
+1. Fork el repositorio
+2. Crea una rama: `git checkout -b feature/nueva-funcionalidad`
+3. Haz commit: `git commit -m 'Agregar nueva funcionalidad'`
+4. Push: `git push origin feature/nueva-funcionalidad`
+5. Abre un Pull Request
 
-```bash
-# Linux: Agregar usuario al grupo docker
-sudo usermod -aG docker $USER
-# Logout y login de nuevo
-```
+## 📞 Soporte
 
-### Limpiar todo y empezar de nuevo
+Si tienes problemas:
 
-```bash
-# Script de limpieza completa
-./scripts/docker-clean.sh all
-
-# O manualmente
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
-docker rmi $(docker images -q)
-docker volume prune -f
-```
-
-## 📊 Verificar el Build
-
-### 1. Verificar que la imagen se creó
-
-```bash
-docker images | grep financial-news
-```
-
-Deberías ver algo como:
-```
-financial-news-app   latest   abc123def   2 minutes ago   150MB
-```
-
-### 2. Verificar que el contenedor está corriendo
-
-```bash
-docker ps | grep financial-news
-```
-
-### 3. Verificar la aplicación
-
-Abre tu navegador en:
-- Producción: http://localhost
-- Desarrollo: http://localhost:3001
-
-### 4. Verificar los logs
-
-```bash
-docker logs financial-news
-```
-
-Deberías ver:
-```
-Starting nginx...
-nginx: ready
-Server running on port 80
-```
-
-## 🚀 Deployment
-
-### Opción 1: Docker Hub
-
-```bash
-# Login a Docker Hub
-docker login
-
-# Tag la imagen
-docker tag financial-news-app:latest tuusuario/financial-news-app:latest
-
-# Push
-docker push tuusuario/financial-news-app:latest
-```
-
-### Opción 2: Railway (Automático)
-
-Railway detectará automáticamente los archivos Docker y los usará para el deployment.
-
-### Opción 3: Cloud Providers
-
-```bash
-# AWS ECR
-aws ecr get-login-password | docker login --username AWS --password-stdin [tu-ecr-uri]
-docker tag financial-news-app:latest [tu-ecr-uri]/financial-news-app:latest
-docker push [tu-ecr-uri]/financial-news-app:latest
-
-# Google Cloud
-gcloud auth configure-docker
-docker tag financial-news-app:latest gcr.io/[project-id]/financial-news-app
-docker push gcr.io/[project-id]/financial-news-app
-```
-
-## 📝 Notas Importantes
-
-1. **Variables de Entorno**: Asegúrate de configurar el archivo `.env` con tus credenciales de Firebase
-2. **Recursos**: Docker necesita al menos 2GB de RAM disponible
-3. **Hot Reload**: Solo funciona en modo desarrollo con volúmenes montados
-4. **Producción**: La imagen de producción usa Nginx y está optimizada para rendimiento
-
-## 🆘 Ayuda
-
-Si encuentras problemas:
-
-1. Verifica que Docker está corriendo: `docker --version`
-2. Revisa los logs: `docker logs financial-news`
-3. Usa el script de prueba: `./scripts/test-docker-build.sh`
-4. Limpia y reconstruye: `./scripts/docker-clean.sh all`
+1. Revisa los logs: `make logs`
+2. Verifica el estado: `make status`
+3. Limpia recursos: `make docker-clean`
+4. Abre un issue en GitHub
 
 ---
 
-¿Necesitas más ayuda? Revisa el [DOCKER_SETUP.md](./DOCKER_SETUP.md) para documentación completa.
+**¡Disfruta desarrollando con Docker! 🐳**
