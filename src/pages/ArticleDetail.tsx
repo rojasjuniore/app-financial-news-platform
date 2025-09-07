@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import ChatWidget from '../components/Chat/ChatWidget';
-import Navbar from '../components/Layout/Navbar';
 import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
 import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
 import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, RefreshCw, MessageCircle, X, Users } from 'lucide-react';
@@ -123,7 +122,7 @@ const ArticleDetail: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Navbar />
+      
       
       {/* Layout responsivo con chat mejorado */}
       <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-64px)] relative">

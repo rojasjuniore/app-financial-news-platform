@@ -39,7 +39,13 @@
     "login": "Iniciar sesión",
     "language": "Idioma",
     "darkMode": "Modo oscuro",
-    "lightMode": "Modo claro"
+    "lightMode": "Modo claro",
+    "theme": "Tema",
+    "chat": "Chat",
+    "notifications": "Notificaciones",
+    "quickInfo": "Información Rápida",
+    "memberSince": "Miembro desde",
+    "lastLogin": "Último acceso"
   },
   "auth": {
     "welcomeBack": "¡Bienvenido de nuevo!",

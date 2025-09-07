@@ -29,10 +29,12 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <ChatLayout 
-      initialArticleId={articleId}
-      onClose={handleClose}
-    />
+    <div className="h-full">
+      <ChatLayout 
+        initialArticleId={articleId}
+        onClose={handleClose}
+      />
+    </div>
   );
 };
 

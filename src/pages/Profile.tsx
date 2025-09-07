@@ -2,7 +2,6 @@ import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/Layout/Navbar';
 import { 
   User, 
   Mail, 
@@ -59,7 +58,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Navbar />
+      
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Profile Header */}

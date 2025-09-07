@@ -18,6 +18,7 @@ import Profile from './pages/Profile';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
+import PrivateRouteWithLayout from './components/PrivateRouteWithLayout';
 import InterestsSetup from './components/Onboarding/InterestsSetup';
 
 const queryClient = new QueryClient({
@@ -50,73 +51,73 @@ function App() {
                 <Route 
                   path="/dashboard" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Dashboard />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/feed" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Feed />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/article/:articleId" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <ArticleDetail />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/saved" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Saved />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/settings" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Settings />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/profile" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Profile />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/search" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Search />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/chat" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Chat />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
                 <Route 
                   path="/chat/:articleId" 
                   element={
-                    <PrivateRoute>
+                    <PrivateRouteWithLayout>
                       <Chat />
-                    </PrivateRoute>
+                    </PrivateRouteWithLayout>
                   } 
                 />
               </Routes>

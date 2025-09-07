@@ -18,7 +18,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [selectedArticleId, setSelectedArticleId] = useState<string | null>(initialArticleId || null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 768);
 
   // Obtener historial de chats
   const { data: chatHistory = [], isLoading: isLoadingHistory, refetch: refetchHistory } = useQuery({
@@ -71,23 +71,40 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-50 dark:bg-gray-900 flex z-50">
+    <div className="h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+      
       {/* Sidebar - Chat History */}
-      <div className={`${isSidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}>
+      <div className={`${isSidebarOpen ? 'w-full sm:w-80' : 'w-0'} md:relative fixed left-0 top-0 h-full z-50 md:z-auto transition-all duration-300 overflow-hidden bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col`}>
         {/* Header del Sidebar */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5 text-indigo-600" />
-              Historial de Chats
+        <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+              <MessageCircle className="w-4 sm:w-5 h-4 sm:h-5 text-indigo-600" />
+              <span className="hidden sm:inline">Historial de Chats</span>
+              <span className="sm:hidden">Chats</span>
             </h2>
-            <button
-              onClick={handleNewChat}
-              className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-              title="Nuevo Chat"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="md:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <button
+                onClick={handleNewChat}
+                className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                title="Nuevo Chat"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           
           {/* Búsqueda */}
@@ -98,7 +115,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar chats..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
@@ -126,7 +143,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
                 <button
                   key={chat.id || chat.sessionId || `${chat.userId}_${chat.articleId}`}
                   onClick={() => handleChatSelect(chat)}
-                  className={`w-full text-left p-3 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${
+                  className={`w-full text-left p-2 sm:p-3 rounded-lg transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 ${
                     selectedChatId === chat.id || selectedArticleId === chat.articleId
                       ? 'bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-700'
                       : 'border border-transparent'
@@ -183,19 +200,20 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header del Chat Principal */}
-        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 sm:p-4 flex items-center justify-between">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <Menu className="w-5 h-5" />
+              <Menu className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
-            <div className="flex items-center gap-2">
-              <Bot className="w-6 h-6 text-indigo-600" />
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Bot className="w-5 sm:w-6 h-5 sm:h-6 text-indigo-600" />
               <div>
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Asistente de IA Financiero
+                <h1 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <span className="hidden sm:inline">Asistente de IA Financiero</span>
+                  <span className="sm:hidden">IA Chat</span>
                 </h1>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   {selectedArticleId ? 'Análisis en contexto' : 'Selecciona un artículo para comenzar'}
@@ -206,9 +224,9 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
           {onClose && (
             <button
               onClick={onClose}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-1.5 sm:p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 sm:w-5 h-4 sm:h-5" />
             </button>
           )}
         </div>

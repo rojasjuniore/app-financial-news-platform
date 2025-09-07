@@ -39,7 +39,13 @@
     "login": "Login",
     "language": "Language",
     "darkMode": "Dark mode",
-    "lightMode": "Light mode"
+    "lightMode": "Light mode",
+    "theme": "Theme",
+    "chat": "Chat",
+    "notifications": "Notifications",
+    "quickInfo": "Quick Info",
+    "memberSince": "Member Since",
+    "lastLogin": "Last Login"
   },
   "auth": {
     "welcomeBack": "Welcome back!",

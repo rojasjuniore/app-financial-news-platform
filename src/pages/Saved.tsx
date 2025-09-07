@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import Navbar from '../components/Layout/Navbar';
 import { feedService } from '../services/feedService';
 import { FirestoreTimestamp } from '../types';
 import { 
@@ -123,7 +122,6 @@ const Saved: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
             <Loader className="animate-spin w-10 h-10 text-blue-600 mx-auto mb-3" />
@@ -137,7 +135,6 @@ const Saved: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Navbar />
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center">
             <p className="text-red-600">Error cargando artículos guardados</p>
@@ -149,9 +146,7 @@ const Saved: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="mb-8">
           <Link
