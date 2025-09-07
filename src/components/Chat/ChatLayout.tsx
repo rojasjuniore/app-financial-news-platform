@@ -5,6 +5,7 @@ import ChatWidget from './ChatWidget';
 import { MessageCircle, Plus, Search, Clock, Bot, User, X, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ChatSession } from '../../types';
+import '../../styles/chat.css';
 
 
 interface ChatLayoutProps {
@@ -213,7 +214,7 @@ const ChatLayout: React.FC<ChatLayoutProps> = ({ initialArticleId, onClose }) =>
         </div>
 
         {/* Chat Content */}
-        <div className="flex-1">
+        <div className="flex-1" style={{ minHeight: 0, overflow: 'hidden' }}>
           {selectedArticleId ? (
             <ChatWidget 
               articleId={selectedArticleId} 

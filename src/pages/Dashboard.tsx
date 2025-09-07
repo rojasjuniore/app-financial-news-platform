@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import Navbar from '../components/Layout/Navbar';
 import MarketCard from '../components/MarketOverview/MarketCard';
 import { MarketEventsPage } from '../components/MarketEvents';
+import TradingViewTickerWidget from '../components/TradingWidget/TradingViewTickerWidget';
 import {
   TrendingUp,
   DollarSign,
@@ -33,68 +34,25 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Simulated market data
-const marketIndices = [
-  {
-    symbol: 'S&P 500',
-    name: 'Standard & Poor\'s',
-    price: 4783.45,
-    change: 23.45,
-    changePercent: 0.49,
-    volume: '3.2B',
-    high: 4798.23,
-    low: 4756.12,
-    marketCap: '42.3T',
-    pe: 21.4,
-    sparkline: [4760, 4765, 4770, 4765, 4775, 4780, 4778, 4783],
-  },
-  {
-    symbol: 'NASDAQ',
-    name: 'Nasdaq Composite',
-    price: 15123.68,
-    change: -45.23,
-    changePercent: -0.30,
-    volume: '4.1B',
-    high: 15234.56,
-    low: 15098.34,
-    sparkline: [15180, 15160, 15140, 15150, 15130, 15125, 15120, 15123],
-  },
-  {
-    symbol: 'DOW',
-    name: 'Dow Jones',
-    price: 37863.80,
-    change: 125.69,
-    changePercent: 0.33,
-    volume: '2.8B',
-    high: 37925.43,
-    low: 37756.21,
-    sparkline: [37800, 37820, 37810, 37830, 37840, 37850, 37860, 37863],
-  },
-  {
-    symbol: 'EUR/USD',
-    name: 'Euro/Dólar',
-    price: 1.0875,
-    change: 0.0023,
-    changePercent: 0.21,
-    volume: '98.3M',
-    high: 1.0892,
-    low: 1.0854,
-    sparkline: [1.0860, 1.0865, 1.0870, 1.0868, 1.0872, 1.0874, 1.0873, 1.0875],
-  },
-];
+// NO MOCK DATA - All market data must come from real APIs
 
+// TypeScript interfaces
+interface DashboardStatistics {
+  newsAggregated: string;
+  newsAnalyzed: string;
+  qualityScore: string;
+  lastUpdate: string;
+}
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [marketData, setMarketData] = useState(marketIndices);
-  const [isLoadingMarketData, setIsLoadingMarketData] = useState(false);
-  const [statistics, setStatistics] = useState({
-    newsAggregated: '15,247',
-    newsAnalyzed: '12,891',
-    qualityScore: '92.4%',
-    lastUpdate: new Date().toLocaleTimeString()
+  const [statistics, setStatistics] = useState<DashboardStatistics>({
+    newsAggregated: '0',
+    newsAnalyzed: '0',
+    qualityScore: '0%',
+    lastUpdate: 'Loading...'
   });
   const [showMarketEvents, setShowMarketEvents] = useState(false);
 
@@ -120,49 +78,23 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Fetch real market data from API
-  const fetchMarketData = async () => {
-    try {
-      setIsLoadingMarketData(true);
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/dashboard/market-data`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.markets && data.markets.length > 0) {
-          setMarketData(data.markets);
-          console.log('✅ Updated with real market data:', data.markets.length, 'indices');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching market data:', error);
-    } finally {
-      setIsLoadingMarketData(false);
-    }
-  };
 
-  // Load statistics and market data on mount and set up real-time updates
+  // Load statistics on mount and set up real-time updates
   useEffect(() => {
     fetchStatistics();
-    fetchMarketData();
     
     // Update statistics every 30 seconds
     const statsInterval = setInterval(fetchStatistics, 30000);
     
-    // Update market data every 2 minutes
-    const marketInterval = setInterval(fetchMarketData, 120000);
-    
     return () => {
       clearInterval(statsInterval);
-      clearInterval(marketInterval);
     };
   }, [t]);
-
-  // Note: Real-time market data updates are now handled by fetchMarketData() every 2 minutes
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await Promise.all([
       fetchStatistics(),
-      fetchMarketData(),
       new Promise(resolve => setTimeout(resolve, 1500))
     ]);
     toast.success(t('dashboard.updated', { fallback: 'Datos actualizados' }));
@@ -301,36 +233,85 @@ const Dashboard: React.FC = () => {
           ))}
         </motion.div>
 
-        {/* Market Indices */}
+        {/* TradingView Ticker Tape Widget */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              Índices del Mercado
-              {isLoadingMarketData && (
-                <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-              )}
-            </h2>
-            <button className="text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
-              {t('common.viewMore', { fallback: 'Ver todos' })}
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-          
-          <div className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4' : 'grid-cols-1'}`}>
-            {marketData.map((index, i) => (
-              <MarketCard
-                key={i}
-                data={index}
-                variant={viewMode === 'list' ? 'detailed' : 'compact'}
-                onClick={() => toast.success(`Ver detalles de ${index.symbol}`)}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg">
+                  <Globe className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Índices del Mercado
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Datos en tiempo real por TradingView
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <TradingViewTickerWidget
+                symbols={[
+                  {
+                    "proName": "FOREXCOM:SPXUSD",
+                    "title": "S&P 500 Index"
+                  },
+                  {
+                    "proName": "FOREXCOM:NSXUSD",
+                    "title": "US 100 Cash CFD"
+                  },
+                  {
+                    "proName": "FOREXCOM:DJI",
+                    "title": "Dow Jones"
+                  },
+                  {
+                    "proName": "FX_IDC:EURUSD",
+                    "title": "EUR to USD"
+                  },
+                  {
+                    "proName": "NASDAQ:AAPL",
+                    "title": "Apple"
+                  },
+                  {
+                    "proName": "NASDAQ:GOOGL",
+                    "title": "Alphabet"
+                  },
+                  {
+                    "proName": "NASDAQ:TSLA",
+                    "title": "Tesla"
+                  },
+                  {
+                    "proName": "NASDAQ:AMZN",
+                    "title": "Amazon"
+                  },
+                  {
+                    "proName": "NASDAQ:MSFT",
+                    "title": "Microsoft"
+                  },
+                  {
+                    "proName": "BITSTAMP:BTCUSD",
+                    "title": "Bitcoin"
+                  },
+                  {
+                    "proName": "BITSTAMP:ETHUSD",
+                    "title": "Ethereum"
+                  }
+                ]}
+                colorTheme="light"
+                locale="es"
+                isTransparent={false}
+                showSymbolLogo={true}
+                displayMode="adaptive"
               />
-            ))}
+            </div>
           </div>
         </motion.div>
 
@@ -363,23 +344,23 @@ const Dashboard: React.FC = () => {
               {[
                 {
                   icon: Users,
-                  value: '10,000+',
-                  label: t('common.locale') === 'es-ES' ? 'Usuarios Activos' : 'Active Users'
+                  value: statistics.newsAggregated,
+                  label: t('common.locale') === 'es-ES' ? 'Artículos Agregados' : 'Articles Aggregated'
                 },
                 {
                   icon: Newspaper,
-                  value: '50,000+',
-                  label: t('common.locale') === 'es-ES' ? 'Artículos Diarios' : 'Daily Articles'
+                  value: statistics.newsAnalyzed,
+                  label: t('common.locale') === 'es-ES' ? 'Analizados por IA' : 'AI Analyzed'
                 },
                 {
                   icon: Clock,
-                  value: '< 1s',
-                  label: t('common.locale') === 'es-ES' ? 'Tiempo de Carga' : 'Load Time'
+                  value: statistics.lastUpdate,
+                  label: t('common.locale') === 'es-ES' ? 'Última Actualización' : 'Last Update'
                 },
                 {
                   icon: Shield,
-                  value: '99.9%',
-                  label: t('common.locale') === 'es-ES' ? 'Disponibilidad' : 'Uptime'
+                  value: statistics.qualityScore,
+                  label: t('common.locale') === 'es-ES' ? 'Puntuación de Calidad' : 'Quality Score'
                 }
               ].map((indicator, index) => (
                 <motion.div

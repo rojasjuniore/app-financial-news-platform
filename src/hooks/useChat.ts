@@ -35,6 +35,12 @@ export const useChat = (articleId: string) => {
         findings: response.findings
       };
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Forzar scroll después de recibir respuesta
+      setTimeout(() => {
+        const element = document.querySelector('[data-messages-end]');
+        element?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 200);
     },
     onError: (error) => {
       // Remover último mensaje en caso de error
