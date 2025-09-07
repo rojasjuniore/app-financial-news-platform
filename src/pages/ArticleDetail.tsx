@@ -16,7 +16,9 @@ const ArticleDetail: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const [selectedAI, setSelectedAI] = useState<'openai' | 'claude' | 'gemini' | 'grok'>('openai');
+  // Get default LLM model from user preferences (stored in localStorage for now)
+  const defaultLLM = localStorage.getItem('userDefaultLLM') || 'openai';
+  const [selectedAI, setSelectedAI] = useState<'openai' | 'claude' | 'gemini' | 'grok'>(defaultLLM as any);
   const [showAnalysisGenerator, setShowAnalysisGenerator] = useState(false);
   const [showMobileChat, setShowMobileChat] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState(true);
@@ -51,9 +53,13 @@ const ArticleDetail: React.FC = () => {
       // Trackear vista
       feedService.trackInteraction(articleId, 'view');
       
-      // 🤖 Verificar si necesita generar análisis automáticamente
+      // 🤖 Auto-generar análisis si no existe (usando modelo por defecto del usuario)
       if (!article.llm_analysis) {
-        setShowAnalysisGenerator(true);
+        // Auto-generate analysis with user's default model
+        generateAnalysisMutation.mutate({ 
+          aiModel: selectedAI, 
+          forceRegenerate: false 
+        });
       }
     }
   }, [article, articleId]);
@@ -230,8 +236,34 @@ const ArticleDetail: React.FC = () => {
                 )}
               </div>
 
-              {/* 🤖 GENERADOR DE ANÁLISIS CON IA */}
-              {showAnalysisGenerator && !article.llm_analysis && (
+              {/* 🤖 INDICADOR DE GENERACIÓN AUTOMÁTICA */}
+              {generateAnalysisMutation.isPending && !article.llm_analysis && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8 transition-colors">
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-500/20 rounded-xl p-4 sm:p-6 transition-colors animate-pulse">
+                    <div className="flex items-center justify-center">
+                      <Loader className="w-6 h-6 animate-spin text-indigo-600 dark:text-indigo-400 mr-3" />
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {t('analysis.generatingAutomatically')}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {t('analysis.usingModel')} {aiModels.find(m => m.id === selectedAI)?.name}...
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex justify-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                        <div className="w-2 h-2 bg-indigo-600 dark:bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 🤖 GENERADOR DE ANÁLISIS CON IA (Manual) */}
+              {showAnalysisGenerator && !article.llm_analysis && !generateAnalysisMutation.isPending && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8 transition-colors">
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 sm:p-6 transition-colors">
                     <div className="flex items-center mb-3 sm:mb-4">

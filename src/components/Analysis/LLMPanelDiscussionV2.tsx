@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { 
   Users, Brain, RefreshCw, ChevronDown, ChevronUp, Loader, 
   TrendingUp, Target, Shield, Clock, BarChart, CheckCircle,
-  AlertTriangle, Info, ChevronRight, Zap
+  Info, ChevronRight, Zap
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
-import { panelDiscussionService, LLMOpinion as ServiceLLMOpinion } from '../../services/panelDiscussionService';
+import { panelDiscussionService } from '../../services/panelDiscussionService';
 import toast from 'react-hot-toast';
 
 interface LLMOpinion {

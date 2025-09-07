@@ -59,7 +59,10 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
     description: t(model.descriptionKey)
   }));
   
-  const [selectedModel, setSelectedModel] = useState(LLM_MODELS[0]); // Por defecto GPT-4
+  // Get default model from localStorage
+  const defaultModelId = localStorage.getItem('userDefaultLLM') || 'openai';
+  const defaultModel = LLM_MODELS.find(m => m.id === defaultModelId) || LLM_MODELS[0];
+  const [selectedModel, setSelectedModel] = useState(defaultModel);
   
   const {
     messages,
@@ -75,6 +78,20 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ articleId, integrated = false }
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Listen for changes in default model preference
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newDefaultModelId = localStorage.getItem('userDefaultLLM') || 'openai';
+      const newDefaultModel = LLM_MODELS.find(m => m.id === newDefaultModelId);
+      if (newDefaultModel && newDefaultModel.id !== selectedModel.id) {
+        setSelectedModel(newDefaultModel);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [selectedModel, LLM_MODELS]);
 
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
