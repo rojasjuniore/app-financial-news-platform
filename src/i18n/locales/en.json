@@ -151,6 +151,37 @@
         "name": "X.AI Grok",
         "description": "Direct and unique perspective"
       }
+    },
+    "panel": {
+      "title": "AI Expert Panel",
+      "subtitle": "GPT-4, Claude, Gemini and Grok analyze collaboratively",
+      "premiumBadge": "PREMIUM ANALYSIS",
+      "multiLLM": "Multi-LLM",
+      "startAnalysis": "Start Analysis",
+      "analyzing": "Analyzing...",
+      "executiveSummary": "Executive Summary",
+      "recommendation": "Recommendation",
+      "confidence": "Confidence",
+      "timeframe": "Timeframe",
+      "risk": "Risk",
+      "consensus": "Consensus",
+      "analysisCount": "Analysis",
+      "insights": "Insights",
+      "uniqueInsights": "Unique insights",
+      "waitingTurn": "Waiting turn...",
+      "panelCompleted": "Panel discussion completed",
+      "roles": {
+        "mainAnalyst": "Main Analyst",
+        "criticalReviewer": "Critical Reviewer",
+        "dataAnalyst": "Data Analyst",
+        "synthesizer": "Synthesizer"
+      },
+      "expertise": {
+        "technicalFundamental": "Technical and fundamental analysis",
+        "riskEvaluation": "Risk evaluation",
+        "metricsPatterns": "Metrics and patterns",
+        "finalConsensus": "Final consensus"
+      }
     }
   },
   "chat": {

@@ -37,7 +37,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   tickers,
   existingAnalysis
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [discussion, setDiscussion] = useState<LLMOpinion[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSpeaker, setCurrentSpeaker] = useState<string | null>(null);
@@ -45,6 +45,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   const [finalSynthesis, setFinalSynthesis] = useState<any>(null);
   const [expandedExpert, setExpandedExpert] = useState<string | null>(null);
   const [showFullPanel, setShowFullPanel] = useState(false);
+  const [lastGeneratedLanguage, setLastGeneratedLanguage] = useState<string | null>(null);
 
   const llmExperts = [
     {
@@ -54,8 +55,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       color: 'from-green-500 to-emerald-600',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
       borderColor: 'border-green-200 dark:border-green-800',
-      role: 'Analista Principal',
-      expertise: 'Análisis técnico y fundamental'
+      role: t('analysis.panel.roles.mainAnalyst'),
+      expertise: t('analysis.panel.expertise.technicalFundamental')
     },
     {
       id: 'claude',
@@ -64,8 +65,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       color: 'from-purple-500 to-violet-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
       borderColor: 'border-purple-200 dark:border-purple-800',
-      role: 'Revisor Crítico',
-      expertise: 'Evaluación de riesgos'
+      role: t('analysis.panel.roles.criticalReviewer'),
+      expertise: t('analysis.panel.expertise.riskEvaluation')
     },
     {
       id: 'gemini',
@@ -74,8 +75,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       color: 'from-blue-500 to-cyan-600',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
       borderColor: 'border-blue-200 dark:border-blue-800',
-      role: 'Analista de Datos',
-      expertise: 'Métricas y patrones'
+      role: t('analysis.panel.roles.dataAnalyst'),
+      expertise: t('analysis.panel.expertise.metricsPatterns')
     },
     {
       id: 'grok',
@@ -84,8 +85,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       color: 'from-orange-500 to-amber-600',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',
       borderColor: 'border-orange-200 dark:border-orange-800',
-      role: 'Sintetizador',
-      expertise: 'Consenso final'
+      role: t('analysis.panel.roles.synthesizer'),
+      expertise: t('analysis.panel.expertise.finalConsensus')
     }
   ];
 
@@ -95,6 +96,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
     setConsensusReached(false);
     setCurrentSpeaker('loading');
     setShowFullPanel(true);
+    setLastGeneratedLanguage(i18n.language);
 
     try {
       const response = await panelDiscussionService.generatePanelDiscussion(articleId, regenerate);
@@ -134,7 +136,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
         }
       }
       
-      toast.success('✨ Panel de discusión completado');
+      toast.success(`✨ ${t('analysis.panel.panelCompleted')}`);
     } catch (error: any) {
       console.error('Error en panel de discusión:', error);
       toast.error(error.message || 'Error generando panel de discusión');
@@ -189,7 +191,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
         <div className="absolute -top-3 left-4 z-10">
           <span className="px-3 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold rounded-full shadow-lg flex items-center gap-1">
             <Zap className="w-3 h-3" />
-            ANÁLISIS PREMIUM
+            {t('analysis.panel.premiumBadge')}
           </span>
         </div>
         
@@ -202,13 +204,13 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    Panel de Expertos IA
+                    {t('analysis.panel.title')}
                     <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-                      Multi-LLM
+                      {t('analysis.panel.multiLLM')}
                     </span>
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    GPT-4, Claude, Gemini y Grok analizan colaborativamente
+                    {t('analysis.panel.subtitle')}
                   </p>
                 </div>
               </div>
@@ -220,21 +222,32 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                   className="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 flex items-center gap-2 text-sm font-medium"
                 >
                   <Brain className="w-4 h-4" />
-                  Iniciar Análisis
+                  {t('analysis.panel.startAnalysis')}
                 </button>
               )}
               
               {!isGenerating && discussion.length > 0 && (
                 <>
+                  {/* Language mismatch indicator */}
+                  {lastGeneratedLanguage && lastGeneratedLanguage !== i18n.language && (
+                    <div className="flex items-center gap-2 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                      <Info className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />
+                      <span className="text-xs text-yellow-700 dark:text-yellow-300">
+                        {i18n.language === 'es' ? 'Análisis en inglés' : 'Analysis in Spanish'}
+                      </span>
+                    </div>
+                  )}
                   <button
                     onClick={() => setShowFullPanel(!showFullPanel)}
                     className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    title={showFullPanel ? t('common.collapse') : t('common.expand')}
                   >
                     {showFullPanel ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   <button
                     onClick={() => startPanelDiscussion(true)}
                     className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    title={t('analysis.regenerate')}
                   >
                     <RefreshCw className="w-4 h-4" />
                   </button>
@@ -245,7 +258,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
                   <Loader className="w-4 h-4 animate-spin text-purple-600" />
                   <span className="text-sm text-purple-700 dark:text-purple-300">
-                    Analizando...
+                    {t('analysis.panel.analyzing')}
                   </span>
                 </div>
               )}
@@ -293,7 +306,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
               </div>
               <div className="flex-1">
                 <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
-                  Resumen Ejecutivo
+                  {t('analysis.panel.executiveSummary')}
                 </h3>
                 
                 {/* Métricas principales en grid */}
@@ -301,7 +314,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
                     <div className="flex items-center gap-1 mb-1">
                       <TrendingUp className="w-3 h-3 text-gray-500" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Recomendación</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.recommendation')}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                       {finalSynthesis.recommendation || 'HOLD'}
@@ -311,7 +324,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
                     <div className="flex items-center gap-1 mb-1">
                       <BarChart className="w-3 h-3 text-gray-500" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Confianza</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.confidence')}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                       {finalSynthesis.confidence || metrics?.consensusLevel || 70}%
@@ -321,7 +334,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
                     <div className="flex items-center gap-1 mb-1">
                       <Clock className="w-3 h-3 text-gray-500" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Horizonte</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.timeframe')}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                       {finalSynthesis.timeframe || '3-6 meses'}
@@ -331,7 +344,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
                     <div className="flex items-center gap-1 mb-1">
                       <Shield className="w-3 h-3 text-gray-500" />
-                      <span className="text-xs text-gray-600 dark:text-gray-400">Riesgo</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.risk')}</span>
                     </div>
                     <span className="text-sm font-bold text-gray-900 dark:text-white">
                       {finalSynthesis.riskLevel || 'Medio'}
@@ -366,19 +379,19 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {metrics.consensusLevel}%
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Consenso</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.consensus')}</div>
               </div>
               <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-2 text-center">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                   {discussion.length}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Análisis</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.analysisCount')}</div>
               </div>
               <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-2 text-center">
                 <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {metrics.totalInsights}
                 </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">Insights</div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">{t('analysis.panel.insights')}</div>
               </div>
             </div>
           )}
@@ -484,7 +497,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                           <div className="flex items-center gap-2 mb-1">
                             <Zap className="w-3 h-3 text-blue-600" />
                             <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                              Insights únicos
+                              {t('analysis.panel.uniqueInsights')}
                             </span>
                           </div>
                           <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-0.5">
@@ -527,7 +540,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                       {expert.name}
                     </div>
                     <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {isSpeaking ? 'Analizando...' : 'Esperando turno...'}
+                      {isSpeaking ? t('analysis.panel.analyzing') : t('analysis.panel.waitingTurn')}
                     </div>
                   </div>
                   {isSpeaking && (

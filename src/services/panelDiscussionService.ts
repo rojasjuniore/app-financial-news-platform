@@ -39,9 +39,12 @@ class PanelDiscussionService {
     try {
       console.log(`🎭 Solicitando panel de discusión para artículo: ${articleId}`);
       
+      // Get current language from localStorage or default to 'en'
+      const language = localStorage.getItem('i18nextLng') || 'en';
+      
       const response = await apiClient.post<PanelDiscussionResponse>(
         `/api/panel-discussion/${articleId}`,
-        { regenerate }
+        { regenerate, language }
       );
       
       console.log(`✅ Panel de discusión recibido:`, response.data);
@@ -61,7 +64,10 @@ class PanelDiscussionService {
    */
   formatTimestamp(timestamp: string): string {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString('es-ES', {
+    const language = localStorage.getItem('i18nextLng') || 'en';
+    const locale = language === 'es' ? 'es-ES' : 'en-US';
+    
+    return date.toLocaleTimeString(locale, {
       hour: '2-digit',
       minute: '2-digit',
       second: '2-digit'
