@@ -5,8 +5,9 @@ import { useTranslation } from 'react-i18next';
 import apiClient from '../services/api';
 import ChatWidget from '../components/Chat/ChatWidget';
 import Navbar from '../components/Layout/Navbar';
-import PolygonDataCard from '../components/Analysis/PolygonDataCard';
-import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, RefreshCw, MessageCircle, X } from 'lucide-react';
+import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
+import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
+import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, RefreshCw, MessageCircle, X, Users } from 'lucide-react';
 import { Article, FirestoreTimestamp } from '../types';
 import { feedService } from '../services/feedService';
 import toast from 'react-hot-toast';
@@ -295,10 +296,20 @@ const ArticleDetail: React.FC = () => {
                 </div>
               )}
 
+              {/* Panel de Expertos IA - Sección Premium Separada */}
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mt-8">
+                <LLMPanelDiscussionV2
+                  articleId={articleId!}
+                  articleTitle={article.title}
+                  tickers={article.tickers}
+                  existingAnalysis={article.llm_analysis}
+                />
+              </div>
+
               {/* Datos en tiempo real de Polygon.io */}
               {article.llm_analysis?.polygon_data && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8">
-                  <PolygonDataCard 
+                  <PolygonDataCardFixed 
                     polygonData={article.llm_analysis.polygon_data}
                     ticker={article.tickers?.[0]}
                   />
@@ -317,6 +328,7 @@ const ArticleDetail: React.FC = () => {
                         <span className="px-2 sm:px-3 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium transition-colors">
                           {t('analysis.generatedWith')} {article.llm_analysis.model_used.toUpperCase()}
                         </span>
+                        
                         <button
                           onClick={() => handleGenerateAnalysis(true)}
                           disabled={generateAnalysisMutation.isPending}
@@ -377,6 +389,7 @@ const ArticleDetail: React.FC = () => {
                       </div>
                     </div>
                   )}
+
 
                   {/* Análisis de Sentimiento */}
                   {article.llm_analysis.sentiment_analysis && (

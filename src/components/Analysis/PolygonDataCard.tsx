@@ -37,7 +37,16 @@ interface PolygonDataCardProps {
 }
 
 const PolygonDataCard: React.FC<PolygonDataCardProps> = ({ polygonData, ticker }) => {
-  const isPositive = polygonData.price.change >= 0;
+  // Ensure numeric values
+  const changePercent = typeof polygonData.price.changePercent === 'string' 
+    ? parseFloat(polygonData.price.changePercent) 
+    : (polygonData.price.changePercent || 0);
+  
+  const change = typeof polygonData.price.change === 'string'
+    ? parseFloat(polygonData.price.change)
+    : (polygonData.price.change || 0);
+    
+  const isPositive = change >= 0;
   const rsiValue = parseFloat(polygonData.technicals.rsi || '50');
   
   const getRSIColor = (rsi: number) => {
@@ -100,14 +109,14 @@ const PolygonDataCard: React.FC<PolygonDataCardProps> = ({ polygonData, ticker }
                   <TrendingDown className="w-4 h-4 text-red-600" />
                 )}
                 <span className={`text-sm font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                  {isPositive ? '+' : ''}{polygonData.price.changePercent.toFixed(2)}%
+                  {isPositive ? '+' : ''}{changePercent.toFixed(2)}%
                 </span>
               </div>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600 dark:text-gray-400">Change ($)</span>
               <span className={`text-sm font-semibold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                {isPositive ? '+' : ''}${polygonData.price.change.toFixed(2)}
+                {isPositive ? '+' : ''}${change.toFixed(2)}
               </span>
             </div>
           </div>
