@@ -1,0 +1,402 @@
+/* Accessibility styles for WCAG 2.1 AA compliance */
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.sr-only:focus,
+.sr-only:active {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: initial !important;
+  margin: initial !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* Skip navigation links */
+.skip-links {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+}
+
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 8px;
+  background: #000;
+  color: #fff;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 0 0 8px 8px;
+  font-weight: 600;
+  font-size: 14px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Focus management */
+.focus-visible {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  * {
+    border-color: ButtonText !important;
+  }
+  
+  .focus-visible {
+    outline: 3px solid Highlight !important;
+    outline-offset: 2px !important;
+    box-shadow: none !important;
+  }
+  
+  /* Buttons */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"] {
+    background: ButtonFace !important;
+    color: ButtonText !important;
+    border: 2px solid ButtonText !important;
+  }
+  
+  button:hover,
+  [role="button"]:hover,
+  input[type="button"]:hover,
+  input[type="submit"]:hover,
+  input[type="reset"]:hover {
+    background: Highlight !important;
+    color: HighlightText !important;
+  }
+  
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  input[type="button"]:disabled,
+  input[type="submit"]:disabled,
+  input[type="reset"]:disabled {
+    background: GrayText !important;
+    color: ButtonFace !important;
+    border-color: GrayText !important;
+  }
+  
+  /* Links */
+  a {
+    color: LinkText !important;
+  }
+  
+  a:visited {
+    color: VisitedText !important;
+  }
+  
+  a:hover {
+    background: Highlight !important;
+    color: HighlightText !important;
+  }
+  
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    background: Field !important;
+    color: FieldText !important;
+    border: 2px solid ButtonText !important;
+  }
+  
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 3px solid Highlight !important;
+    outline-offset: 1px !important;
+  }
+  
+  /* Cards and containers */
+  .bg-white,
+  .bg-gray-50,
+  .bg-gray-100 {
+    background: Canvas !important;
+    color: CanvasText !important;
+    border: 1px solid ButtonText !important;
+  }
+  
+  /* Status and alerts */
+  [role="alert"],
+  .text-red-600,
+  .text-red-700 {
+    color: #ff0000 !important;
+    font-weight: bold !important;
+  }
+  
+  .text-green-600,
+  .text-green-700 {
+    color: #008000 !important;
+    font-weight: bold !important;
+  }
+  
+  /* Images and icons */
+  img {
+    border: 1px solid ButtonText !important;
+  }
+  
+  [aria-hidden="true"] {
+    opacity: 0.8;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Text scaling support - ensure readability at 200% zoom */
+@media (min-resolution: 2dppx) {
+  body {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+  }
+  
+  .text-xs { font-size: 0.75rem !important; }
+  .text-sm { font-size: 0.875rem !important; }
+  .text-base { font-size: 1rem !important; }
+  .text-lg { font-size: 1.125rem !important; }
+  .text-xl { font-size: 1.25rem !important; }
+  
+  /* Ensure touch targets are at least 44px */
+  button,
+  a,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Color blind friendly colors */
+:root {
+  --color-error: #dc2626;
+  --color-warning: #f59e0b;
+  --color-success: #059669;
+  --color-info: #2563eb;
+  
+  /* High contrast alternatives */
+  --color-error-high: #b91c1c;
+  --color-warning-high: #d97706;
+  --color-success-high: #047857;
+  --color-info-high: #1d4ed8;
+}
+
+/* Focus trap for modals */
+.focus-trap {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.focus-trap-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-height: 90vh;
+  overflow-y: auto;
+  outline: none;
+}
+
+/* Loading states with proper announcements */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* ARIA live regions */
+[aria-live] {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+[aria-live]:not(:empty) {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+}
+
+/* Custom form validation styles */
+.form-field-error {
+  border-color: var(--color-error) !important;
+  background-color: rgba(220, 38, 38, 0.05) !important;
+}
+
+.form-field-success {
+  border-color: var(--color-success) !important;
+  background-color: rgba(5, 150, 105, 0.05) !important;
+}
+
+/* Keyboard navigation improvements */
+.keyboard-nav button:focus,
+.keyboard-nav a:focus,
+.keyboard-nav input:focus,
+.keyboard-nav select:focus,
+.keyboard-nav textarea:focus,
+.keyboard-nav [tabindex]:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+/* Menu navigation */
+[role="menu"] {
+  outline: none;
+}
+
+[role="menuitem"]:focus,
+[role="menuitem"][aria-selected="true"] {
+  background-color: #3b82f6;
+  color: white;
+  outline: none;
+}
+
+/* Tab navigation */
+[role="tablist"] {
+  display: flex;
+}
+
+[role="tab"] {
+  cursor: pointer;
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+}
+
+[role="tab"]:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+[role="tab"][aria-selected="true"] {
+  background: white;
+  border-bottom-color: white;
+  font-weight: 600;
+}
+
+[role="tabpanel"] {
+  padding: 16px;
+  border: 1px solid #d1d5db;
+  border-top: none;
+}
+
+[role="tabpanel"][hidden] {
+  display: none;
+}
+
+/* Status indicators */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-success {
+  color: var(--color-success);
+}
+
+.status-error {
+  color: var(--color-error);
+}
+
+.status-warning {
+  color: var(--color-warning);
+}
+
+.status-info {
+  color: var(--color-info);
+}
+
+/* Dark mode accessibility improvements */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-error: #f87171;
+    --color-warning: #fbbf24;
+    --color-success: #34d399;
+    --color-info: #60a5fa;
+  }
+}
+
+/* Print styles for accessibility */
+@media print {
+  .skip-links,
+  button:not(.print-button),
+  [role="button"]:not(.print-button),
+  .no-print {
+    display: none !important;
+  }
+  
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  .focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}

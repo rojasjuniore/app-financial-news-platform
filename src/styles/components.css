@@ -1,0 +1,531 @@
+/**
+ * Financial News App - Component Styles
+ * Reusable component classes for consistent UI
+ */
+
+/* ==========================================================================
+   BUTTON COMPONENTS
+   ========================================================================== */
+
+/* Primary Buttons */
+.btn-primary {
+  @apply inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-white rounded-lg;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+/* Secondary Buttons */
+.btn-secondary {
+  @apply inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-secondary:hover {
+  @apply bg-gray-50 border-gray-300 text-gray-900;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Ghost Buttons */
+.btn-ghost {
+  @apply inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-600 bg-transparent rounded-lg;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-ghost:hover {
+  @apply bg-gray-100 text-gray-900;
+}
+
+/* Financial Action Buttons */
+.btn-bullish {
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-green-500 rounded-lg;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-bullish:hover {
+  @apply bg-green-600;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(34, 197, 94, 0.3);
+}
+
+.btn-bearish {
+  @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-red-500 rounded-lg;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-bearish:hover {
+  @apply bg-red-600;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+}
+
+/* Button Sizes */
+.btn-xs {
+  @apply px-2.5 py-1.5 text-xs;
+}
+
+.btn-sm {
+  @apply px-3 py-2 text-xs;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-base;
+}
+
+.btn-xl {
+  @apply px-8 py-4 text-lg;
+}
+
+/* ==========================================================================
+   CARD COMPONENTS
+   ========================================================================== */
+
+/* Base Card */
+.card {
+  @apply bg-white rounded-xl border border-gray-200 overflow-hidden;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 
+              0 4px 8px rgba(0, 0, 0, 0.04), 
+              0 8px 16px rgba(0, 0, 0, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02), 
+              0 8px 16px rgba(0, 0, 0, 0.08), 
+              0 16px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* Card Variants */
+.card-elevated {
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.card-elevated:hover {
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  transform: translateY(-4px);
+}
+
+.card-flat {
+  box-shadow: none;
+  @apply border border-gray-200;
+}
+
+.card-flat:hover {
+  @apply border-gray-300;
+  transform: none;
+}
+
+.card-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  @apply border border-white/50;
+}
+
+/* Financial Cards */
+.card-bullish {
+  @apply border-l-4 border-l-green-500;
+}
+
+.card-bearish {
+  @apply border-l-4 border-l-red-500;
+}
+
+.card-neutral {
+  @apply border-l-4 border-l-gray-300;
+}
+
+/* ==========================================================================
+   BADGE COMPONENTS
+   ========================================================================== */
+
+/* Base Badge */
+.badge {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Financial Badges */
+.badge-bullish {
+  @apply bg-green-50 text-green-700 border-green-200;
+}
+
+.badge-bearish {
+  @apply bg-red-50 text-red-700 border-red-200;
+}
+
+.badge-neutral {
+  @apply bg-gray-50 text-gray-600 border-gray-200;
+}
+
+.badge-warning {
+  @apply bg-amber-50 text-amber-700 border-amber-200;
+}
+
+.badge-primary {
+  @apply bg-blue-50 text-blue-700 border-blue-200;
+}
+
+/* Badge with icons */
+.badge-icon {
+  @apply gap-1;
+}
+
+.badge-icon svg {
+  @apply w-3 h-3;
+}
+
+/* Ticker Badges */
+.ticker-badge {
+  @apply inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ticker-badge:hover {
+  @apply bg-blue-100 text-blue-800;
+}
+
+/* ==========================================================================
+   FORM COMPONENTS
+   ========================================================================== */
+
+/* Modern Input */
+.input-modern {
+  @apply w-full px-4 py-3 text-sm bg-white border-2 border-gray-200 rounded-lg;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-modern:focus {
+  @apply border-blue-500 outline-none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input-modern:disabled {
+  @apply bg-gray-50 text-gray-400 cursor-not-allowed;
+}
+
+/* Input States */
+.input-error {
+  @apply border-red-500;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.input-success {
+  @apply border-green-500;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* Search Input */
+.search-input {
+  @apply relative;
+}
+
+.search-input input {
+  @apply pl-10;
+}
+
+.search-input .search-icon {
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none;
+}
+
+/* ==========================================================================
+   LOADING AND SKELETON COMPONENTS
+   ========================================================================== */
+
+/* Loading Spinner */
+.spinner {
+  @apply inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin;
+}
+
+.spinner-sm {
+  @apply w-3 h-3 border;
+}
+
+.spinner-lg {
+  @apply w-6 h-6 border-4;
+}
+
+/* Skeleton Loaders */
+.skeleton {
+  @apply bg-gray-200 rounded animate-pulse;
+}
+
+.skeleton-text {
+  @apply h-4 bg-gray-200 rounded animate-pulse;
+}
+
+.skeleton-avatar {
+  @apply w-10 h-10 bg-gray-200 rounded-full animate-pulse;
+}
+
+.skeleton-card {
+  @apply bg-white rounded-xl p-6 space-y-4;
+}
+
+.skeleton-card .skeleton-line {
+  @apply h-4 bg-gray-200 rounded animate-pulse;
+}
+
+.skeleton-card .skeleton-line:nth-child(odd) {
+  @apply w-3/4;
+}
+
+.skeleton-card .skeleton-line:nth-child(even) {
+  @apply w-1/2;
+}
+
+/* Shimmer Effect */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ==========================================================================
+   LAYOUT COMPONENTS
+   ========================================================================== */
+
+/* Container */
+.container {
+  @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.container-sm {
+  @apply max-w-3xl;
+}
+
+.container-md {
+  @apply max-w-5xl;
+}
+
+.container-lg {
+  @apply max-w-7xl;
+}
+
+/* Grid Layouts */
+.grid-auto-fit {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.grid-auto-fill {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+/* ==========================================================================
+   UTILITY COMPONENTS
+   ========================================================================== */
+
+/* Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  @apply border border-white/50;
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  @apply border border-gray-700/50;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  @apply font-bold;
+}
+
+.gradient-text-financial {
+  background: linear-gradient(135deg, #22c55e 0%, #dc2626 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  @apply font-semibold;
+}
+
+/* Animated Backgrounds */
+.bg-gradient-animated {
+  background: linear-gradient(270deg, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  background-size: 300% 300%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Focus Styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.focus-ring-inset {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset;
+}
+
+/* ==========================================================================
+   FINANCIAL DATA COMPONENTS
+   ========================================================================== */
+
+/* Price Display */
+.price-display {
+  @apply font-mono text-lg font-semibold tabular-nums;
+}
+
+.price-positive {
+  @apply text-green-600;
+}
+
+.price-negative {
+  @apply text-red-600;
+}
+
+.price-neutral {
+  @apply text-gray-600;
+}
+
+/* Change Indicators */
+.change-indicator {
+  @apply inline-flex items-center gap-1 text-sm font-medium;
+}
+
+.change-indicator.positive {
+  @apply text-green-600;
+}
+
+.change-indicator.negative {
+  @apply text-red-600;
+}
+
+.change-indicator .arrow {
+  @apply w-3 h-3;
+}
+
+/* Market Status */
+.market-status {
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.market-status.open {
+  @apply bg-green-100 text-green-800;
+}
+
+.market-status.closed {
+  @apply bg-red-100 text-red-800;
+}
+
+.market-status.pre-market {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.market-status .dot {
+  @apply w-2 h-2 rounded-full animate-pulse;
+}
+
+.market-status.open .dot {
+  @apply bg-green-500;
+}
+
+.market-status.closed .dot {
+  @apply bg-red-500;
+}
+
+.market-status.pre-market .dot {
+  @apply bg-amber-500;
+}
+
+/* ==========================================================================
+   RESPONSIVE UTILITIES
+   ========================================================================== */
+
+/* Hide/Show on different screen sizes */
+.mobile-only {
+  @apply block sm:hidden;
+}
+
+.tablet-up {
+  @apply hidden sm:block;
+}
+
+.desktop-up {
+  @apply hidden lg:block;
+}
+
+/* ==========================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ========================================================================== */
+
+/* Screen Reader Only */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

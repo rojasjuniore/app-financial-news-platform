@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  # Servicio principal de la aplicación
+  financial-news-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: financial-news-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - financial-news-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.financial-news.rule=Host(`localhost`)"
+      - "traefik.http.services.financial-news.loadbalancer.server.port=3000"
+
+  # Servicio de desarrollo (opcional)
+  financial-news-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: financial-news-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    networks:
+      - financial-news-network
+    profiles:
+      - dev
+
+networks:
+  financial-news-network:
+    driver: bridge
+
+volumes:
+  node_modules:
