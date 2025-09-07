@@ -186,7 +186,9 @@
         "finalConsensus": "Consenso final"
       },
       "realTimeData": "Datos de Mercado en Tiempo Real",
-      "marketDataSubtitle": "Precios en vivo e indicadores técnicos vía Polygon.io"
+      "marketDataSubtitle": "Precios en vivo e indicadores técnicos vía Polygon.io",
+      "upcomingEvents": "Próximos Eventos de Mercado",
+      "economicCalendarSubtitle": "Calendario económico y earnings esta semana"
     }
   },
   "chat": {
