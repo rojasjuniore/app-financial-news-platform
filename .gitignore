@@ -1,0 +1,250 @@
+# ========================================
+# Dependencies
+# ========================================
+node_modules/
+**/node_modules/
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Package manager files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.yarn-integrity
+
+# ========================================
+# Environment Variables
+# ========================================
+.env
+.env.*
+!.env.example
+!.env.template
+*.env
+!*.env.example
+
+# ========================================
+# Build Outputs
+# ========================================
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.parcel-cache/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.webpack/
+
+# Production
+*.production
+
+# ========================================
+# Testing & Coverage
+# ========================================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+jest-results/
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# ========================================
+# IDE & Editors
+# ========================================
+.vscode/
+!.vscode/settings.json.example
+!.vscode/tasks.json.example
+!.vscode/launch.json.example
+!.vscode/extensions.json.example
+*.code-workspace
+.idea/
+*.swp
+*.swo
+*.swn
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ========================================
+# OS Files
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+ehthumbs_vista.db
+Thumbs.db
+desktop.ini
+.directory
+.AppleDouble
+.LSOverride
+Icon
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# ========================================
+# Firebase & Cloud Services
+# ========================================
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+database-debug.log
+firebase-debug.*.log
+firestore.rules
+firestore.indexes.json
+firebase.json
+.firebaserc
+storage.rules
+
+# ========================================
+# Logs & Debug
+# ========================================
+logs/
+*.log
+*.log.*
+debug.log
+error.log
+access.log
+combined.log
+
+# ========================================
+# Runtime Data
+# ========================================
+pids/
+*.pid
+*.seed
+*.pid.lock
+lib-cov
+.grunt
+.lock-wscript
+
+# ========================================
+# Temporary Files
+# ========================================
+tmp/
+temp/
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# ========================================
+# Python (for API)
+# ========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.spyderproject
+.spyproject
+.ropeproject
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+cython_debug/
+
+# ========================================
+# Docker
+# ========================================
+.dockerignore.local
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.prod.yml
+!docker-compose.dev.yml
+
+# ========================================
+# Backup & History
+# ========================================
+*.bak
+*.backup
+*.old
+*.orig
+.history/
+.cache/
+
+# ========================================
+# Security & Secrets
+# ========================================
+*.key
+*.pem
+*.crt
+*.p12
+.secrets/
+secrets.yml
+secrets.json
+config/secrets.yml
+
+# ========================================
+# Package Files
+# ========================================
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ========================================
+# Database
+# ========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+*.db-wal
+
+# ========================================
+# Misc
+# ========================================
+.eslintcache
+.stylelintcache
+.sass-cache/
+connect.lock
+bower_components/
+jspm_packages/
+web_modules/
+.pnp.*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Railway specific (opcional)
+railway.toml
+nixpacks.toml.local
