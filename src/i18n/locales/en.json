@@ -355,7 +355,10 @@
     "unauthorized": "Unauthorized",
     "forbidden": "Access denied",
     "serverError": "Server error",
-    "timeout": "Request timeout"
+    "timeout": "Request timeout",
+    "apiOverloaded": "AI service is overloaded. Trying backup service...",
+    "fallbackSuccess": "Analysis generated using backup AI service",
+    "allServicesFailed": "All AI services are currently unavailable. Please try again later."
   },
   "markets": {
     "stocks": "Stocks",

@@ -355,7 +355,10 @@
     "unauthorized": "No autorizado",
     "forbidden": "Acceso denegado",
     "serverError": "Error del servidor",
-    "timeout": "La solicitud tardó demasiado tiempo"
+    "timeout": "La solicitud tardó demasiado tiempo",
+    "apiOverloaded": "El servicio de IA está saturado. Intentando con servicio de respaldo...",
+    "fallbackSuccess": "Análisis generado usando servicio de IA de respaldo",
+    "allServicesFailed": "Todos los servicios de IA no están disponibles. Intenta más tarde."
   },
   "markets": {
     "stocks": "Acciones",

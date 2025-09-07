@@ -38,13 +38,27 @@ const ArticleDetail: React.FC = () => {
     mutationFn: ({ aiModel, forceRegenerate }: { aiModel: 'openai' | 'claude' | 'gemini' | 'grok'; forceRegenerate?: boolean }) => 
       feedService.generateAnalysis(articleId!, aiModel, forceRegenerate || false),
     onSuccess: (data) => {
-      toast.success(`✨ ${t('analysis.generatedWith')} ${data.aiModel?.toUpperCase()}`);
+      // Check if this was a fallback response
+      if (data._fallback) {
+        toast.success(`🔄 ${t('errors.fallbackSuccess')} (${data._fallback.fallback_model.toUpperCase()})`, { duration: 4000 });
+      } else {
+        toast.success(`✨ ${t('analysis.generatedWith')} ${data.aiModel?.toUpperCase()}`);
+      }
       // Refrescar el artículo para mostrar el nuevo análisis
       queryClient.invalidateQueries({ queryKey: ['article', articleId] });
       setShowAnalysisGenerator(false);
     },
     onError: (error: any) => {
-      toast.error(`❌ ${t('errors.generic')}: ${error.response?.data?.error || error.message}`);
+      const errorMessage = error.response?.data?.error || error.message;
+      
+      // Check for specific error types
+      if (errorMessage.toLowerCase().includes('overloaded')) {
+        toast.error(`⚡ ${t('errors.apiOverloaded')}`);
+      } else if (errorMessage.toLowerCase().includes('all ai services')) {
+        toast.error(`❌ ${t('errors.allServicesFailed')}`);
+      } else {
+        toast.error(`❌ ${t('errors.generic')}: ${errorMessage}`);
+      }
     }
   });
 
