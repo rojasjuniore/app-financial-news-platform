@@ -352,16 +352,35 @@ const TwitterFeedListV2: React.FC = () => {
               <Link to={`/article/${article.id}`} className="block">
                 <div className="flex gap-3">
                   {/* Article Image */}
-                  {article.urlToImage && (
-                    <div className="flex-shrink-0">
-                      <img
-                        src={article.urlToImage}
-                        alt=""
-                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg bg-gray-200 dark:bg-gray-700"
-                        loading="lazy"
-                      />
-                    </div>
-                  )}
+                  {(() => {
+                    const imageUrl = article.urlToImage;
+                    // Validate URL format - ensure it's a string first
+                    const isValidUrl = imageUrl && 
+                                     typeof imageUrl === 'string' && 
+                                     (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+                    
+                    if (isValidUrl) {
+                      return (
+                        <div className="flex-shrink-0">
+                          <img
+                            src={imageUrl}
+                            alt={article.title}
+                            className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-lg bg-gray-200 dark:bg-gray-700"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              // Hide parent div instead of just the image
+                              const parentDiv = target.parentElement;
+                              if (parentDiv) {
+                                parentDiv.style.display = 'none';
+                              }
+                            }}
+                          />
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                   
                   {/* Article Content */}
                   <div className="flex-1 min-w-0">
@@ -591,20 +610,29 @@ const TwitterFeedListV2: React.FC = () => {
         </div>
       )}
 
-      {/* Load More */}
-      {hasMore && filteredArticles.length > 0 && (
+      {/* Load More - Mostrar cuando hay artículos y podría haber más */}
+      {filteredArticles.length > 0 && !isLoading && (
         <div className="p-4 text-center">
           <button
-            onClick={() => setLimit(limit + 20)}
+            onClick={() => {
+              setLimit(prev => prev + 20);
+              // Force refetch with new limit
+              setTimeout(() => refetch(), 100);
+            }}
             disabled={isLoading}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors text-sm font-medium"
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg transition-colors text-sm font-medium inline-flex items-center gap-2"
           >
-            {isLoading ? (
-              <Loader className="w-4 h-4 animate-spin mx-auto" />
-            ) : (
-              t('common.viewMore')
-            )}
+            <RefreshCw className="w-4 h-4" />
+            {t('common.viewMore')}
           </button>
+          {/* Show hint if we might have more */}
+          {filteredArticles.length >= limit && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              {t('common.locale') === 'es-ES' 
+                ? 'Mostrando ' + filteredArticles.length + ' artículos' 
+                : 'Showing ' + filteredArticles.length + ' articles'}
+            </p>
+          )}
         </div>
       )}
     </div>
