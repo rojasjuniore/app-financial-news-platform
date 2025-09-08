@@ -8,7 +8,7 @@ import { Toaster } from 'react-hot-toast';
 // Pages
 import Login from './pages/Login';
 import Feed from './pages/Feed';
-import ArticleDetail from './pages/ArticleDetail';
+import ArticleDetailClean from './pages/ArticleDetailClean';
 import Dashboard from './pages/Dashboard';
 import Saved from './pages/Saved';
 import Settings from './pages/Settings';
@@ -78,7 +78,7 @@ function App() {
                   path="/article/:articleId" 
                   element={
                     <PrivateRouteWithLayout>
-                      <ArticleDetail />
+                      <ArticleDetailClean />
                     </PrivateRouteWithLayout>
                   } 
                 />
