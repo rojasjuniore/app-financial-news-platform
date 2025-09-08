@@ -170,6 +170,7 @@
       "multiLLM": "Multi-LLM",
       "startAnalysis": "Iniciar Análisis",
       "analyzing": "Analizando...",
+      "analysisComplete": "Análisis Completo",
       "executiveSummary": "Resumen Ejecutivo",
       "recommendation": "Recomendación",
       "confidence": "Confianza",

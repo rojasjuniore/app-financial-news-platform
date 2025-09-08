@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { 
   Users, Brain, RefreshCw, ChevronDown, ChevronUp, Loader, 
   TrendingUp, Target, Shield, Clock, BarChart, CheckCircle,
-  Info, ChevronRight, Zap, DollarSign, Activity, Volume2,
-  Calendar, Building, TrendingDown
+  Info, ChevronRight, Zap, DollarSign, Activity, Volume2
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import { panelDiscussionService } from '../../services/panel';
+import { panelCacheService } from '../../services/panel/panelCacheService';
 import toast from 'react-hot-toast';
 
 interface LLMOpinion {
@@ -43,21 +43,8 @@ interface MarketData {
   signals?: {
     recommendation: string;
   };
-  events?: MarketEvent[];
 }
 
-interface MarketEvent {
-  type: 'earnings' | 'economic' | 'dividend' | 'split';
-  ticker: string;
-  date: string;
-  time?: string;
-  title: string;
-  description: string;
-  importance: 'low' | 'medium' | 'high';
-  impact: string;
-  forecast?: string;
-  previous?: string;
-}
 
 interface LLMPanelDiscussionV2Props {
   articleId: string;
@@ -83,7 +70,27 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   const [showFullPanel, setShowFullPanel] = useState(false);
   const [lastGeneratedLanguage, setLastGeneratedLanguage] = useState<string | null>(null);
   const [marketData, setMarketData] = useState<{[key: string]: MarketData}>({});
-  const [economicCalendar, setEconomicCalendar] = useState<MarketEvent[]>([]);
+  const [hasGeneratedOnce, setHasGeneratedOnce] = useState(false);
+  const [isPanelLoaded, setIsPanelLoaded] = useState(false);
+
+  // Cargar panel desde caché al montar el componente
+  React.useEffect(() => {
+    const cachedPanel = panelCacheService.getPanel(articleId);
+    if (cachedPanel) {
+      console.log('📦 Panel cargado desde caché para artículo:', articleId);
+      setDiscussion(cachedPanel.discussion.map(d => ({
+        ...d,
+        timestamp: new Date(d.timestamp)
+      })));
+      setFinalSynthesis(cachedPanel.consensus);
+      setMarketData(cachedPanel.marketData || {});
+      setConsensusReached(!!cachedPanel.consensus);
+      setHasGeneratedOnce(true);
+      setIsPanelLoaded(true);
+      setLastGeneratedLanguage(cachedPanel.language);
+      setShowFullPanel(false); // Mantener colapsado inicialmente
+    }
+  }, [articleId]);
 
   const llmExperts = [
     {
@@ -129,12 +136,21 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   ];
 
   const startPanelDiscussion = async (regenerate: boolean = false) => {
+    // Prevenir múltiples llamadas mientras se está generando
+    if (isGenerating) return;
+    
+    // Si se está regenerando, limpiar el caché
+    if (regenerate) {
+      panelCacheService.removePanel(articleId);
+    }
+    
     setIsGenerating(true);
     setDiscussion([]);
     setConsensusReached(false);
     setCurrentSpeaker('loading');
     setShowFullPanel(true);
     setLastGeneratedLanguage(i18n.language);
+    setHasGeneratedOnce(true);
 
     try {
       const response = await panelDiscussionService.generatePanelDiscussion(articleId, regenerate);
@@ -144,16 +160,13 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
         setMarketData(response.marketData);
       }
       
-      // Extract economic calendar from response
-      if (response.economicCalendar) {
-        setEconomicCalendar(response.economicCalendar);
-      }
-      
+      const discussionData = response.discussion.map(d => ({
+        ...d,
+        timestamp: new Date(d.timestamp)
+      }));
+
       if (response.cached) {
-        setDiscussion(response.discussion.map(d => ({
-          ...d,
-          timestamp: new Date(d.timestamp)
-        })));
+        setDiscussion(discussionData);
         if (response.consensus) {
           setFinalSynthesis(response.consensus);
           setConsensusReached(true);
@@ -184,6 +197,15 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
         }
       }
       
+      // Guardar en caché local
+      panelCacheService.savePanel(
+        articleId,
+        discussionData,
+        response.consensus,
+        response.marketData
+      );
+      
+      setIsPanelLoaded(true);
       toast.success(`✨ ${t('analysis.panel.panelCompleted')}`);
     } catch (error: any) {
       console.error('Error en panel de discusión:', error);
@@ -234,51 +256,6 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   // Format market data for display  
   const marketDataFormatted = Object.values(marketData);
 
-  // Helper functions for market events
-  const getEventIcon = (event: MarketEvent) => {
-    switch (event.type) {
-      case 'earnings':
-        return <Building className="w-4 h-4" />;
-      case 'economic':
-        return <TrendingUp className="w-4 h-4" />;
-      case 'dividend':
-        return <DollarSign className="w-4 h-4" />;
-      case 'split':
-        return <TrendingDown className="w-4 h-4" />;
-      default:
-        return <Calendar className="w-4 h-4" />;
-    }
-  };
-
-  const getImportanceColor = (importance: string) => {
-    switch (importance) {
-      case 'high':
-        return 'text-red-600 dark:text-red-400';
-      case 'medium':
-        return 'text-orange-600 dark:text-orange-400';
-      case 'low':
-        return 'text-green-600 dark:text-green-400';
-      default:
-        return 'text-gray-600 dark:text-gray-400';
-    }
-  };
-
-  const formatEventDate = (dateString: string, time?: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    
-    let dayText = '';
-    if (date.toDateString() === today.toDateString()) {
-      dayText = 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      dayText = 'Tomorrow';
-    } else {
-      dayText = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    }
-    
-    return time ? `${dayText} ${time}` : dayText;
-  };
 
   return (
     <div className="space-y-4">
@@ -325,6 +302,14 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
               
               {!isGenerating && discussion.length > 0 && (
                 <>
+                  {/* Indicador de análisis completado */}
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                    <span className="text-xs text-green-700 dark:text-green-300 font-medium">
+                      {isPanelLoaded ? '📦 ' : ''}{t('analysis.panel.analysisComplete')}
+                    </span>
+                  </div>
+                  
                   {/* Language mismatch indicator */}
                   {lastGeneratedLanguage && lastGeneratedLanguage !== i18n.language && (
                     <div className="flex items-center gap-2 px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
@@ -343,7 +328,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                   </button>
                   <button
                     onClick={() => startPanelDiscussion(true)}
-                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    disabled={isGenerating}
+                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     title={t('analysis.regenerate')}
                   >
                     <RefreshCw className="w-4 h-4" />
@@ -495,86 +481,6 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
         </div>
       )}
 
-      {/* Market Events Section */}
-      {economicCalendar.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 p-[1px] rounded-xl animate-fadeIn">
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-4">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-1">
-                  {t('analysis.panel.upcomingEvents')}
-                </h3>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {t('analysis.panel.economicCalendarSubtitle')}
-                </p>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              {economicCalendar.slice(0, 6).map((event, index) => (
-                <div key={index} className="flex items-start gap-3 p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div className={`p-1.5 rounded-lg ${
-                    event.importance === 'high' 
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                      : event.importance === 'medium'
-                      ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
-                      : 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
-                  }`}>
-                    {getEventIcon(event)}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between mb-1">
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                          {event.title}
-                        </h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                          {event.description}
-                        </p>
-                      </div>
-                      <div className="text-right ml-2 flex-shrink-0">
-                        <div className="text-xs font-medium text-gray-900 dark:text-white">
-                          {formatEventDate(event.date, event.time)}
-                        </div>
-                        <div className={`text-xs font-bold ${getImportanceColor(event.importance)}`}>
-                          {event.importance.toUpperCase()}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {(event.forecast || event.previous) && (
-                      <div className="flex gap-4 text-xs">
-                        {event.forecast && (
-                          <span className="text-gray-600 dark:text-gray-400">
-                            Forecast: <span className="font-medium">{event.forecast}</span>
-                          </span>
-                        )}
-                        {event.previous && (
-                          <span className="text-gray-600 dark:text-gray-400">
-                            Previous: <span className="font-medium">{event.previous}</span>
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              
-              {economicCalendar.length > 6 && (
-                <div className="text-center pt-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    +{economicCalendar.length - 6} more events this week
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Resumen Ejecutivo (siempre visible si hay consenso) */}
       {consensusReached && finalSynthesis && (
@@ -729,9 +635,9 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                     </div>
                   </button>
 
-                  {/* Contenido expandible */}
-                  <div className={`transition-all duration-300 accordion-scroll ${
-                    isExpanded ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'
+                  {/* Contenido expandible - Sin animación de opacidad para evitar confusión */}
+                  <div className={`transition-[max-height] duration-300 accordion-scroll ${
+                    isExpanded ? 'max-h-[600px]' : 'max-h-0'
                   } ${isExpanded ? 'overflow-y-auto' : 'overflow-hidden'}`}>
                     <div className="px-4 pb-4">
                       {/* Puntos de acuerdo/desacuerdo */}
