@@ -410,6 +410,37 @@ const TwitterFeedListV2: React.FC = () => {
                           )}
                         </div>
                       )}
+                      
+                      {/* NUEVO: Empresas detectadas */}
+                      {article.companies && article.companies.length > 0 && (
+                        <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                          <span className="font-medium">📊</span>
+                          <span className="text-xs">{article.companies.slice(0, 2).join(', ')}</span>
+                          {article.companies.length > 2 && (
+                            <span>+{article.companies.length - 2}</span>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* NUEVO: Sectores detectados */}
+                      {article.sectors && article.sectors.length > 0 && (
+                        <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                          <span className="font-medium">🏢</span>
+                          <span className="text-xs">
+                            {article.sectors.slice(0, 2).map(s => 
+                              typeof s === 'string' ? s : s.sector
+                            ).join(', ')}
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* NUEVO: Método de extracción (solo en modo debug) */}
+                      {article.extraction_metadata?.method && article.extraction_metadata.method.includes('huggingface') && (
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <span className="font-medium">🤖</span>
+                          <span className="text-xs">AI Enhanced</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Personalization Match Reason - Solo en feed personalizado */}
