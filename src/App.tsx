@@ -16,6 +16,7 @@ import Preferences from './pages/Preferences';
 import Search from './pages/Search';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import Metrics from './pages/Metrics';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -102,6 +103,14 @@ function App() {
                   element={
                     <PrivateRouteWithLayout>
                       <Profile />
+                    </PrivateRouteWithLayout>
+                  } 
+                />
+                <Route 
+                  path="/metrics" 
+                  element={
+                    <PrivateRouteWithLayout>
+                      <Metrics />
                     </PrivateRouteWithLayout>
                   } 
                 />

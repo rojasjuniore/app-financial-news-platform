@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import MarketCard from '../components/MarketOverview/MarketCard';
 import { MarketEventsPage } from '../components/MarketEvents';
 import TradingViewTickerWidget from '../components/TradingWidget/TradingViewTickerWidget';
 import {
-  TrendingUp,
-  DollarSign,
   Activity,
   Globe,
   Bell,
-  Settings,
-  ChevronRight,
   RefreshCw,
   Grid,
   List,
@@ -53,6 +48,7 @@ const Dashboard: React.FC = () => {
     qualityScore: '0%',
     lastUpdate: t('common.loading')
   });
+  const [todayChange, setTodayChange] = useState<number>(0);
   const [showMarketEvents, setShowMarketEvents] = useState(false);
 
   // Fetch real statistics from API
@@ -61,19 +57,29 @@ const Dashboard: React.FC = () => {
       const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/dashboard/statistics`);
       if (response.ok) {
         const data = await response.json();
+        console.log('Dashboard statistics received:', data);
+        
+        // Calculate today's change (simulate based on current hour for demo)
+        const currentHour = new Date().getHours();
+        const estimatedTodayNews = Math.floor(data.newsAggregated * 0.1 * (currentHour / 24));
+        setTodayChange(estimatedTodayNews);
+        
         setStatistics({
-          newsAggregated: data.newsAggregated?.toLocaleString() || '15,247',
-          newsAnalyzed: data.newsAnalyzed?.toLocaleString() || '12,891', 
-          qualityScore: `${data.qualityScore || 92.4}%`,
+          newsAggregated: data.newsAggregated?.toLocaleString() || '0',
+          newsAnalyzed: data.newsAnalyzed?.toLocaleString() || '0', 
+          qualityScore: `${data.qualityScore || 0}%`,
           lastUpdate: new Date().toLocaleTimeString(t('common.locale'), { 
             hour: '2-digit', 
             minute: '2-digit',
             hour12: false 
           })
         });
+      } else {
+        console.error('Failed to fetch statistics:', response.status);
       }
     } catch (error) {
       console.error('Error fetching statistics:', error);
+      // Don't set fallback values - keep at 0 if API fails
     }
   };
 
@@ -88,7 +94,7 @@ const Dashboard: React.FC = () => {
     return () => {
       clearInterval(statsInterval);
     };
-  }, [t]);
+  }, [t]); // fetchStatistics is stable, doesn't need to be in deps
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -176,7 +182,7 @@ const Dashboard: React.FC = () => {
             { 
               title: t('dashboard.statistics.newsAggregated'),
               value: statistics.newsAggregated, 
-              change: t('dashboard.statistics.todayCount', { count: 432 }),
+              change: `+${todayChange} ${t('dashboard.statistics.today', { defaultValue: 'today' })}`,
               icon: Globe,
               color: 'blue',
               trend: 'up' 
@@ -245,10 +251,10 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Índices del Mercado
+                    {t('common.locale') === 'es-ES' ? 'Índices del Mercado' : 'Market Indices'}
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Datos en tiempo real por TradingView
+                    {t('common.locale') === 'es-ES' ? 'Datos en tiempo real por TradingView' : 'Real-time data by TradingView'}
                   </p>
                 </div>
               </div>
@@ -336,43 +342,6 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Trust Indicators */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              {[
-                {
-                  icon: Users,
-                  value: statistics.newsAggregated,
-                  label: t('common.locale') === 'es-ES' ? 'Artículos Agregados' : 'Articles Aggregated'
-                },
-                {
-                  icon: Newspaper,
-                  value: statistics.newsAnalyzed,
-                  label: t('common.locale') === 'es-ES' ? 'Analizados por IA' : 'AI Analyzed'
-                },
-                {
-                  icon: Clock,
-                  value: statistics.lastUpdate,
-                  label: t('common.locale') === 'es-ES' ? 'Última Actualización' : 'Last Update'
-                },
-                {
-                  icon: Shield,
-                  value: statistics.qualityScore,
-                  label: t('common.locale') === 'es-ES' ? 'Puntuación de Calidad' : 'Quality Score'
-                }
-              ].map((indicator, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + index * 0.1 }}
-                  className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 text-center"
-                >
-                  <indicator.icon className="w-8 h-8 mx-auto mb-2 text-blue-600 dark:text-blue-400" />
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{indicator.value}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{indicator.label}</div>
-                </motion.div>
-              ))}
-            </div>
 
             {/* Process Flow */}
             <div className="mb-8">

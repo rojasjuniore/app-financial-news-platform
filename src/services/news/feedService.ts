@@ -1,5 +1,6 @@
 import apiClient from './api';
 import { FeedResponse, Article, UserProfile, Interaction } from '../../types';
+import { usageTracker } from '../tracking';
 
 export const feedService = {
   // Obtener feed personalizado
@@ -39,6 +40,10 @@ export const feedService = {
       interactionType,
       metadata
     });
+    
+    // Track usage metrics
+    await usageTracker.trackFeedInteraction(interactionType, articleId, metadata);
+    
     return data;
   },
 
@@ -120,6 +125,13 @@ export const feedService = {
     offset?: number;
   }): Promise<FeedResponse> => {
     const { data } = await apiClient.get('/api/feed/search', { params });
+    
+    // Track search usage
+    await usageTracker.trackSearch(params.q, data.articles?.length, { 
+      limit: params.limit,
+      offset: params.offset 
+    });
+    
     return data;
   },
 
@@ -129,6 +141,10 @@ export const feedService = {
       aiModel,
       forceRegenerate 
     });
+    
+    // Track analysis generation
+    await usageTracker.trackAnalysisGenerated(articleId, aiModel, { forceRegenerate });
+    
     return data;
   },
 

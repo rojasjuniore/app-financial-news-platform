@@ -14,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   TrendingUp,
-  Sliders
+  Sliders,
+  BarChart3
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -56,6 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   ];
 
   const bottomItems = [
+    { path: '/metrics', icon: BarChart3, label: t('common.locale') === 'es-ES' ? 'Métricas' : 'Metrics' },
     { path: '/profile', icon: User, label: t('nav.profile') },
     { path: '/settings', icon: Settings, label: t('nav.settings') },
   ];
