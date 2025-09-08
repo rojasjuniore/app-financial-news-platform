@@ -23,6 +23,15 @@ export interface Article {
   created_at?: string | FirestoreTimestamp;
   source?: string | { name: string; id?: string };
   tickers?: string[];
+  // NUEVO: Campos agregados para Hugging Face NER
+  companies?: string[];
+  sectors?: Array<string | { sector: string; confidence?: number }>;
+  extraction_metadata?: {
+    method: string;
+    confidence: number;
+    enhanced: boolean;
+    timestamp: string;
+  };
   market_type?: MarketType;
   sentiment?: Sentiment;
   llm_analysis?: LLMAnalysis;

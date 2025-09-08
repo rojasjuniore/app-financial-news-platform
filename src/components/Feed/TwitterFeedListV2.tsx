@@ -427,7 +427,7 @@ const TwitterFeedListV2: React.FC = () => {
                         <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
                           <span className="font-medium">🏢</span>
                           <span className="text-xs">
-                            {article.sectors.slice(0, 2).map(s => 
+                            {article.sectors.slice(0, 2).map((s: string | { sector: string }) => 
                               typeof s === 'string' ? s : s.sector
                             ).join(', ')}
                           </span>
