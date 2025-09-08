@@ -133,6 +133,12 @@ export interface UserInterests {
   sectors: string[];
   topics: string[];
   marketTypes: MarketType[];
+  weights?: {
+    tickers: { [key: string]: number };
+    sectors: { [key: string]: number };
+    topics: { [key: string]: number };
+    marketTypes: { [key: string]: number };
+  };
 }
 
 export interface UserPreferences {
@@ -141,6 +147,26 @@ export interface UserPreferences {
   timeHorizon: 'day_trading' | 'short_term' | 'medium_term' | 'long_term';
   newsFrequency: 'high' | 'moderate' | 'low';
   defaultLLMModel?: 'openai' | 'claude' | 'gemini' | 'grok';
+  complexityLevel?: 'simple' | 'medium' | 'detailed';
+  languagePreference?: 'en' | 'es';
+  notificationSettings?: {
+    breakingNews: boolean;
+    priceAlerts: boolean;
+    earningsAlerts: boolean;
+    portfolioUpdates: boolean;
+  };
+}
+
+export interface InterestWeight {
+  name: string;
+  weight: number; // 0-100
+  isActive: boolean;
+}
+
+export interface SettingsPreview {
+  estimatedRelevance: number;
+  sampleArticles: Article[];
+  matchingFactors: string[];
 }
 
 export interface UserBehavior {

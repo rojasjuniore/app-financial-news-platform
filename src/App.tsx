@@ -12,6 +12,7 @@ import ArticleDetail from './pages/ArticleDetail';
 import Dashboard from './pages/Dashboard';
 import Saved from './pages/Saved';
 import Settings from './pages/Settings';
+import Preferences from './pages/Preferences';
 import Search from './pages/Search';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
@@ -61,6 +62,14 @@ function App() {
                   element={
                     <PrivateRouteWithLayout>
                       <Feed />
+                    </PrivateRouteWithLayout>
+                  } 
+                />
+                <Route 
+                  path="/preferences" 
+                  element={
+                    <PrivateRouteWithLayout>
+                      <Preferences />
                     </PrivateRouteWithLayout>
                   } 
                 />

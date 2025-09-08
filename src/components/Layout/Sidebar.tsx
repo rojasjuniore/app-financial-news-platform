@@ -13,7 +13,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  Sliders
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -48,6 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const navItems = [
     { path: '/dashboard', icon: Home, label: t('nav.dashboard') },
     { path: '/feed', icon: Newspaper, label: t('nav.feed') },
+    { path: '/preferences', icon: Sliders, label: 'Preferences' },
     { path: '/saved', icon: Bookmark, label: t('nav.saved') },
     { path: '/search', icon: Search, label: t('nav.search') },
     { path: '/chat', icon: MessageCircle, label: t('nav.chat') || 'Chat' },

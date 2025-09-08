@@ -80,8 +80,34 @@ export const feedService = {
     riskTolerance?: string;
     timeHorizon?: string;
     newsFrequency?: string;
+    defaultLLMModel?: string;
+    complexityLevel?: string;
+    languagePreference?: string;
+    notificationSettings?: {
+      breakingNews: boolean;
+      priceAlerts: boolean;
+      earningsAlerts: boolean;
+      portfolioUpdates: boolean;
+    };
   }) => {
     const { data } = await apiClient.put('/api/feed/preferences', preferences);
+    return data;
+  },
+
+  // Generar preview de personalización
+  getPersonalizationPreview: async (interests: any, preferences: any) => {
+    const { data } = await apiClient.post('/api/feed/preview', { interests, preferences });
+    return data;
+  },
+
+  // Actualizar pesos de intereses
+  updateInterestWeights: async (weights: {
+    tickers?: { [key: string]: number };
+    sectors?: { [key: string]: number };
+    topics?: { [key: string]: number };
+    marketTypes?: { [key: string]: number };
+  }) => {
+    const { data } = await apiClient.put('/api/feed/weights', { weights });
     return data;
   },
 
@@ -101,6 +127,24 @@ export const feedService = {
       aiModel,
       forceRegenerate 
     });
+    return data;
+  },
+
+  // Obtener sugerencias de intereses
+  getInterestSuggestions: async (category: 'tickers' | 'sectors' | 'topics') => {
+    const { data } = await apiClient.get(`/api/feed/suggestions/${category}`);
+    return data.suggestions;
+  },
+
+  // Exportar configuraciones
+  exportSettings: async () => {
+    const { data } = await apiClient.get('/api/feed/export');
+    return data;
+  },
+
+  // Importar configuraciones
+  importSettings: async (settings: any) => {
+    const { data } = await apiClient.post('/api/feed/import', settings);
     return data;
   }
 };

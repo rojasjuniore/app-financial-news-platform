@@ -1,48 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
-  Moon,
-  Sun,
-  TrendingUp,
+  Bot,
   Hash,
   Target,
   BarChart3,
   Save,
   Plus,
   X,
-  Bot,
-  Eye,
-  Download,
-  Upload,
-  Settings as SettingsIcon,
-  Bell,
-  Globe,
-  Zap,
-  RefreshCw
+  TrendingUp,
 } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { feedService } from '../services/feedService';
 import toast from 'react-hot-toast';
-import InterestCategorySelector from '../components/Settings/InterestCategorySelector';
-import PersonalizationPreview from '../components/Settings/PersonalizationPreview';
 
-import type { UserPreferences, InterestWeight, MarketType, UserInterests as ImportedUserInterests } from '../types';
+import type { UserPreferences } from '../types';
 
-type UserInterests = ImportedUserInterests;
-
-interface InterestItem {
-  name: string;
-  weight: number;
-  isActive: boolean;
+interface UserInterests {
+  tickers: string[];
+  sectors: string[];
+  topics: string[];
+  marketTypes: string[];
 }
 
-const Settings: React.FC = () => {
-  const { actualTheme, toggleTheme } = useTheme();
+const Preferences: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const isDarkMode = actualTheme === 'dark';
   
   // Estados para configuraciones funcionales con la API
   const [interests, setInterests] = useState<UserInterests>({
@@ -50,12 +34,6 @@ const Settings: React.FC = () => {
     sectors: [],
     topics: [],
     marketTypes: ['stocks'],
-    weights: {
-      tickers: {},
-      sectors: {},
-      topics: {},
-      marketTypes: { stocks: 50, crypto: 50, forex: 50 }
-    }
   });
 
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -68,12 +46,11 @@ const Settings: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
 
-  // Sugerencias populares
-  const tickerSuggestions = ['AAPL', 'TSLA', 'NVDA', 'MSFT', 'GOOGL', 'AMZN', 'BTC', 'ETH', 'SPY', 'QQQ'];
-  const sectorSuggestions = ['technology', 'healthcare', 'finance', 'energy', 'automotive', 'retail', 'crypto', 'real estate'];
-  const topicSuggestions = ['earnings', 'IPO', 'merger', 'AI', 'crypto', 'regulation', 'innovation', 'recession'];
+  // Nuevos tickers/sectores para agregar
+  const [newTicker, setNewTicker] = useState('');
+  const [newSector, setNewSector] = useState('');
+  const [newTopic, setNewTopic] = useState('');
 
   // Cargar configuraciones actuales del usuario
   useEffect(() => {
@@ -91,7 +68,6 @@ const Settings: React.FC = () => {
       
       if (!user) {
         console.log('⚠️ Usuario no autenticado');
-        toast.error(t('errors.unauthorized'));
         return;
       }
       
@@ -103,15 +79,7 @@ const Settings: React.FC = () => {
       
       if (profile && profile.interests) {
         console.log('✅ Cargando intereses:', profile.interests);
-        setInterests({
-          ...profile.interests,
-          weights: profile.interests.weights || {
-            tickers: {},
-            sectors: {},
-            topics: {},
-            marketTypes: { stocks: 50, crypto: 50, forex: 50 }
-          }
-        });
+        setInterests(profile.interests);
       }
       
       if (profile && profile.preferences) {
@@ -139,7 +107,7 @@ const Settings: React.FC = () => {
       setIsSaving(true);
       
       if (!user) {
-        toast.error('Debes estar logueado para guardar configuraciones');
+        toast.error(t('errors.loginRequired'));
         return;
       }
       
@@ -152,7 +120,7 @@ const Settings: React.FC = () => {
       if (error.response?.status === 401) {
         toast.error(t('errors.unauthorized'));
       } else {
-        toast.error(`Error actualizando intereses: ${error.response?.data?.error || error.message}`);
+        toast.error(t('errors.updateFailed'));
       }
     } finally {
       setIsSaving(false);
@@ -164,7 +132,7 @@ const Settings: React.FC = () => {
       setIsSaving(true);
       
       if (!user) {
-        toast.error('Debes estar logueado para guardar configuraciones');
+        toast.error(t('errors.loginRequired'));
         return;
       }
       
@@ -177,61 +145,65 @@ const Settings: React.FC = () => {
       if (error.response?.status === 401) {
         toast.error(t('errors.unauthorized'));
       } else {
-        toast.error(`Error actualizando preferencias: ${error.response?.data?.error || error.message}`);
+        toast.error(t('errors.updateFailed'));
       }
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Convertir arrays a InterestItems para el selector
-  const getInterestItems = (items: string[], category: 'tickers' | 'sectors' | 'topics'): InterestItem[] => {
-    return items.map(item => ({
-      name: item,
-      weight: interests.weights?.[category]?.[item] || 50,
-      isActive: true
-    }));
+  const addTicker = () => {
+    if (newTicker && !interests.tickers.includes(newTicker.toUpperCase())) {
+      setInterests(prev => ({
+        ...prev,
+        tickers: [...prev.tickers, newTicker.toUpperCase()]
+      }));
+      setNewTicker('');
+    }
   };
 
-  // Manejar cambios en categorías de interés
-  const handleInterestChange = (category: 'tickers' | 'sectors' | 'topics', items: InterestItem[]) => {
-    const names = items.map(item => item.name);
-    const weights: { [key: string]: number } = {};
-    items.forEach(item => {
-      weights[item.name] = item.weight;
-    });
-
+  const removeTicker = (ticker: string) => {
     setInterests(prev => ({
       ...prev,
-      [category]: names,
-      weights: {
-        tickers: prev.weights?.tickers || {},
-        sectors: prev.weights?.sectors || {},
-        topics: prev.weights?.topics || {},
-        marketTypes: prev.weights?.marketTypes || { stocks: 50, crypto: 50, forex: 50 },
-        [category]: weights
-      }
+      tickers: prev.tickers.filter(t => t !== ticker)
     }));
   };
 
-  // Manejar cambios de peso
-  const handleWeightChange = (category: 'tickers' | 'sectors' | 'topics', name: string, weight: number) => {
+  const addSector = () => {
+    if (newSector && !interests.sectors.includes(newSector.toLowerCase())) {
+      setInterests(prev => ({
+        ...prev,
+        sectors: [...prev.sectors, newSector.toLowerCase()]
+      }));
+      setNewSector('');
+    }
+  };
+
+  const removeSector = (sector: string) => {
     setInterests(prev => ({
       ...prev,
-      weights: {
-        tickers: prev.weights?.tickers || {},
-        sectors: prev.weights?.sectors || {},
-        topics: prev.weights?.topics || {},
-        marketTypes: prev.weights?.marketTypes || { stocks: 50, crypto: 50, forex: 50 },
-        [category]: {
-          ...(prev.weights?.[category] || {}),
-          [name]: weight
-        }
-      }
+      sectors: prev.sectors.filter(s => s !== sector)
     }));
   };
 
-  const toggleMarketType = (marketType: MarketType) => {
+  const addTopic = () => {
+    if (newTopic && !interests.topics.includes(newTopic.toLowerCase())) {
+      setInterests(prev => ({
+        ...prev,
+        topics: [...prev.topics, newTopic.toLowerCase()]
+      }));
+      setNewTopic('');
+    }
+  };
+
+  const removeTopic = (topic: string) => {
+    setInterests(prev => ({
+      ...prev,
+      topics: prev.topics.filter(t => t !== topic)
+    }));
+  };
+
+  const toggleMarketType = (marketType: string) => {
     setInterests(prev => ({
       ...prev,
       marketTypes: prev.marketTypes.includes(marketType)
@@ -264,7 +236,7 @@ const Settings: React.FC = () => {
             {t('errors.unauthorized')}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {t('errors.unauthorized')}
+            {t('preferences.loginRequired')}
           </p>
           <button
             onClick={() => window.location.href = '/login'}
@@ -282,58 +254,28 @@ const Settings: React.FC = () => {
       <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('settings.title')}
+            {t('preferences.title')}
           </h1>
           <p className="text-gray-600 dark:text-gray-400">
-            {t('settings.description')}
+            {t('preferences.description')}
           </p>
         </div>
 
         <div className="space-y-6">
-          {/* Tema */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                {isDarkMode ? (
-                  <Moon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                ) : (
-                  <Sun className="w-5 h-5 text-yellow-600" />
-                )}
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {t('settings.theme')}
-                </h3>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {isDarkMode ? t('nav.lightMode') : t('nav.darkMode')}
-              </button>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 text-sm">
-              {t('settings.themeDescription')}
-            </p>
-          </motion.div>
-
           {/* Modelo LLM por defecto */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
           >
             <div className="flex items-center space-x-3 mb-4">
               <Bot className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('settings.defaultAIModel')}
+                {t('preferences.defaultAIModel')}
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {t('settings.defaultAIModelDescription')}
+              {t('preferences.defaultAIModelDescription')}
             </p>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -382,47 +324,212 @@ const Settings: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Intereses - Tickers con Selector Avanzado */}
-          <InterestCategorySelector
-            title={t('settings.tickersOfInterest')}
-            description={t('settings.tickersDescription')}
-            icon={<Hash className="w-5 h-5" />}
-            color="green"
-            items={getInterestItems(interests.tickers, 'tickers')}
-            suggestions={tickerSuggestions}
-            placeholder={t('settings.tickerPlaceholder')}
-            onChange={(items) => handleInterestChange('tickers', items)}
-            onWeightChange={(name, weight) => handleWeightChange('tickers', name, weight)}
-            showWeights={true}
-          />
+          {/* Intereses - Tickers */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <Hash className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('preferences.tickersOfInterest')}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {t('preferences.tickersDescription')}
+            </p>
+            
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newTicker}
+                onChange={(e) => setNewTicker(e.target.value.toUpperCase())}
+                onKeyPress={(e) => e.key === 'Enter' && addTicker()}
+                placeholder={t('preferences.tickerPlaceholder')}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <button
+                onClick={addTicker}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {t('common.add')}
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mb-4">
+              {interests.tickers.length > 0 ? (
+                interests.tickers.map((ticker) => (
+                  <span
+                    key={ticker}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 rounded-full text-sm"
+                  >
+                    {ticker}
+                    <button
+                      onClick={() => removeTicker(ticker)}
+                      className="text-green-600 dark:text-green-400 hover:text-red-600 dark:hover:text-red-400"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {['AAPL', 'TSLA', 'MSFT'].map((ticker) => (
+                    <span
+                      key={ticker}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-sm"
+                    >
+                      {ticker}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={handleSaveInterests}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? t('common.saving') : t('common.saveChanges')}
+            </button>
+          </motion.div>
 
-          {/* Intereses - Sectores con Selector Avanzado */}
-          <InterestCategorySelector
-            title="Sectores de Interés"
-            description="Selecciona los sectores económicos que más te interesan"
-            icon={<BarChart3 className="w-5 h-5" />}
-            color="purple"
-            items={getInterestItems(interests.sectors, 'sectors')}
-            suggestions={sectorSuggestions}
-            placeholder="Ej: technology, healthcare, finance"
-            onChange={(items) => handleInterestChange('sectors', items)}
-            onWeightChange={(name, weight) => handleWeightChange('sectors', name, weight)}
-            showWeights={true}
-          />
+          {/* Intereses - Sectores */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <BarChart3 className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('preferences.sectorsOfInterest')}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {t('preferences.sectorsDescription')}
+            </p>
+            
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newSector}
+                onChange={(e) => setNewSector(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addSector()}
+                placeholder={t('preferences.sectorPlaceholder')}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <button
+                onClick={addSector}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {t('common.add')}
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mb-4">
+              {interests.sectors.map((sector) => (
+                <span
+                  key={sector}
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 rounded-full text-sm capitalize"
+                >
+                  {sector}
+                  <button
+                    onClick={() => removeSector(sector)}
+                    className="text-purple-600 dark:text-purple-400 hover:text-red-600 dark:hover:text-red-400"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+            
+            <button
+              onClick={handleSaveInterests}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? t('common.saving') : t('common.saveChanges')}
+            </button>
+          </motion.div>
 
-          {/* Intereses - Temas con Selector Avanzado */}
-          <InterestCategorySelector
-            title="Temas de Interés"
-            description="Agrega temas específicos que te interesan en el mundo financiero"
-            icon={<Target className="w-5 h-5" />}
-            color="blue"
-            items={getInterestItems(interests.topics, 'topics')}
-            suggestions={topicSuggestions}
-            placeholder="Ej: earnings, IPO, merger, AI"
-            onChange={(items) => handleInterestChange('topics', items)}
-            onWeightChange={(name, weight) => handleWeightChange('topics', name, weight)}
-            showWeights={true}
-          />
+          {/* Intereses - Temas */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('preferences.topicsOfInterest')}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {t('preferences.topicsDescription')}
+            </p>
+            
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newTopic}
+                onChange={(e) => setNewTopic(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addTopic()}
+                placeholder={t('preferences.topicPlaceholder')}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <button
+                onClick={addTopic}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {t('common.add')}
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mb-4">
+              {interests.topics.length > 0 ? (
+                interests.topics.map((topic) => (
+                  <span
+                    key={topic}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 rounded-full text-sm capitalize"
+                  >
+                    {topic}
+                    <button
+                      onClick={() => removeTopic(topic)}
+                      className="text-blue-600 dark:text-blue-400 hover:text-red-600 dark:hover:text-red-400"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-sm">
+                    trump
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={handleSaveInterests}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? t('common.saving') : t('common.saveChanges')}
+            </button>
+          </motion.div>
 
           {/* Tipos de Mercado */}
           <motion.div
@@ -434,15 +541,15 @@ const Settings: React.FC = () => {
             <div className="flex items-center space-x-3 mb-4">
               <BarChart3 className="w-5 h-5 text-orange-600 dark:text-orange-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Tipos de Mercado
+                {t('preferences.marketTypes')}
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Selecciona los mercados que te interesan
+              {t('preferences.marketTypesDescription')}
             </p>
             
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {(['stocks', 'crypto', 'forex'] as MarketType[]).map((marketType) => (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+              {['stocks', 'crypto', 'forex'].map((marketType) => (
                 <label key={marketType} className="flex items-center space-x-3">
                   <input
                     type="checkbox"
@@ -451,34 +558,20 @@ const Settings: React.FC = () => {
                     className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                   />
                   <span className="text-gray-900 dark:text-gray-100 capitalize">
-                    {marketType === 'stocks' ? 'Acciones' : marketType === 'crypto' ? 'Criptomonedas' : 'Forex'}
+                    {marketType === 'stocks' ? t('preferences.stocks') : marketType === 'crypto' ? t('preferences.crypto') : t('preferences.forex')}
                   </span>
                 </label>
               ))}
             </div>
-          </motion.div>
-
-          {/* Botón Guardar Todos los Intereses */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Guardar Cambios de Intereses</h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">Aplica todos los cambios realizados en tus intereses y pesos de priorización</p>
-              </div>
-              <button
-                onClick={handleSaveInterests}
-                disabled={isSaving}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2 font-medium"
-              >
-                <Save className="w-5 h-5" />
-                {isSaving ? t('common.saving') : 'Guardar Todos los Intereses'}
-              </button>
-            </div>
+            
+            <button
+              onClick={handleSaveInterests}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? t('common.saving') : t('common.saveChanges')}
+            </button>
           </motion.div>
 
           {/* Preferencias de Trading */}
@@ -491,72 +584,72 @@ const Settings: React.FC = () => {
             <div className="flex items-center space-x-3 mb-4">
               <TrendingUp className="w-5 h-5 text-red-600 dark:text-red-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Preferencias de Trading
+                {t('preferences.tradingPreferences')}
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              Configura tus preferencias para personalizar el contenido del feed
+              {t('preferences.tradingDescription')}
             </p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Sesgo de Sentimiento
+                  {t('preferences.sentimentBias')}
                 </label>
                 <select
                   value={preferences.sentimentBias}
                   onChange={(e) => setPreferences(prev => ({ ...prev, sentimentBias: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="bullish">Alcista (más noticias positivas)</option>
-                  <option value="balanced">Balanceado</option>
-                  <option value="bearish">Bajista (más noticias negativas)</option>
+                  <option value="bullish">{t('preferences.bullish')}</option>
+                  <option value="balanced">{t('preferences.balanced')}</option>
+                  <option value="bearish">{t('preferences.bearish')}</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Tolerancia al Riesgo
+                  {t('preferences.riskTolerance')}
                 </label>
                 <select
                   value={preferences.riskTolerance}
                   onChange={(e) => setPreferences(prev => ({ ...prev, riskTolerance: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="low">Bajo</option>
-                  <option value="medium">Medio</option>
-                  <option value="high">Alto</option>
+                  <option value="low">{t('preferences.low')}</option>
+                  <option value="medium">{t('preferences.medium')}</option>
+                  <option value="high">{t('preferences.high')}</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Horizonte de Tiempo
+                  {t('preferences.timeHorizon')}
                 </label>
                 <select
                   value={preferences.timeHorizon}
                   onChange={(e) => setPreferences(prev => ({ ...prev, timeHorizon: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="day_trading">Day Trading</option>
-                  <option value="short_term">Corto Plazo</option>
-                  <option value="medium_term">Mediano Plazo</option>
-                  <option value="long_term">Largo Plazo</option>
+                  <option value="day_trading">{t('preferences.dayTrading')}</option>
+                  <option value="short_term">{t('preferences.shortTerm')}</option>
+                  <option value="medium_term">{t('preferences.mediumTerm')}</option>
+                  <option value="long_term">{t('preferences.longTerm')}</option>
                 </select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Frecuencia de Noticias
+                  {t('preferences.newsFrequency')}
                 </label>
                 <select
                   value={preferences.newsFrequency}
                   onChange={(e) => setPreferences(prev => ({ ...prev, newsFrequency: e.target.value as any }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
-                  <option value="high">Alta (muchas noticias)</option>
-                  <option value="moderate">Moderada</option>
-                  <option value="low">Baja (solo las más importantes)</option>
+                  <option value="high">{t('preferences.highFrequency')}</option>
+                  <option value="moderate">{t('preferences.moderateFrequency')}</option>
+                  <option value="low">{t('preferences.lowFrequency')}</option>
                 </select>
               </div>
             </div>
@@ -567,43 +660,13 @@ const Settings: React.FC = () => {
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? t('common.saving') : t('settings.saveChanges')}
+              {isSaving ? t('common.saving') : t('common.saveChanges')}
             </button>
-          </motion.div>
-
-          {/* Botón de Vista Previa de Personalización */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-sm p-6 text-white"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Vista Previa de Personalización</h3>
-                <p className="text-white/80 text-sm">Mira cómo tus configuraciones afectan el feed de noticias</p>
-              </div>
-              <button
-                onClick={() => setShowPreview(true)}
-                className="px-6 py-3 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-2 font-medium"
-              >
-                <Eye className="w-5 h-5" />
-                Ver Preview
-              </button>
-            </div>
           </motion.div>
         </div>
       </div>
-
-      {/* Modal de Vista Previa */}
-      <PersonalizationPreview
-        interests={interests}
-        preferences={preferences}
-        isVisible={showPreview}
-        onClose={() => setShowPreview(false)}
-      />
     </div>
   );
 };
 
-export default Settings;
+export default Preferences;
