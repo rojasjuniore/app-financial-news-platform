@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { useFeed } from '../../hooks/useFeed';
 import { useDebounce } from '../../hooks/usePerformance';
 import ArticleCard from './ArticleCard';
@@ -15,6 +16,7 @@ import { Loader, TrendingUp, AlertCircle, RefreshCw, Filter, ChevronDown } from 
 import toast from 'react-hot-toast';
 
 const FeedList: React.FC = () => {
+  const { t } = useTranslation();
   const [limit, setLimit] = useState(20);
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -72,7 +74,7 @@ const FeedList: React.FC = () => {
       }
     } catch (error) {
       console.error('Error compartiendo:', error);
-      toast.error('Error al compartir artículo');
+      toast.error(t('errors.sharingArticle'));
     }
   }, []);
 
@@ -82,7 +84,7 @@ const FeedList: React.FC = () => {
       await refetch();
       toast.success('Feed actualizado');
     } catch (error) {
-      toast.error('Error al actualizar');
+      toast.error(t('errors.updating'));
     } finally {
       setIsRefreshing(false);
     }
@@ -99,7 +101,7 @@ const FeedList: React.FC = () => {
   if (error) {
     return (
       <ErrorState
-        message="Error cargando el feed"
+        message={t('errors.loadingFeed')}
         onRetry={handleRefresh}
       />
     );

@@ -187,7 +187,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       toast.success(`✨ ${t('analysis.panel.panelCompleted')}`);
     } catch (error: any) {
       console.error('Error en panel de discusión:', error);
-      toast.error(error.message || 'Error generando panel de discusión');
+      toast.error(error.message || t('errors.panelDiscussion'));
     } finally {
       setIsGenerating(false);
       setCurrentSpeaker(null);

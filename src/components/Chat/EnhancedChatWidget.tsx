@@ -7,6 +7,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Send, TrendingUp, TrendingDown, Activity, MessageSquare, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import MessageRenderer from './MessageRenderer';
 import { useMessageFormatter } from '../../hooks/useMessageFormatter';
@@ -48,6 +49,7 @@ const EnhancedChatWidget: React.FC<EnhancedChatWidgetProps> = ({
   isOpen
 }) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { enhanceMessage } = useMessageFormatter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -304,7 +306,7 @@ const EnhancedChatWidget: React.FC<EnhancedChatWidgetProps> = ({
         setMessages(prev => [...prev, {
           id: Date.now().toString() + '-error',
           role: 'system',
-          content: 'Failed to send message. Please try again.',
+          content: t('errors.sendingMessage'),
           timestamp: new Date()
         }]);
       }
@@ -505,7 +507,7 @@ const EnhancedChatWidget: React.FC<EnhancedChatWidgetProps> = ({
                   sendMessage();
                 }
               }}
-              placeholder={userToken ? "Type your message..." : "Please wait, authenticating..."}
+              placeholder={userToken ? t('chat.placeholder') : t('chat.placeholderAuthenticating')}
               disabled={isLoading || !userToken}
               className="flex-1 px-3 py-2 border dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white disabled:opacity-50 disabled:cursor-not-allowed"
             />

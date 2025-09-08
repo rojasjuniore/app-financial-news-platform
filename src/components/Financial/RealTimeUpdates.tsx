@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
   Activity, 
   Wifi, 
@@ -135,6 +136,7 @@ const RealTimeUpdates: React.FC<RealTimeUpdatesProps> = ({
   updateInterval = 2000,
   maxEvents = 10
 }) => {
+  const { t } = useTranslation();
   const [isConnected, setIsConnected] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recentUpdates, setRecentUpdates] = useState<PriceUpdate[]>([]);
@@ -184,7 +186,7 @@ const RealTimeUpdates: React.FC<RealTimeUpdatesProps> = ({
         setIsConnected(false);
       };
     } catch (error) {
-      setConnectionError('Error conectando con el servicio de datos en tiempo real');
+      setConnectionError(t('errors.realtimeConnection'));
       setIsConnected(false);
     }
   }, [symbols, handleWebSocketMessage]);

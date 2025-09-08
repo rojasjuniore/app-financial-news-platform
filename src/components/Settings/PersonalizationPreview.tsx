@@ -53,7 +53,7 @@ const PersonalizationPreview: React.FC<PersonalizationPreviewProps> = ({
       setPreview(mockPreview);
 
     } catch (err: any) {
-      setError(err.message || 'Failed to generate preview');
+      setError(err.message || t('errors.generatingPreview'));
     } finally {
       setIsLoading(false);
     }

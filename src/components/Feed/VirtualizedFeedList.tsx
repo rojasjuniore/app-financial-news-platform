@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FixedSizeList as List, areEqual } from 'react-window';
+import { useTranslation } from 'react-i18next';
 import { useFeed } from '../../hooks/useFeed';
 import { useVirtualScroll, useDebounce, usePerformance } from '../../hooks/usePerformance';
 import ArticleCard from './ArticleCard';
@@ -57,6 +58,7 @@ VirtualizedArticleItem.displayName = 'VirtualizedArticleItem';
 
 // Main virtualized feed component
 const VirtualizedFeedList: React.FC = () => {
+  const { t } = useTranslation();
   const [limit, setLimit] = useState(50); // Increased for better virtualization
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -119,7 +121,7 @@ const VirtualizedFeedList: React.FC = () => {
       }
     } catch (error) {
       console.error('Error compartiendo:', error);
-      toast.error('Error al compartir artículo');
+      toast.error(t('errors.sharingArticle'));
     }
   }, []);
 
@@ -130,7 +132,7 @@ const VirtualizedFeedList: React.FC = () => {
       await refetch();
       toast.success('Feed actualizado');
     } catch (error) {
-      toast.error('Error al actualizar');
+      toast.error(t('errors.updating'));
     } finally {
       setIsRefreshing(false);
       endTimer('renderTime');
@@ -171,7 +173,7 @@ const VirtualizedFeedList: React.FC = () => {
   if (error) {
     return (
       <ErrorState
-        message="Error cargando el feed"
+        message={t('errors.loadingFeed')}
         onRetry={handleRefresh}
       />
     );

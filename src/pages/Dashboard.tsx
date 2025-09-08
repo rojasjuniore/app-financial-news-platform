@@ -51,7 +51,7 @@ const Dashboard: React.FC = () => {
     newsAggregated: '0',
     newsAnalyzed: '0',
     qualityScore: '0%',
-    lastUpdate: 'Loading...'
+    lastUpdate: t('common.loading')
   });
   const [showMarketEvents, setShowMarketEvents] = useState(false);
 
@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
       fetchStatistics(),
       new Promise(resolve => setTimeout(resolve, 1500))
     ]);
-    toast.success(t('dashboard.updated', { fallback: 'Datos actualizados' }));
+    toast.success(t('dashboard.updated'));
     setIsRefreshing(false);
   };
 

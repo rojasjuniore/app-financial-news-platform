@@ -206,6 +206,7 @@
     "expand": "Expand chat",
     "metaDescription": "Chat with our AI assistant for intelligent financial analysis",
     "placeholder": "Type your message...",
+    "placeholderAuthenticating": "Please wait, authenticating...",
     "send": "Send",
     "thinking": "Thinking...",
     "error": "Error sending message",
@@ -413,7 +414,18 @@
     "timeout": "Request timeout",
     "apiOverloaded": "AI service is overloaded. Trying backup service...",
     "fallbackSuccess": "Analysis generated using backup AI service",
-    "allServicesFailed": "All AI services are currently unavailable. Please try again later."
+    "allServicesFailed": "All AI services are currently unavailable. Please try again later.",
+    "savingPreferences": "Error saving preferences",
+    "sharingArticle": "Error sharing article",
+    "updating": "Error updating",
+    "loadingFeed": "Error loading feed",
+    "loadingMarketEvents": "Error loading market events",
+    "updatingCalendar": "Error updating calendar",
+    "panelDiscussion": "Error generating panel discussion",
+    "realtimeConnection": "Error connecting to real-time data service",
+    "sendingMessage": "Failed to send message. Please try again.",
+    "generatingPreview": "Failed to generate preview",
+    "savingLLMPreference": "Error saving LLM preference"
   },
   "markets": {
     "stocks": "Stocks",

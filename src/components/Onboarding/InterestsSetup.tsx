@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -77,6 +78,7 @@ const SECTORS = [
 
 const InterestsSetup: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
@@ -128,7 +130,7 @@ const InterestsSetup: React.FC = () => {
       toast.success('¡Perfecto! Tu feed está listo 🎉');
       navigate('/feed');
     } catch (error) {
-      toast.error('Error guardando preferencias');
+      toast.error(t('errors.savingPreferences'));
       console.error('Error:', error);
     } finally {
       setIsLoading(false);

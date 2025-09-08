@@ -75,7 +75,7 @@ const MarketEventsPage: React.FC<MarketEventsPageProps> = ({ onClose }) => {
       }
     } catch (error: any) {
       console.error('❌ Error fetching market events:', error);
-      toast.error('Error cargando eventos de mercado');
+      toast.error(t('errors.loadingMarketEvents'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ const MarketEventsPage: React.FC<MarketEventsPageProps> = ({ onClose }) => {
       toast.success('📅 Calendario actualizado');
       fetchMarketEvents();
     } catch (error) {
-      toast.error('Error actualizando calendario');
+      toast.error(t('errors.updatingCalendar'));
     }
   };
 

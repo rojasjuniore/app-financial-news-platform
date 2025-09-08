@@ -206,6 +206,7 @@
     "expand": "Expandir chat",
     "metaDescription": "Chatea con nuestro asistente de IA para análisis financiero inteligente",
     "placeholder": "Escribe tu mensaje...",
+    "placeholderAuthenticating": "Por favor espera, autenticando...",
     "send": "Enviar",
     "thinking": "Pensando...",
     "error": "Error al enviar mensaje",
@@ -413,7 +414,18 @@
     "timeout": "La solicitud tardó demasiado tiempo",
     "apiOverloaded": "El servicio de IA está saturado. Intentando con servicio de respaldo...",
     "fallbackSuccess": "Análisis generado usando servicio de IA de respaldo",
-    "allServicesFailed": "Todos los servicios de IA no están disponibles. Intenta más tarde."
+    "allServicesFailed": "Todos los servicios de IA no están disponibles. Intenta más tarde.",
+    "savingPreferences": "Error guardando preferencias",
+    "sharingArticle": "Error al compartir artículo",
+    "updating": "Error al actualizar",
+    "loadingFeed": "Error cargando el feed",
+    "loadingMarketEvents": "Error cargando eventos de mercado",
+    "updatingCalendar": "Error actualizando calendario",
+    "panelDiscussion": "Error generando panel de discusión",
+    "realtimeConnection": "Error conectando con el servicio de datos en tiempo real",
+    "sendingMessage": "Error al enviar mensaje. Por favor, intenta de nuevo.",
+    "generatingPreview": "Error al generar vista previa",
+    "savingLLMPreference": "Error guardando preferencia de LLM"
   },
   "markets": {
     "stocks": "Acciones",
