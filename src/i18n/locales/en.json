@@ -308,7 +308,9 @@
     "newsFrequency": "News Frequency",
     "highFrequency": "High",
     "moderateFrequency": "Moderate",
-    "lowFrequency": "Low"
+    "lowFrequency": "Low",
+    "keywords": "Keywords",
+    "keywordsDescription": "Add specific keywords to filter news"
   },
   "settings": {
     "title": "Settings",
@@ -345,13 +347,17 @@
     "marketTypes": "Market Types"
   },
   "search": {
-    "title": "Search",
-    "placeholder": "Search news, symbols, topics...",
+    "title": "Search Articles",
+    "placeholder": "Search by title, description or ticker (e.g.: AAPL, Tesla, market...)",
     "recentSearches": "Recent searches",
     "popularSearches": "Popular searches",
     "noResults": "No results found",
-    "searchResults": "Search results",
+    "searchResults": "Results for",
     "clearHistory": "Clear history",
+    "articlesFound": "{{count}} article found",
+    "articlesFound_plural": "{{count}} articles found",
+    "errorSearching": "Error performing search",
+    "tryOtherTerms": "Try other search terms",
     "filters": {
       "date": "Date",
       "relevance": "Relevance",
@@ -364,7 +370,15 @@
     "noSaved": "You have no saved articles",
     "savedOn": "Saved on",
     "removeFromSaved": "Remove from saved",
-    "confirmRemove": "Are you sure you want to remove this article from saved?"
+    "confirmRemove": "Are you sure you want to remove this article from saved?",
+    "removedFromSaved": "Article removed from saved",
+    "loading": "Loading saved articles...",
+    "errorLoading": "Error loading saved articles",
+    "articlesCount": "{{count}} article",
+    "articlesCount_plural": "{{count}} articles",
+    "saveForLater": "Save articles to read later",
+    "exploreNews": "Explore news",
+    "viewFullAnalysis": "View full analysis"
   },
   "quality": {
     "high": "High quality",

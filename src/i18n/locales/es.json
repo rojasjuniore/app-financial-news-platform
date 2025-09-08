@@ -308,7 +308,9 @@
     "newsFrequency": "Frecuencia de Noticias",
     "highFrequency": "Alta",
     "moderateFrequency": "Moderada",
-    "lowFrequency": "Baja"
+    "lowFrequency": "Baja",
+    "keywords": "Palabras Clave",
+    "keywordsDescription": "Agrega palabras clave específicas para filtrar noticias"
   },
   "settings": {
     "title": "Configuración",
@@ -345,13 +347,17 @@
     "marketTypes": "Tipos de Mercado"
   },
   "search": {
-    "title": "Buscar",
-    "placeholder": "Buscar noticias, símbolos, temas...",
+    "title": "Buscar Artículos",
+    "placeholder": "Buscar por título, descripción o ticker (ej: AAPL, Tesla, mercado...)",
     "recentSearches": "Búsquedas recientes",
     "popularSearches": "Búsquedas populares",
     "noResults": "No se encontraron resultados",
-    "searchResults": "Resultados de búsqueda",
+    "searchResults": "Resultados para",
     "clearHistory": "Limpiar historial",
+    "articlesFound": "{{count}} artículo encontrado",
+    "articlesFound_plural": "{{count}} artículos encontrados",
+    "errorSearching": "Error realizando la búsqueda",
+    "tryOtherTerms": "Intenta con otros términos de búsqueda",
     "filters": {
       "date": "Fecha",
       "relevance": "Relevancia",
@@ -364,7 +370,15 @@
     "noSaved": "No tienes artículos guardados",
     "savedOn": "Guardado el",
     "removeFromSaved": "Eliminar de guardados",
-    "confirmRemove": "¿Estás seguro de que quieres eliminar este artículo de tus guardados?"
+    "confirmRemove": "¿Estás seguro de que quieres eliminar este artículo de tus guardados?",
+    "removedFromSaved": "Artículo eliminado de guardados",
+    "loading": "Cargando artículos guardados...",
+    "errorLoading": "Error cargando artículos guardados",
+    "articlesCount": "{{count}} artículo",
+    "articlesCount_plural": "{{count}} artículos",
+    "saveForLater": "Guarda artículos para leerlos más tarde",
+    "exploreNews": "Explorar noticias",
+    "viewFullAnalysis": "Ver análisis completo"
   },
   "quality": {
     "high": "Alta calidad",

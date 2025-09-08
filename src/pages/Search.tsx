@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { feedService } from '../services/news/feedService';
 import { FirestoreTimestamp } from '../types';
 import { 
@@ -20,6 +21,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 
 const Search: React.FC = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
@@ -58,7 +60,7 @@ const Search: React.FC = () => {
         await navigator.clipboard.writeText(
           `${article.title}\n${window.location.origin}/article/${article.id}`
         );
-        toast.success('Enlace copiado al portapapeles');
+        toast.success(t('common.linkCopied'));
       }
     } catch (error) {
       console.error('Error compartiendo:', error);
@@ -67,7 +69,7 @@ const Search: React.FC = () => {
 
   const handleSaveArticle = (articleId: string) => {
     feedService.saveArticle(articleId);
-    toast.success('Artículo guardado');
+    toast.success(t('article.saved'));
   };
 
   const getSentimentIcon = (sentiment?: string) => {
@@ -83,7 +85,7 @@ const Search: React.FC = () => {
   };
 
   const formatTimeAgo = (date: string | FirestoreTimestamp | undefined) => {
-    if (!date) return 'Fecha no disponible';
+    if (!date) return t('common.dateNotAvailable');
     
     try {
       let articleDate: Date;
@@ -96,7 +98,7 @@ const Search: React.FC = () => {
         articleDate = new Date(date as any);
       }
       
-      if (isNaN(articleDate.getTime())) return 'Fecha no disponible';
+      if (isNaN(articleDate.getTime())) return t('common.dateNotAvailable');
       
       return articleDate.toLocaleString('es-ES', { 
         year: 'numeric',
@@ -108,7 +110,7 @@ const Search: React.FC = () => {
         timeZone: 'America/Mexico_City'
       });
     } catch (error) {
-      return 'Fecha no disponible';
+      return t('common.dateNotAvailable');
     }
   };
 
@@ -128,7 +130,7 @@ const Search: React.FC = () => {
         {/* Header con buscador */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-            Buscar Artículos
+            {t('search.title')}
           </h1>
           
           <form onSubmit={handleSearch} className="relative">
@@ -139,7 +141,7 @@ const Search: React.FC = () => {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Buscar por título, descripción o ticker (ej: AAPL, Tesla, mercado...)"
+                placeholder={t('search.placeholder')}
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 autoComplete="off"
               />
@@ -159,7 +161,7 @@ const Search: React.FC = () => {
               disabled={searchTerm.trim().length < 2}
               className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
             >
-              Buscar
+              {t('common.search')}
             </button>
           </form>
         </div>
@@ -169,11 +171,11 @@ const Search: React.FC = () => {
           {searchQuery && (
             <div className="mb-6">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Resultados para: "{searchQuery}"
+                {t('search.searchResults')}: "{searchQuery}"
               </h2>
               {searchResults && (
                 <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  {searchResults.articles.length} artículos encontrados
+                  {searchResults.articles.length} {t('search.articlesFound', { count: searchResults.articles.length })}
                 </p>
               )}
             </div>
@@ -188,7 +190,7 @@ const Search: React.FC = () => {
           {error && (
             <div className="text-center py-8">
               <p className="text-red-600 dark:text-red-400">
-                Error realizando la búsqueda
+                {t('search.errorSearching')}
               </p>
             </div>
           )}
@@ -197,10 +199,10 @@ const Search: React.FC = () => {
             <div className="text-center py-12">
               <SearchIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                No se encontraron resultados
+                {t('search.noResults')}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Intenta con otros términos de búsqueda
+                {t('search.tryOtherTerms')}
               </p>
             </div>
           )}

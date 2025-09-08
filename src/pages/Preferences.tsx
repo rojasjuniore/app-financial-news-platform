@@ -572,11 +572,11 @@ const Preferences: React.FC = () => {
             <div className="flex items-center space-x-3 mb-4">
               <Key className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('preferences.keywords') || 'Palabras Clave'}
+                {t('preferences.keywords')}
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {t('preferences.keywordsDescription') || 'Agrega palabras clave específicas para filtrar noticias'}
+              {t('preferences.keywordsDescription')}
             </p>
             
             <div className="flex gap-2 mb-4">

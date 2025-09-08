@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { feedService } from '../services/news/feedService';
 import { FirestoreTimestamp } from '../types';
 import { 
@@ -21,6 +22,7 @@ import toast from 'react-hot-toast';
 import QualityBadge from '../components/QualityBadge/QualityBadge';
 
 const Saved: React.FC = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Obtener artículos guardados directamente del endpoint
@@ -40,7 +42,7 @@ const Saved: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['savedArticles'] });
       // También refrescar el perfil por si acaso
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      toast.success('Artículo eliminado de guardados');
+      toast.success(t('saved.removedFromSaved'));
     },
     onError: (error: any) => {
       toast.error(`Error: ${error.response?.data?.error || error.message}`);
@@ -63,7 +65,7 @@ const Saved: React.FC = () => {
         await navigator.clipboard.writeText(
           `${article.title}\n${window.location.origin}/article/${article.id}`
         );
-        toast.success('Enlace copiado al portapapeles');
+        toast.success(t('common.linkCopied'));
       }
     } catch (error) {
       console.error('Error compartiendo:', error);
@@ -83,7 +85,7 @@ const Saved: React.FC = () => {
   };
 
   const formatTimeAgo = (date: string | FirestoreTimestamp | undefined) => {
-    if (!date) return 'Fecha no disponible';
+    if (!date) return t('common.dateNotAvailable');
     
     try {
       let articleDate: Date;
@@ -101,7 +103,7 @@ const Saved: React.FC = () => {
       // Verificar si la fecha es válida
       if (isNaN(articleDate.getTime())) {
         console.warn('Invalid date:', date);
-        return 'Fecha no disponible';
+        return t('common.dateNotAvailable');
       }
       
       return articleDate.toLocaleString('es-ES', { 
@@ -115,7 +117,7 @@ const Saved: React.FC = () => {
       });
     } catch (error) {
       console.error('Error formatting date:', error, date);
-      return 'Fecha no disponible';
+      return t('common.dateNotAvailable');
     }
   };
 
@@ -125,7 +127,7 @@ const Saved: React.FC = () => {
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
             <Loader className="animate-spin w-10 h-10 text-blue-600 mx-auto mb-3" />
-            <p className="text-gray-600 dark:text-gray-400">Cargando artículos guardados...</p>
+            <p className="text-gray-600 dark:text-gray-400">{t('saved.loading')}</p>
           </div>
         </div>
       </div>
@@ -137,7 +139,7 @@ const Saved: React.FC = () => {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center">
-            <p className="text-red-600">Error cargando artículos guardados</p>
+            <p className="text-red-600">{t('saved.errorLoading')}</p>
           </div>
         </div>
       </div>
@@ -154,7 +156,7 @@ const Saved: React.FC = () => {
             className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mb-6 group transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Volver al feed
+            {t('article.backToFeed')}
           </Link>
           
           <div className="flex items-center gap-3">
@@ -163,10 +165,10 @@ const Saved: React.FC = () => {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Artículos Guardados
+                {t('saved.title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {savedArticles.length} {savedArticles.length === 1 ? 'artículo' : 'artículos'} guardados
+                {t('saved.articlesCount', { count: savedArticles.length })}
               </p>
             </div>
           </div>
@@ -177,16 +179,16 @@ const Saved: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm">
             <Bookmark className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              No tienes artículos guardados
+              {t('saved.noSaved')}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Guarda artículos para leerlos más tarde
+              {t('saved.saveForLater')}
             </p>
             <Link
               to="/feed"
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Explorar noticias
+              {t('saved.exploreNews')}
             </Link>
           </div>
         ) : (
@@ -211,7 +213,7 @@ const Saved: React.FC = () => {
                       onClick={() => handleUnsave(article.id)}
                       disabled={unsaveMutation.isPending}
                       className="absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-sm transition-all"
-                      title="Quitar de guardados"
+                      title={t('saved.removeFromSaved')}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -226,7 +228,7 @@ const Saved: React.FC = () => {
                         onClick={() => handleUnsave(article.id)}
                         disabled={unsaveMutation.isPending}
                         className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all"
-                        title="Quitar de guardados"
+                        title={t('saved.removeFromSaved')}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -301,7 +303,7 @@ const Saved: React.FC = () => {
                       <button
                         onClick={() => handleShare(article)}
                         className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-all"
-                        title="Compartir"
+                        title={t('article.share')}
                       >
                         <Share2 className="w-3.5 h-3.5" />
                       </button>
@@ -312,7 +314,7 @@ const Saved: React.FC = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-full transition-all"
-                          title="Leer original"
+                          title={t('article.readOriginal')}
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
@@ -321,7 +323,7 @@ const Saved: React.FC = () => {
                       <Link
                         to={`/article/${article.id}`}
                         className="p-1.5 text-gray-400 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full transition-all"
-                        title="Ver análisis completo"
+                        title={t('saved.viewFullAnalysis')}
                       >
                         <FileText className="w-3.5 h-3.5" />
                       </Link>
@@ -329,7 +331,7 @@ const Saved: React.FC = () => {
 
                     <div className="flex items-center">
                       <Bookmark className="w-3 h-3 text-blue-500 mr-1" />
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Guardado</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{t('article.saved')}</span>
                     </div>
                   </div>
                 </div>
