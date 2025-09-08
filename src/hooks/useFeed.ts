@@ -10,16 +10,26 @@ interface UseFeedOptions {
   timeRange?: number;
   forceRefresh?: boolean;
   sortBy?: 'time' | 'quality' | 'personalized';
+  onlyMyInterests?: boolean;
+  minRelevanceScore?: number;
 }
 
 export const useFeed = (options: UseFeedOptions = {}) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Aplicar opciones por defecto para personalización
+  const feedOptions = {
+    onlyMyInterests: true, // POR DEFECTO: Solo mostrar contenido de interés
+    minRelevanceScore: 0, // Se usará el del perfil del usuario en el backend
+    sortBy: 'personalized' as const, // POR DEFECTO: Ordenar por personalización
+    ...options
+  };
+
   // Query para obtener feed
   const feedQuery = useQuery<FeedResponse>({
-    queryKey: ['feed', options],
-    queryFn: () => feedService.getFeed(options),
+    queryKey: ['feed', feedOptions],
+    queryFn: () => feedService.getFeed(feedOptions),
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutos
   });

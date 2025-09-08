@@ -21,7 +21,8 @@ import {
   User,
   Globe,
   Heart,
-  Share
+  Share,
+  Settings
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import QualityBadge from '../QualityBadge/QualityBadge';
@@ -41,6 +42,21 @@ const TwitterFeedListV2: React.FC = () => {
 
   // Use different sort strategies based on active tab
   const sortStrategy = activeTab === 'latest' ? 'time' : 'personalized';
+  
+  // Configurar opciones según el tab activo
+  const feedOptions = activeTab === 'personalized' 
+    ? {
+        limit,
+        sortBy: 'personalized' as const,
+        onlyMyInterests: true, // Filtrar por intereses del usuario
+        minRelevanceScore: 30 // Mínimo 30% de relevancia
+      }
+    : {
+        limit,
+        sortBy: 'time' as const,
+        onlyMyInterests: false, // Mostrar todo en cronológico
+        minRelevanceScore: 0
+      };
 
   const {
     articles,
@@ -51,7 +67,7 @@ const TwitterFeedListV2: React.FC = () => {
     likeArticle,
     saveArticle,
     refetch,
-  } = useFeed({ limit, sortBy: sortStrategy });
+  } = useFeed(feedOptions);
 
   // Get user profile for personalized interests
   const { data: userProfile, isLoading: profileLoading } = useQuery({
@@ -395,6 +411,17 @@ const TwitterFeedListV2: React.FC = () => {
                         </div>
                       )}
                     </div>
+
+                    {/* Personalization Match Reason - Solo en feed personalizado */}
+                    {activeTab === 'personalized' && article.personalization?.reason && (
+                      <div className="mt-2 px-2 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-md border border-blue-100 dark:border-blue-800">
+                        <div className="flex items-center gap-1 text-xs text-blue-700 dark:text-blue-300">
+                          <Target className="w-3 h-3" />
+                          <span className="font-medium">Matches: </span>
+                          <span>{article.personalization.reason}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -462,11 +489,54 @@ const TwitterFeedListV2: React.FC = () => {
         <div className="p-8 text-center">
           <div className="text-gray-500 dark:text-gray-400">
             {activeTab === 'personalized' && (!userProfile?.interests || 
-              (!userProfile.interests.tickers?.length && !userProfile.interests.sectors?.length)) ? (
+              (!userProfile.interests.tickers?.length && !userProfile.interests.sectors?.length && !userProfile.interests.topics?.length)) ? (
               <>
                 <Target className="w-12 h-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No interests configured</p>
-                <p className="text-sm">Configure your interests in Settings to see personalized news</p>
+                <p className="text-sm mb-4">Configure your interests in Settings to see personalized news</p>
+                <Link 
+                  to="/preferences"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  Configure Preferences
+                </Link>
+              </>
+            ) : activeTab === 'personalized' ? (
+              <>
+                <AlertCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">
+                  No articles matching your interests right now
+                </p>
+                <div className="text-sm mb-4 space-y-1">
+                  {userProfile?.interests?.tickers && userProfile.interests.tickers.length > 0 && (
+                    <p>📈 Tickers: {userProfile.interests.tickers.join(', ')}</p>
+                  )}
+                  {userProfile?.interests?.sectors && userProfile.interests.sectors.length > 0 && (
+                    <p>🏢 Sectors: {userProfile.interests.sectors.join(', ')}</p>
+                  )}
+                  {userProfile?.interests?.topics && userProfile.interests.topics.length > 0 && (
+                    <p>📰 Topics: {userProfile.interests.topics.join(', ')}</p>
+                  )}
+                  {userProfile?.interests?.keywords && userProfile.interests.keywords.length > 0 && (
+                    <p>🔍 Keywords: {userProfile.interests.keywords.join(', ')}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs text-gray-400">Try these options:</p>
+                  <button
+                    onClick={() => setActiveTab('latest')}
+                    className="block w-full px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    View Latest News (All Articles)
+                  </button>
+                  <Link 
+                    to="/preferences"
+                    className="block w-full px-4 py-2 bg-blue-100 dark:bg-blue-900/20 hover:bg-blue-200 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg transition-colors"
+                  >
+                    Adjust Your Preferences
+                  </Link>
+                </div>
               </>
             ) : (
               <>
@@ -474,7 +544,7 @@ const TwitterFeedListV2: React.FC = () => {
                 <p className="text-lg font-medium mb-2">
                   No {sentimentFilter !== 'all' ? sentimentFilter : ''} news available
                 </p>
-                <p className="text-sm">Try adjusting your filters or check back later</p>
+                <p className="text-sm">Check back later for new articles</p>
               </>
             )}
           </div>

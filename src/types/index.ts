@@ -133,6 +133,7 @@ export interface UserInterests {
   sectors: string[];
   topics: string[];
   marketTypes: MarketType[];
+  keywords?: string[]; // NUEVO: Palabras clave personalizadas
   weights?: {
     tickers: { [key: string]: number };
     sectors: { [key: string]: number };
@@ -148,6 +149,7 @@ export interface UserPreferences {
   newsFrequency: 'high' | 'moderate' | 'low';
   defaultLLMModel?: 'openai' | 'claude' | 'gemini' | 'grok';
   complexityLevel?: 'simple' | 'medium' | 'detailed';
+  minRelevanceScore?: number; // NUEVO: Score mínimo de relevancia (0-100)
   languagePreference?: 'en' | 'es';
   notificationSettings?: {
     breakingNews: boolean;

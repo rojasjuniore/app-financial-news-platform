@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, TrendingUp, TrendingDown, Activity, AlertCircle, DollarSign } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, AlertCircle, DollarSign } from 'lucide-react';
 import { toNumber, formatCurrency, formatPercent, formatChange, formatPrice } from '../../utils/numberHelpers';
 
 interface PolygonData {

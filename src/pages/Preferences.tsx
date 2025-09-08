@@ -10,6 +10,9 @@ import {
   Plus,
   X,
   TrendingUp,
+  Key,
+  Sliders,
+  AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { feedService } from '../services/feedService';
@@ -22,6 +25,7 @@ interface UserInterests {
   sectors: string[];
   topics: string[];
   marketTypes: string[];
+  keywords: string[]; // NUEVO: Palabras clave personalizadas
 }
 
 const Preferences: React.FC = () => {
@@ -34,6 +38,7 @@ const Preferences: React.FC = () => {
     sectors: [],
     topics: [],
     marketTypes: ['stocks'],
+    keywords: [], // NUEVO: Palabras clave
   });
 
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -42,6 +47,7 @@ const Preferences: React.FC = () => {
     timeHorizon: 'medium_term',
     newsFrequency: 'moderate',
     defaultLLMModel: 'openai',
+    minRelevanceScore: 30, // NUEVO: Score mínimo de relevancia
   });
 
   const [isLoading, setIsLoading] = useState(true);
@@ -51,6 +57,7 @@ const Preferences: React.FC = () => {
   const [newTicker, setNewTicker] = useState('');
   const [newSector, setNewSector] = useState('');
   const [newTopic, setNewTopic] = useState('');
+  const [newKeyword, setNewKeyword] = useState(''); // NUEVO: Para keywords
 
   // Cargar configuraciones actuales del usuario
   useEffect(() => {
@@ -79,7 +86,13 @@ const Preferences: React.FC = () => {
       
       if (profile && profile.interests) {
         console.log('✅ Cargando intereses:', profile.interests);
-        setInterests(profile.interests);
+        setInterests({
+          tickers: profile.interests.tickers || [],
+          sectors: profile.interests.sectors || [],
+          topics: profile.interests.topics || [],
+          marketTypes: profile.interests.marketTypes || [],
+          keywords: profile.interests.keywords || []
+        });
       }
       
       if (profile && profile.preferences) {
@@ -209,6 +222,24 @@ const Preferences: React.FC = () => {
       marketTypes: prev.marketTypes.includes(marketType)
         ? prev.marketTypes.filter(m => m !== marketType)
         : [...prev.marketTypes, marketType]
+    }));
+  };
+
+  // NUEVO: Funciones para manejar keywords
+  const addKeyword = () => {
+    if (newKeyword && !interests.keywords.includes(newKeyword.toLowerCase())) {
+      setInterests(prev => ({
+        ...prev,
+        keywords: [...prev.keywords, newKeyword.toLowerCase()]
+      }));
+      setNewKeyword('');
+    }
+  };
+
+  const removeKeyword = (keyword: string) => {
+    setInterests(prev => ({
+      ...prev,
+      keywords: prev.keywords.filter(k => k !== keyword)
     }));
   };
 
@@ -531,11 +562,91 @@ const Preferences: React.FC = () => {
             </button>
           </motion.div>
 
-          {/* Tipos de Mercado */}
+          {/* Keywords Personalizadas */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <Key className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('preferences.keywords') || 'Palabras Clave'}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {t('preferences.keywordsDescription') || 'Agrega palabras clave específicas para filtrar noticias'}
+            </p>
+            
+            <div className="flex gap-2 mb-4">
+              <input
+                type="text"
+                value={newKeyword}
+                onChange={(e) => setNewKeyword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
+                placeholder={t('preferences.keywordPlaceholder') || 'Ej: inflation, recession, growth'}
+                className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <button
+                onClick={addKeyword}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {t('common.add')}
+              </button>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mb-4">
+              {interests.keywords && interests.keywords.length > 0 ? (
+                interests.keywords.map((keyword) => (
+                  <span
+                    key={keyword}
+                    className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-800 dark:text-indigo-300 rounded-full text-sm"
+                  >
+                    {keyword}
+                    <button
+                      onClick={() => removeKeyword(keyword)}
+                      className="text-indigo-600 dark:text-indigo-400 hover:text-red-600 dark:hover:text-red-400"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {['inflation', 'recession', 'IPO'].map((keyword) => (
+                    <span
+                      key={keyword}
+                      className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full text-sm cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900/20"
+                      onClick={() => {
+                        setNewKeyword(keyword);
+                        addKeyword();
+                      }}
+                    >
+                      {keyword}
+                      <Plus className="w-3 h-3" />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <button
+              onClick={handleSaveInterests}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? t('common.saving') : t('common.saveChanges')}
+            </button>
+          </motion.div>
+
+          {/* Tipos de Mercado */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
           >
             <div className="flex items-center space-x-3 mb-4">
@@ -574,11 +685,181 @@ const Preferences: React.FC = () => {
             </button>
           </motion.div>
 
+          {/* Score Mínimo de Relevancia */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <Sliders className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                {t('preferences.relevanceScore') || 'Control de Contenido en tu Feed'}
+              </h3>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {t('preferences.relevanceScoreDescription') || 'Decide qué tan estricto quieres que sea el filtro. Un valor alto muestra solo artículos muy relevantes para ti.'}
+            </p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Relevancia Mínima Requerida: 
+                  </span>
+                  <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 ml-2">
+                    {preferences.minRelevanceScore || 30}%
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    {(preferences.minRelevanceScore ?? 30) === 0 
+                      ? '🌍 Ver Todo'
+                      : (preferences.minRelevanceScore ?? 30) < 30
+                      ? '📨 Más Contenido'
+                      : (preferences.minRelevanceScore ?? 30) < 60
+                      ? '✅ Balanceado'
+                      : (preferences.minRelevanceScore ?? 30) < 80
+                      ? '🎯 Relevante'
+                      : '🔥 Solo lo Mejor'}
+                  </span>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {preferences.minRelevanceScore === 0
+                      ? 'Verás todos los artículos'
+                      : `Solo artículos ≥${preferences.minRelevanceScore}% relevancia`}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="relative">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="10"
+                  value={preferences.minRelevanceScore || 30}
+                  onChange={(e) => setPreferences(prev => ({ 
+                    ...prev, 
+                    minRelevanceScore: parseInt(e.target.value) 
+                  }))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 slider"
+                  style={{
+                    background: `linear-gradient(to right, #3B82F6 0%, #3B82F6 ${preferences.minRelevanceScore || 30}%, #E5E7EB ${preferences.minRelevanceScore || 30}%, #E5E7EB 100%)`
+                  }}
+                />
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  <span>0%</span>
+                  <span>25%</span>
+                  <span>50%</span>
+                  <span>75%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                <button
+                  onClick={() => setPreferences(prev => ({ ...prev, minRelevanceScore: 0 }))}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    preferences.minRelevanceScore === 0
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Todo
+                </button>
+                <button
+                  onClick={() => setPreferences(prev => ({ ...prev, minRelevanceScore: 25 }))}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    preferences.minRelevanceScore === 25
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  25%+
+                </button>
+                <button
+                  onClick={() => setPreferences(prev => ({ ...prev, minRelevanceScore: 50 }))}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    preferences.minRelevanceScore === 50
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  50%+
+                </button>
+                <button
+                  onClick={() => setPreferences(prev => ({ ...prev, minRelevanceScore: 75 }))}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    preferences.minRelevanceScore === 75
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  75%+
+                </button>
+                <button
+                  onClick={() => setPreferences(prev => ({ ...prev, minRelevanceScore: 90 }))}
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    preferences.minRelevanceScore === 90
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  90%+
+                </button>
+              </div>
+
+              <div className={`border rounded-lg p-3 ${
+                (preferences.minRelevanceScore ?? 30) === 0
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                  : (preferences.minRelevanceScore ?? 30) >= 75
+                  ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
+                  : 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+              }`}>
+                <div className="flex items-start gap-2">
+                  <AlertCircle className={`w-4 h-4 mt-0.5 ${
+                    (preferences.minRelevanceScore ?? 30) === 0
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : (preferences.minRelevanceScore ?? 30) >= 75
+                      ? 'text-orange-600 dark:text-orange-400'
+                      : 'text-green-600 dark:text-green-400'
+                  }`} />
+                  <div className={`text-sm ${
+                    (preferences.minRelevanceScore ?? 30) === 0
+                      ? 'text-blue-700 dark:text-blue-300'
+                      : (preferences.minRelevanceScore ?? 30) >= 75
+                      ? 'text-orange-700 dark:text-orange-300'
+                      : 'text-green-700 dark:text-green-300'
+                  }`}>
+                    <strong>Cómo funciona:</strong><br/>
+                    {(preferences.minRelevanceScore ?? 30) === 0
+                      ? 'Verás TODOS los artículos disponibles, sin filtros. Ideal para explorar contenido nuevo.'
+                      : (preferences.minRelevanceScore ?? 30) < 50
+                      ? `Solo verás artículos con ${preferences.minRelevanceScore ?? 30}% o más de coincidencia con tus intereses. Balance entre cantidad y relevancia.`
+                      : (preferences.minRelevanceScore ?? 30) < 75
+                      ? `Solo artículos con ${preferences.minRelevanceScore ?? 30}% o más de relevancia. Contenido más enfocado en tus preferencias.`
+                      : `Filtro muy estricto: solo artículos con ${preferences.minRelevanceScore ?? 30}% o más de relevancia. Verás menos contenido pero muy personalizado.`}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              onClick={handleSavePreferences}
+              disabled={isSaving}
+              className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+            >
+              <Save className="w-4 h-4" />
+              {isSaving ? t('common.saving') : 'Guardar Filtro de Relevancia'}
+            </button>
+          </motion.div>
+
           {/* Preferencias de Trading */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+            transition={{ delay: 0.7 }}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6"
           >
             <div className="flex items-center space-x-3 mb-4">

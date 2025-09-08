@@ -10,6 +10,8 @@ export const feedService = {
     timeRange?: number;
     forceRefresh?: boolean;
     sortBy?: 'time' | 'quality' | 'personalized';
+    onlyMyInterests?: boolean;
+    minRelevanceScore?: number;
   } = {}): Promise<FeedResponse> => {
     const { data } = await apiClient.get('/api/feed', { params });
     return data;
