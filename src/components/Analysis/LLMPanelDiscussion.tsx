@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageSquare, Users, Brain, Zap, TrendingUp, AlertTriangle, Target, Bot, ArrowRight, Loader, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
-import { panelDiscussionService, LLMOpinion as ServiceLLMOpinion } from '../../services/panelDiscussionService';
+import { panelDiscussionService, LLMOpinion as ServiceLLMOpinion } from '../../services/panel';
 import toast from 'react-hot-toast';
 
 interface LLMOpinion {

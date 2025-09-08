@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { feedService } from '../services/feedService';
+import { feedService } from '../services/news/feedService';
 import { useAuth } from './useAuth';
 import { UserProfile } from '../types';
 

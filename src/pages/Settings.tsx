@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
-import { feedService } from '../services/feedService';
+import { feedService } from '../services/news/feedService';
 import toast from 'react-hot-toast';
 import InterestCategorySelector from '../components/Settings/InterestCategorySelector';
 import PersonalizationPreview from '../components/Settings/PersonalizationPreview';

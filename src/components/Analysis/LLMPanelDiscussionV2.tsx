@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
-import { panelDiscussionService } from '../../services/panelDiscussionService';
+import { panelDiscussionService } from '../../services/panel';
 import toast from 'react-hot-toast';
 
 interface LLMOpinion {

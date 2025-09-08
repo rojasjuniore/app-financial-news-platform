@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { chatService } from '../../services/chatService';
+import { chatService } from '../../services/chat';
 import ChatWidget from './ChatWidget';
 import { MessageCircle, Plus, Search, Clock, Bot, User, X, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';

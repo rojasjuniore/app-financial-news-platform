@@ -15,7 +15,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { feedService } from '../services/feedService';
+import { feedService } from '../services/news/feedService';
 import toast from 'react-hot-toast';
 
 import type { UserPreferences } from '../types';

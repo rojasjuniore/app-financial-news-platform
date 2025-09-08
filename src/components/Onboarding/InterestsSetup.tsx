@@ -15,7 +15,7 @@ import {
   Zap,
   Target
 } from 'lucide-react';
-import { feedService } from '../../services/feedService';
+import { feedService } from '../../services/news/feedService';
 import toast from 'react-hot-toast';
 
 interface Interest {

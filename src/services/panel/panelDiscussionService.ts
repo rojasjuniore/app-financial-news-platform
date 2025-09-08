@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient from '../news/api';
 
 export interface LLMOpinion {
   model: string;

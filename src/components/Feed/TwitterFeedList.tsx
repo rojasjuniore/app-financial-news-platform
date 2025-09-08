@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useFeed } from '../../hooks/useFeed';
 import { useAuth } from '../../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { feedService } from '../../services/feedService';
+import { feedService } from '../../services/news/feedService';
 import {
   Bookmark,
   TrendingUp,

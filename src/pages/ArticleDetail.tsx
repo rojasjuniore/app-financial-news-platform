@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import apiClient from '../services/api';
+import apiClient from '../services/news/api';
 import ChatWidget from '../components/Chat/ChatWidget';
 import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
 import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
 import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, RefreshCw, MessageCircle, X, Users } from 'lucide-react';
 import { Article, FirestoreTimestamp } from '../types';
-import { feedService } from '../services/feedService';
+import { feedService } from '../services/news/feedService';
 import toast from 'react-hot-toast';
 
 const ArticleDetail: React.FC = () => {

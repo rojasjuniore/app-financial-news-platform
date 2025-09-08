@@ -1,5 +1,5 @@
 import apiClient from './api';
-import { FeedResponse, Article, UserProfile, Interaction } from '../types';
+import { FeedResponse, Article, UserProfile, Interaction } from '../../types';
 
 export const feedService = {
   // Obtener feed personalizado

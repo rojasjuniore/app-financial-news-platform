@@ -1,5 +1,5 @@
-import apiClient from './api';
-import { ChatSession } from '../types';
+import apiClient from '../news/api';
+import { ChatSession } from '../../types';
 
 export const chatService = {
   // Obtener sesión de chat

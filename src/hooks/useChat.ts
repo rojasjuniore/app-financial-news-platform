@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { chatService } from '../services/chatService';
+import { chatService } from '../services/chat';
 import { ChatMessage } from '../types';
 
 export const useChat = (articleId: string) => {

@@ -15,7 +15,7 @@ import {
   Info
 } from 'lucide-react';
 import { Article, UserInterests, UserPreferences, SettingsPreview } from '../../types';
-import { feedService } from '../../services/feedService';
+import { feedService } from '../../services/news/feedService';
 import ArticleCard from '../Feed/ArticleCard';
 
 interface PersonalizationPreviewProps {

@@ -17,7 +17,7 @@ import {
   Award
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { feedService } from '../services/feedService';
+import { feedService } from '../services/news/feedService';
 import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
