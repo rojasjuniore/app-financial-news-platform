@@ -306,7 +306,7 @@ const TwitterFeedListV2: React.FC = () => {
                   <div className="flex items-center gap-2 mb-2">
                     <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                      🎯 Filter Active: Showing only articles matching your interests
+                      {t('feed.filterActive')}
                     </span>
                   </div>
                   
