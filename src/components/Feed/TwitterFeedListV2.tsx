@@ -413,12 +413,21 @@ const TwitterFeedListV2: React.FC = () => {
                     </div>
 
                     {/* Personalization Match Reason - Solo en feed personalizado */}
-                    {activeTab === 'personalized' && article.personalization?.reason && (
+                    {activeTab === 'personalized' && article.personalization?.reason && 
+                     article.personalization.reason !== 'Market: stocks' && (
                       <div className="mt-2 px-2 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-md border border-blue-100 dark:border-blue-800">
                         <div className="flex items-center gap-1 text-xs text-blue-700 dark:text-blue-300">
                           <Target className="w-3 h-3" />
                           <span className="font-medium">Matches: </span>
-                          <span>{article.personalization.reason}</span>
+                          <span>{
+                            // Filtrar "Market: stocks" si hay otras coincidencias
+                            article.personalization.reason.includes(',') 
+                              ? article.personalization.reason
+                                  .split(', ')
+                                  .filter(r => r !== 'Market: stocks')
+                                  .join(', ')
+                              : article.personalization.reason
+                          }</span>
                         </div>
                       </div>
                     )}
