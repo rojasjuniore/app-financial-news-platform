@@ -73,7 +73,7 @@ const TwitterFeedListV2: React.FC = () => {
   const { data: userProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['userProfile'],
     queryFn: () => feedService.getProfile(),
-    enabled: !!user && activeTab === 'personalized',
+    enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -303,10 +303,35 @@ const TwitterFeedListV2: React.FC = () => {
                 </div>
               ) : userProfile?.interests ? (
                 <div className="space-y-2">
-                  {userProfile.interests.tickers && userProfile.interests.tickers.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
+                      🎯 Filter Active: Showing only articles matching your interests
+                    </span>
+                  </div>
+                  
+                  {/* Topics */}
+                  {userProfile.interests.topics && userProfile.interests.topics.length > 0 && (
+                    <div className="flex flex-wrap gap-1 items-center">
                       <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-                        Your tickers:
+                        Topics:
+                      </span>
+                      {userProfile.interests.topics.map((topic) => (
+                        <span
+                          key={topic}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded text-xs font-medium"
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Tickers */}
+                  {userProfile.interests.tickers && userProfile.interests.tickers.length > 0 && (
+                    <div className="flex flex-wrap gap-1 items-center">
+                      <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                        Tickers:
                       </span>
                       {userProfile.interests.tickers.slice(0, 5).map((ticker) => (
                         <span
@@ -324,6 +349,32 @@ const TwitterFeedListV2: React.FC = () => {
                       )}
                     </div>
                   )}
+                  
+                  {/* Sectors */}
+                  {userProfile.interests.sectors && userProfile.interests.sectors.length > 0 && (
+                    <div className="flex flex-wrap gap-1 items-center">
+                      <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
+                        Sectors:
+                      </span>
+                      {userProfile.interests.sectors.map((sector) => (
+                        <span
+                          key={sector}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded text-xs font-medium"
+                        >
+                          {sector}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Link to settings */}
+                  <Link 
+                    to="/settings" 
+                    className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2"
+                  >
+                    <Settings className="w-3 h-3" />
+                    Modify interests
+                  </Link>
                 </div>
               ) : (
                 <div className="text-center text-sm text-blue-700 dark:text-blue-300">
@@ -338,8 +389,39 @@ const TwitterFeedListV2: React.FC = () => {
 
       {/* Articles List */}
       <div className="divide-y divide-gray-200 dark:divide-gray-800">
-        <AnimatePresence mode="popLayout">
-          {filteredArticles.map((article, index) => (
+        {filteredArticles.length === 0 && activeTab === 'personalized' && !isLoading ? (
+          <div className="py-12 text-center">
+            <Target className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              No articles match your interests
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              We couldn't find any articles matching your configured interests.
+            </p>
+            {userProfile?.interests && (
+              <div className="mb-4 text-xs text-gray-500 dark:text-gray-500">
+                <p>Currently looking for:</p>
+                <p className="mt-1">
+                  {[
+                    ...(userProfile.interests.topics || []),
+                    ...(userProfile.interests.tickers || []),
+                    ...(userProfile.interests.keywords || []),
+                    ...(userProfile.interests.sectors || [])
+                  ].join(', ') || 'No interests configured'}
+                </p>
+              </div>
+            )}
+            <Link 
+              to="/settings"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Settings className="w-4 h-4" />
+              Configure Interests
+            </Link>
+          </div>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {filteredArticles.map((article, index) => (
             <motion.article
               key={article.id}
               initial={{ opacity: 0, y: 20 }}
@@ -463,22 +545,37 @@ const TwitterFeedListV2: React.FC = () => {
                     </div>
 
                     {/* Personalization Match Reason - Solo en feed personalizado */}
-                    {activeTab === 'personalized' && article.personalization?.reason && 
-                     article.personalization.reason !== 'Market: stocks' && (
-                      <div className="mt-2 px-2 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-md border border-blue-100 dark:border-blue-800">
-                        <div className="flex items-center gap-1 text-xs text-blue-700 dark:text-blue-300">
-                          <Target className="w-3 h-3" />
-                          <span className="font-medium">Matches: </span>
-                          <span>{
-                            // Filtrar "Market: stocks" si hay otras coincidencias
-                            article.personalization.reason.includes(',') 
-                              ? article.personalization.reason
-                                  .split(', ')
-                                  .filter(r => r !== 'Market: stocks')
-                                  .join(', ')
-                              : article.personalization.reason
-                          }</span>
+                    {activeTab === 'personalized' && article.personalization?.isStrictMatch && (
+                      <div className="mt-2 px-2 py-1 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-md border border-green-200 dark:border-green-800">
+                        <div className="flex flex-wrap items-center gap-1 text-xs">
+                          <Target className="w-3 h-3 text-green-600 dark:text-green-400" />
+                          <span className="font-semibold text-green-700 dark:text-green-300">Matches your interests:</span>
+                          {article.personalization.reason.split(', ').map((reason, idx) => {
+                            const [type, value] = reason.split(': ');
+                            const bgColor = type === 'Topic' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200' :
+                                          type === 'Ticker' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
+                                          type === 'Keyword' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200' :
+                                          'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200';
+                            return (
+                              <span key={idx} className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${bgColor}`}>
+                                {value || reason}
+                              </span>
+                            );
+                          })}
                         </div>
+                      </div>
+                    )}
+                    
+                    {/* Debug Info - Solo si está disponible */}
+                    {article.personalization?.debug && (
+                      <div className="mt-1 px-2 py-1 bg-gray-50 dark:bg-gray-800/50 rounded text-xs text-gray-600 dark:text-gray-400">
+                        <details>
+                          <summary className="cursor-pointer hover:text-gray-800 dark:hover:text-gray-200">Debug Info</summary>
+                          <div className="mt-1 space-y-1">
+                            <p>Checked: {article.personalization.debug.checkedAgainst.join(', ')}</p>
+                            <p>Found: {article.personalization.debug.matchesFound.join(', ')}</p>
+                          </div>
+                        </details>
                       </div>
                     )}
                   </div>
@@ -539,8 +636,9 @@ const TwitterFeedListV2: React.FC = () => {
                 )}
               </div>
             </motion.article>
-          ))}
-        </AnimatePresence>
+            ))}
+          </AnimatePresence>
+        )}
       </div>
 
       {/* Empty State */}

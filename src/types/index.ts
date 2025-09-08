@@ -49,6 +49,12 @@ export interface Article {
       sectors: string[];
       topics: string[];
     };
+    isStrictMatch?: boolean;  // Indica si es una coincidencia estricta con los intereses
+    debug?: {                 // Información de debug (solo cuando ?debug=true)
+      checkedAgainst: string[];
+      matchesFound: string[];
+      searchedIn: string[];
+    };
   };
 }
 
