@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import apiClient from '../services/news/api';
 import ChatWidget from '../components/Chat/ChatWidget';
-import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
+import PolygonDataWrapper from '../components/Analysis/PolygonDataWrapper';
 import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
 import { useOptimizedLLM } from '../hooks/useOptimizedLLM';
 import { 
@@ -207,12 +207,21 @@ const ArticleDetailOptimized: React.FC = () => {
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                 <div className="flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  <span>{new Date(article.publishedAt || article.created_at).toLocaleDateString()}</span>
+                  <span>{(() => {
+                    const dateValue = article.publishedAt || article.published_at || article.createdAt || article.created_at;
+                    if (!dateValue) return t('common.dateNotAvailable');
+                    if (typeof dateValue === 'string') {
+                      return new Date(dateValue).toLocaleDateString();
+                    } else if (dateValue && typeof dateValue === 'object' && '_seconds' in dateValue) {
+                      return new Date(dateValue._seconds * 1000).toLocaleDateString();
+                    }
+                    return t('common.dateNotAvailable');
+                  })()}</span>
                 </div>
                 {article.source && (
                   <div className="flex items-center gap-2">
                     <span>•</span>
-                    <span>{article.source}</span>
+                    <span>{typeof article.source === 'string' ? article.source : article.source?.name}</span>
                   </div>
                 )}
                 {article.sentiment && (
@@ -396,7 +405,11 @@ const ArticleDetailOptimized: React.FC = () => {
 
               {/* Market Data */}
               {article.tickers && article.tickers.length > 0 && (
-                <PolygonDataCardFixed tickers={article.tickers} />
+                <div className="space-y-4">
+                  {article.tickers.slice(0, 3).map((ticker) => (
+                    <PolygonDataWrapper key={ticker} ticker={ticker} />
+                  ))}
+                </div>
               )}
             </div>
           </div>
@@ -405,10 +418,7 @@ const ArticleDetailOptimized: React.FC = () => {
         {/* Chat Widget */}
         <ChatWidget
           articleId={articleId!}
-          articleTitle={article.title}
-          isExpanded={isChatExpanded}
-          onToggle={() => setIsChatExpanded(!isChatExpanded)}
-          width={chatWidth}
+          integrated={false}
         />
 
         {/* Mobile Chat Button */}
