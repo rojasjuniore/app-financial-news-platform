@@ -117,7 +117,7 @@ const TwitterFeedList: React.FC = () => {
 
 
   const formatTimeAgo = (date: string | FirestoreTimestamp | undefined) => {
-    if (!date) return t('common.dateNotAvailable');
+    if (!date) return null;
     
     try {
       let articleDate: Date;
@@ -135,7 +135,7 @@ const TwitterFeedList: React.FC = () => {
       // Verificar si la fecha es válida
       if (isNaN(articleDate.getTime())) {
         console.warn('Invalid date:', date);
-        return t('common.dateNotAvailable');
+        return null;
       }
       
       // Mostrar fecha y hora completas como solicitó el usuario
@@ -151,7 +151,7 @@ const TwitterFeedList: React.FC = () => {
       });
     } catch (error) {
       console.error('Error formatting date:', error, date);
-      return 'Fecha no disponible';
+      return null;
     }
   };
 
@@ -501,9 +501,26 @@ const TwitterFeedList: React.FC = () => {
                         </span>
                       )}
                       <span className="text-gray-500 dark:text-gray-400">·</span>
-                      <span className="text-gray-500 dark:text-gray-400 text-sm">
-                        {formatTimeAgo(article.createdAt || article.created_at || article.publishedAt || article.published_at)}
-                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        {(() => {
+                          const addedDate = formatTimeAgo(article.createdAt || article.created_at);
+                          const publishedDate = formatTimeAgo(article.publishedAt || article.published_at);
+                          return (
+                            <>
+                              {addedDate && (
+                                <span className="text-blue-600 dark:text-blue-400 text-xs">
+                                  📥 {addedDate}
+                                </span>
+                              )}
+                              {publishedDate && publishedDate !== addedDate && (
+                                <span className="text-gray-500 dark:text-gray-400 text-xs">
+                                  📰 {publishedDate}
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                       {article.sentiment && getSentimentIcon(article.sentiment)}
                       {/* Quality Badge */}
                       {article.quality_classification && (

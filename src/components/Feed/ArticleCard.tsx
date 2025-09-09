@@ -43,7 +43,7 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
     return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800';
   }, [article.sentiment]);
 
-  const formattedDate = useMemo(() => {
+  const { addedDate, publishedDate } = useMemo(() => {
     // Helper function to parse date
     const parseDate = (dateValue: string | FirestoreTimestamp | undefined): Date | null => {
       if (!dateValue) return null;
@@ -56,24 +56,27 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
       return null;
     };
     
-    // Try different date fields - priorizar created_at (cuándo se agregó)
-    const date = parseDate(article.createdAt) || 
-                 parseDate(article.created_at) || 
-                 parseDate(article.publishedAt) || 
-                 parseDate(article.published_at);
+    // Get both dates
+    const createdDate = parseDate(article.createdAt) || parseDate(article.created_at);
+    const pubDate = parseDate(article.publishedAt) || parseDate(article.published_at);
     
-    // Verificar si la fecha es válida
-    if (!date || isNaN(date.getTime())) return 'Fecha no disponible';
+    // Format dates
+    const formatDate = (date: Date | null) => {
+      if (!date || isNaN(date.getTime())) return null;
+      return date.toLocaleString('es-ES', { 
+        year: 'numeric',
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    };
     
-    // Formatear fecha completa con hora
-    return date.toLocaleString('es-ES', { 
-      year: 'numeric',
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
+    return {
+      addedDate: formatDate(createdDate),
+      publishedDate: formatDate(pubDate)
+    };
   }, [article.createdAt, article.created_at, article.publishedAt, article.published_at]);
 
 
@@ -126,9 +129,19 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
                 <span>•</span>
               </>
             )}
-            <div className="flex items-center">
-              <Clock className="w-3.5 h-3.5 mr-1" />
-              <span>{formattedDate}</span>
+            <div className="flex flex-col gap-1">
+              {addedDate && (
+                <div className="flex items-center text-xs">
+                  <Clock className="w-3.5 h-3.5 mr-1 text-blue-500" />
+                  <span className="text-blue-600 dark:text-blue-400">Agregado: {addedDate}</span>
+                </div>
+              )}
+              {publishedDate && publishedDate !== addedDate && (
+                <div className="flex items-center text-xs">
+                  <Clock className="w-3.5 h-3.5 mr-1 text-gray-400" />
+                  <span className="text-gray-500 dark:text-gray-400">Publicado: {publishedDate}</span>
+                </div>
+              )}
             </div>
           </div>
           

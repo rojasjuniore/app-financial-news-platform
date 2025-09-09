@@ -131,7 +131,7 @@ const TwitterFeedListV2: React.FC = () => {
   };
 
   const formatTimeAgo = (date: string | FirestoreTimestamp | undefined) => {
-    if (!date) return t('common.dateNotAvailable');
+    if (!date) return null;
     
     try {
       let articleDate: Date;
@@ -152,7 +152,7 @@ const TwitterFeedListV2: React.FC = () => {
       
       if (isNaN(articleDate.getTime())) {
         console.warn('Invalid date:', date);
-        return t('common.dateNotAvailable');
+        return null;
       }
       
       const locale = i18n.language === 'es' ? 'es-ES' : 'en-US';
@@ -167,7 +167,7 @@ const TwitterFeedListV2: React.FC = () => {
       });
     } catch (error) {
       console.error('Error formatting date:', error, date);
-      return t('common.dateNotAvailable');
+      return null;
     }
   };
 
@@ -486,10 +486,28 @@ const TwitterFeedListV2: React.FC = () => {
 
                     {/* Metadata */}
                     <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-                      {/* Time */}
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatTimeAgo(article.createdAt || article.created_at || article.publishedAt || article.published_at)}</span>
+                      {/* Dates - Both Added and Published */}
+                      <div className="flex flex-col gap-1">
+                        {(() => {
+                          const addedDate = formatTimeAgo(article.createdAt || article.created_at);
+                          const publishedDate = formatTimeAgo(article.publishedAt || article.published_at);
+                          return (
+                            <>
+                              {addedDate && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3 text-blue-500" />
+                                  <span className="text-blue-600 dark:text-blue-400">Agregado: {addedDate}</span>
+                                </div>
+                              )}
+                              {publishedDate && publishedDate !== addedDate && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3 text-gray-400" />
+                                  <span className="text-gray-500 dark:text-gray-400">Publicado: {publishedDate}</span>
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                       
                       {/* Sentiment */}
