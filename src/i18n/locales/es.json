@@ -55,7 +55,9 @@
     "signUp": "Registrarse",
     "signInWithGoogle": "Iniciar sesión con Google",
     "email": "Correo electrónico",
+    "emailPlaceholder": "tu@email.com",
     "password": "Contraseña",
+    "passwordPlaceholder": "••••••••",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "noAccount": "¿No tienes cuenta?",
     "haveAccount": "¿Ya tienes cuenta?",
@@ -98,7 +100,12 @@
       "popular": "Más populares",
       "relevant": "Personalizado",
       "quality": "Mejor Calidad"
-    }
+    },
+    "readMore": "Leer más",
+    "loadMoreArticles": "Cargar más artículos",
+    "noArticlesTitle": "No hay artículos disponibles",
+    "noArticlesDescription": "Vuelve más tarde para ver nuevas noticias",
+    "loading": "Cargando..."
   },
   "article": {
     "backToFeed": "Volver al feed",
@@ -242,7 +249,27 @@
       "recommendation": "¿Cuál es tu recomendación?",
       "relatedNews": "Busca noticias relacionadas",
       "technicalIndicators": "¿Qué dicen los indicadores técnicos?"
-    }
+    },
+    "suggestedQuestions": {
+      "tradingPlan": "¿Cuál es mi plan de trading en este artículo?",
+      "riskReward": "Analiza el ratio riesgo/recompensa",
+      "entryPoints": "¿Los puntos de entrada son buenos?",
+      "technicalAnalysis": "¿Qué dice el análisis técnico?",
+      "marketSentiment": "¿Cuál es el sentimiento del mercado?"
+    },
+    "welcomeMessage": "¡Hola! 👋 Soy tu asistente de trading con IA.\n\nPuedo ayudarte a analizar el plan de trading de este artículo, evaluar riesgos, revisar puntos de entrada/salida y más.\n\n**Artículo:** {{articleTitle}}\n\n¿En qué puedo ayudarte hoy?",
+    "inputPlaceholder": "Pregunta sobre el plan de trading, análisis técnico, riesgos...",
+    "realTimeAnalysis": "Análisis inteligente en tiempo real",
+    "enterToSend": "Enter para enviar, Shift+Enter para nueva línea",
+    "newChat": "Nuevo Chat",
+    "searchChats": "Buscar chats...",
+    "loadingHistory": "Cargando historial...",
+    "selectArticle": "Selecciona un artículo para comenzar",
+    "tryOtherTerms": "Intenta con otros términos",
+    "contextualAnalysis": "Análisis en contexto",
+    "selectArticleToChat": "Selecciona un artículo del historial o ve a un artículo específico para comenzar a chatear con nuestro asistente de IA financiero.",
+    "multipleAIModels": "Análisis inteligente con múltiples modelos de IA",
+    "realTimeWebSearch": "Búsqueda web en tiempo real"
   },
   "dashboard": {
     "title": "¿Cómo Funcionan las Noticias Financieras?",
@@ -314,7 +341,25 @@
     "moderateFrequency": "Moderada",
     "lowFrequency": "Baja",
     "keywords": "Palabras Clave",
-    "keywordsDescription": "Agrega palabras clave específicas para filtrar noticias"
+    "keywordsDescription": "Agrega palabras clave específicas para filtrar noticias",
+    "keywordPlaceholder": "Ej: inflación, recesión, crecimiento",
+    "relevanceScore": "Control de Contenido en tu Feed",
+    "relevanceScoreDescription": "Decide qué tan estricto quieres que sea el filtro. Un valor alto muestra solo artículos muy relevantes para ti.",
+    "saveRelevanceFilter": "Guardar Filtro de Relevancia",
+    "minimumRelevanceRequired": "Relevancia Mínima Requerida",
+    "seeAll": "Ver Todo",
+    "moreContent": "Más Contenido",
+    "balanced": "Balanceado",
+    "relevant": "Relevante",
+    "onlyTheBest": "Solo lo Mejor",
+    "youWillSeeAllArticles": "Verás todos los artículos",
+    "onlyArticlesAbove": "Solo artículos ≥{{score}}% relevancia",
+    "all": "Todo",
+    "howItWorks": "Cómo funciona",
+    "seeAllArticlesNoFilter": "Verás TODOS los artículos disponibles, sin filtros. Ideal para explorar contenido nuevo.",
+    "balancedFilter": "Solo verás artículos con {{score}}% o más de coincidencia con tus intereses. Balance entre cantidad y relevancia.",
+    "focusedFilter": "Solo artículos con {{score}}% o más de relevancia. Contenido más enfocado en tus preferencias.",
+    "strictFilter": "Filtro muy estricto: solo artículos con {{score}}% o más de relevancia. Verás menos contenido pero muy personalizado."
   },
   "settings": {
     "title": "Configuración",
@@ -365,6 +410,46 @@
     "accountInfo": "Información de la Cuenta",
     "email": "Correo",
     "userId": "ID de Usuario"
+  },
+  "onboarding": {
+    "personalizeExperience": "Personaliza tu experiencia",
+    "tellUsInterests": "Cuéntanos tus intereses para crear un feed de noticias perfectamente adaptado a ti",
+    "step": "Paso",
+    "of": "de",
+    "percentComplete": "{{percent}}% completado",
+    "whatMarketsInterest": "¿Qué mercados te interesan?",
+    "selectOneOrMore": "Selecciona uno o más mercados",
+    "selectFavorites": "Selecciona tus favoritos",
+    "chooseAssets": "Elige los activos que quieres seguir",
+    "sectorsOfInterest": "Sectores de interés",
+    "whatIndustries": "¿Qué industrias quieres seguir?",
+    "skip": "Omitir",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "complete": "Completar",
+    "tickerSelected": "{{count}} ticker seleccionado",
+    "tickerSelected_plural": "{{count}} tickers seleccionados",
+    "perfectFeedReady": "¡Perfecto! Tu feed está listo 🎉",
+    "markets": {
+      "stocks": "Acciones",
+      "stocksDesc": "NYSE, NASDAQ, S&P 500",
+      "crypto": "Criptomonedas",
+      "cryptoDesc": "Bitcoin, Ethereum, DeFi",
+      "forex": "Forex",
+      "forexDesc": "EUR/USD, GBP/USD",
+      "commodities": "Commodities",
+      "commoditiesDesc": "Oro, Petróleo, Plata"
+    },
+    "sectors": {
+      "technology": "Tecnología",
+      "finance": "Finanzas",
+      "healthcare": "Salud",
+      "energy": "Energía",
+      "consumer": "Consumo",
+      "industrial": "Industrial",
+      "realEstate": "Inmobiliario",
+      "materials": "Materiales"
+    }
   },
   "search": {
     "title": "Buscar Artículos",
@@ -435,6 +520,22 @@
     "activeUsers": "Usuarios Activos",
     "dataSources": "Fuentes de Datos",
     "availability": "Disponibilidad"
+  },
+  "tradingWidget": {
+    "realTimeData": "Datos en tiempo real por TradingView",
+    "liveData": "Datos en vivo",
+    "dayRange": "Rango día",
+    "loadingMarketEvents": "Cargando eventos de mercado...",
+    "previous": "Anterior:",
+    "tickerTape": "Ticker tape by TradingView"
+  },
+  "marketEvents": {
+    "loadingEvents": "Cargando eventos de mercado...",
+    "lastUpdate": "Última actualización: hace {{time}}"
+  },
+  "loading": {
+    "loading": "Cargando...",
+    "loadingMore": "Cargando más..."
   },
   "errors": {
     "generic": "Algo salió mal. Por favor, intenta de nuevo.",

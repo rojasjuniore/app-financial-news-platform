@@ -25,30 +25,30 @@ interface Interest {
   description?: string;
 }
 
-const MARKET_TYPES: Interest[] = [
+const getMarketTypes = (t: any): Interest[] => [
   { 
     id: 'stocks', 
-    label: 'Acciones', 
+    label: t('onboarding.markets.stocks'), 
     icon: <TrendingUp className="w-6 h-6" />,
-    description: 'NYSE, NASDAQ, S&P 500'
+    description: t('onboarding.markets.stocksDesc')
   },
   { 
     id: 'crypto', 
-    label: 'Criptomonedas', 
+    label: t('onboarding.markets.crypto'), 
     icon: <Bitcoin className="w-6 h-6" />,
-    description: 'Bitcoin, Ethereum, DeFi'
+    description: t('onboarding.markets.cryptoDesc')
   },
   { 
     id: 'forex', 
-    label: 'Forex', 
+    label: t('onboarding.markets.forex'), 
     icon: <DollarSign className="w-6 h-6" />,
-    description: 'EUR/USD, GBP/USD'
+    description: t('onboarding.markets.forexDesc')
   },
   { 
     id: 'commodities', 
-    label: 'Commodities', 
+    label: t('onboarding.markets.commodities'), 
     icon: <Globe className="w-6 h-6" />,
-    description: 'Oro, Petróleo, Plata'
+    description: t('onboarding.markets.commoditiesDesc')
   }
 ];
 
@@ -65,15 +65,15 @@ const POPULAR_TICKERS = [
   { symbol: 'SOL', name: 'Solana', type: 'crypto' },
 ];
 
-const SECTORS = [
-  { id: 'tech', label: 'Tecnología', icon: '💻' },
-  { id: 'finance', label: 'Finanzas', icon: '🏦' },
-  { id: 'health', label: 'Salud', icon: '🏥' },
-  { id: 'energy', label: 'Energía', icon: '⚡' },
-  { id: 'consumer', label: 'Consumo', icon: '🛒' },
-  { id: 'industrial', label: 'Industrial', icon: '🏭' },
-  { id: 'realestate', label: 'Inmobiliario', icon: '🏢' },
-  { id: 'materials', label: 'Materiales', icon: '🔧' },
+const getSectors = (t: any) => [
+  { id: 'tech', label: t('onboarding.sectors.technology'), icon: '💻' },
+  { id: 'finance', label: t('onboarding.sectors.finance'), icon: '🏦' },
+  { id: 'health', label: t('onboarding.sectors.healthcare'), icon: '🏥' },
+  { id: 'energy', label: t('onboarding.sectors.energy'), icon: '⚡' },
+  { id: 'consumer', label: t('onboarding.sectors.consumer'), icon: '🛒' },
+  { id: 'industrial', label: t('onboarding.sectors.industrial'), icon: '🏭' },
+  { id: 'realestate', label: t('onboarding.sectors.realEstate'), icon: '🏢' },
+  { id: 'materials', label: t('onboarding.sectors.materials'), icon: '🔧' },
 ];
 
 const InterestsSetup: React.FC = () => {
@@ -84,6 +84,10 @@ const InterestsSetup: React.FC = () => {
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Get translated data
+  const MARKET_TYPES = getMarketTypes(t);
+  const SECTORS = getSectors(t);
 
   const toggleMarket = (marketId: string) => {
     setSelectedMarkets(prev =>
@@ -127,7 +131,7 @@ const InterestsSetup: React.FC = () => {
         topics: []
       });
       
-      toast.success('¡Perfecto! Tu feed está listo 🎉');
+      toast.success(t('onboarding.perfectFeedReady'));
       navigate('/feed');
     } catch (error) {
       toast.error(t('errors.savingPreferences'));
@@ -155,18 +159,18 @@ const InterestsSetup: React.FC = () => {
             <Sparkles className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-3">
-            Personaliza tu experiencia
+            {t('onboarding.personalizeExperience')}
           </h1>
           <p className="text-lg text-gray-600 max-w-md mx-auto">
-            Cuéntanos tus intereses para crear un feed de noticias perfectamente adaptado a ti
+            {t('onboarding.tellUsInterests')}
           </p>
         </div>
 
         {/* Progress */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-medium text-gray-600">Paso {step} de 3</span>
-            <span className="text-sm font-medium text-indigo-600">{Math.round((step / 3) * 100)}% completado</span>
+            <span className="text-sm font-medium text-gray-600">{t('onboarding.step')} {step} {t('onboarding.of')} 3</span>
+            <span className="text-sm font-medium text-indigo-600">{t('onboarding.percentComplete', { percent: Math.round((step / 3) * 100) })}</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
             <div
@@ -186,8 +190,8 @@ const InterestsSetup: React.FC = () => {
                   <BarChart3 className="w-6 h-6 text-indigo-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">¿Qué mercados te interesan?</h2>
-                  <p className="text-gray-600">Selecciona uno o más mercados</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('onboarding.whatMarketsInterest')}</h2>
+                  <p className="text-gray-600">{t('onboarding.selectOneOrMore')}</p>
                 </div>
               </div>
               
@@ -234,8 +238,8 @@ const InterestsSetup: React.FC = () => {
                   <Target className="w-6 h-6 text-purple-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Selecciona tus favoritos</h2>
-                  <p className="text-gray-600">Elige los activos que quieres seguir</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('onboarding.selectFavorites')}</h2>
+                  <p className="text-gray-600">{t('onboarding.chooseAssets')}</p>
                 </div>
               </div>
               
@@ -270,7 +274,7 @@ const InterestsSetup: React.FC = () => {
               {selectedTickers.length > 0 && (
                 <div className="mt-6 p-4 bg-purple-50 rounded-xl">
                   <p className="text-sm text-purple-700 font-medium">
-                    {selectedTickers.length} ticker{selectedTickers.length !== 1 ? 's' : ''} seleccionado{selectedTickers.length !== 1 ? 's' : ''}
+                    {t('onboarding.tickerSelected', { count: selectedTickers.length })}
                   </p>
                 </div>
               )}
@@ -285,8 +289,8 @@ const InterestsSetup: React.FC = () => {
                   <Zap className="w-6 h-6 text-pink-600" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900">Sectores de interés</h2>
-                  <p className="text-gray-600">¿Qué industrias quieres seguir?</p>
+                  <h2 className="text-2xl font-bold text-gray-900">{t('onboarding.sectorsOfInterest')}</h2>
+                  <p className="text-gray-600">{t('onboarding.whatIndustries')}</p>
                 </div>
               </div>
               
@@ -328,7 +332,7 @@ const InterestsSetup: React.FC = () => {
             className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {step === 1 ? 'Omitir' : 'Atrás'}
+            {step === 1 ? t('onboarding.skip') : t('onboarding.back')}
           </button>
 
           <button
@@ -347,7 +351,7 @@ const InterestsSetup: React.FC = () => {
               </svg>
             ) : (
               <>
-                {step === 3 ? 'Completar' : 'Siguiente'}
+                {step === 3 ? t('onboarding.complete') : t('onboarding.next')}
                 <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}

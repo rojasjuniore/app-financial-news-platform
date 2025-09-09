@@ -585,7 +585,7 @@ const Preferences: React.FC = () => {
                 value={newKeyword}
                 onChange={(e) => setNewKeyword(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && addKeyword()}
-                placeholder={t('preferences.keywordPlaceholder') || 'Ej: inflation, recession, growth'}
+                placeholder={t('preferences.keywordPlaceholder')}
                 className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
               <button
@@ -695,18 +695,18 @@ const Preferences: React.FC = () => {
             <div className="flex items-center space-x-3 mb-4">
               <Sliders className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                {t('preferences.relevanceScore') || 'Control de Contenido en tu Feed'}
+                {t('preferences.relevanceScore')}
               </h3>
             </div>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {t('preferences.relevanceScoreDescription') || 'Decide qué tan estricto quieres que sea el filtro. Un valor alto muestra solo artículos muy relevantes para ti.'}
+              {t('preferences.relevanceScoreDescription')}
             </p>
             
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Relevancia Mínima Requerida: 
+                    {t('preferences.minimumRelevanceRequired')}: 
                   </span>
                   <span className="text-2xl font-bold text-blue-600 dark:text-blue-400 ml-2">
                     {preferences.minRelevanceScore || 30}%
@@ -715,19 +715,19 @@ const Preferences: React.FC = () => {
                 <div className="text-right">
                   <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                     {(preferences.minRelevanceScore ?? 30) === 0 
-                      ? '🌍 Ver Todo'
+                      ? `🌍 ${t('preferences.seeAll')}`
                       : (preferences.minRelevanceScore ?? 30) < 30
-                      ? '📨 Más Contenido'
+                      ? `📨 ${t('preferences.moreContent')}`
                       : (preferences.minRelevanceScore ?? 30) < 60
-                      ? '✅ Balanceado'
+                      ? `✅ ${t('preferences.balanced')}`
                       : (preferences.minRelevanceScore ?? 30) < 80
-                      ? '🎯 Relevante'
-                      : '🔥 Solo lo Mejor'}
+                      ? `🎯 ${t('preferences.relevant')}`
+                      : `🔥 ${t('preferences.onlyTheBest')}`}
                   </span>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
                     {preferences.minRelevanceScore === 0
-                      ? 'Verás todos los artículos'
-                      : `Solo artículos ≥${preferences.minRelevanceScore}% relevancia`}
+                      ? t('preferences.youWillSeeAllArticles')
+                      : t('preferences.onlyArticlesAbove', { score: preferences.minRelevanceScore })}
                   </div>
                 </div>
               </div>
@@ -766,7 +766,7 @@ const Preferences: React.FC = () => {
                       : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                   }`}
                 >
-                  Todo
+                  {t('preferences.all')}
                 </button>
                 <button
                   onClick={() => setPreferences(prev => ({ ...prev, minRelevanceScore: 25 }))}
@@ -832,14 +832,14 @@ const Preferences: React.FC = () => {
                       ? 'text-orange-700 dark:text-orange-300'
                       : 'text-green-700 dark:text-green-300'
                   }`}>
-                    <strong>Cómo funciona:</strong><br/>
+                    <strong>{t('preferences.howItWorks')}:</strong><br/>
                     {(preferences.minRelevanceScore ?? 30) === 0
-                      ? 'Verás TODOS los artículos disponibles, sin filtros. Ideal para explorar contenido nuevo.'
+                      ? t('preferences.seeAllArticlesNoFilter')
                       : (preferences.minRelevanceScore ?? 30) < 50
-                      ? `Solo verás artículos con ${preferences.minRelevanceScore ?? 30}% o más de coincidencia con tus intereses. Balance entre cantidad y relevancia.`
+                      ? t('preferences.balancedFilter', { score: preferences.minRelevanceScore ?? 30 })
                       : (preferences.minRelevanceScore ?? 30) < 75
-                      ? `Solo artículos con ${preferences.minRelevanceScore ?? 30}% o más de relevancia. Contenido más enfocado en tus preferencias.`
-                      : `Filtro muy estricto: solo artículos con ${preferences.minRelevanceScore ?? 30}% o más de relevancia. Verás menos contenido pero muy personalizado.`}
+                      ? t('preferences.focusedFilter', { score: preferences.minRelevanceScore ?? 30 })
+                      : t('preferences.strictFilter', { score: preferences.minRelevanceScore ?? 30 })}
                   </div>
                 </div>
               </div>
@@ -851,7 +851,7 @@ const Preferences: React.FC = () => {
               className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? t('common.saving') : 'Guardar Filtro de Relevancia'}
+              {isSaving ? t('common.saving') : t('preferences.saveRelevanceFilter')}
             </button>
           </motion.div>
 

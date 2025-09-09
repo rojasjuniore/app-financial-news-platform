@@ -55,7 +55,9 @@
     "signUp": "Sign up",
     "signInWithGoogle": "Sign in with Google",
     "email": "Email",
+    "emailPlaceholder": "you@email.com",
     "password": "Password",
+    "passwordPlaceholder": "••••••••",
     "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
     "haveAccount": "Already have an account?",
@@ -98,7 +100,12 @@
       "popular": "Most popular",
       "relevant": "Personalized",
       "quality": "Best Quality"
-    }
+    },
+    "readMore": "Read more",
+    "loadMoreArticles": "Load more articles",
+    "noArticlesTitle": "No articles available",
+    "noArticlesDescription": "Check back later for new news",
+    "loading": "Loading..."
   },
   "article": {
     "backToFeed": "Back to feed",
@@ -242,7 +249,27 @@
       "recommendation": "What's your recommendation?",
       "relatedNews": "Search related news",
       "technicalIndicators": "What do technical indicators say?"
-    }
+    },
+    "suggestedQuestions": {
+      "tradingPlan": "What is the trading plan in this article?",
+      "riskReward": "Analyze the risk/reward ratio",
+      "entryPoints": "Are the entry points good?",
+      "technicalAnalysis": "What does the technical analysis say?",
+      "marketSentiment": "What is the market sentiment?"
+    },
+    "welcomeMessage": "Hello! 👋 I'm your AI trading assistant.\n\nI can help you analyze the trading plan in this article, evaluate risks, review entry/exit points and more.\n\n**Article:** {{articleTitle}}\n\nHow can I help you today?",
+    "inputPlaceholder": "Ask about the trading plan, technical analysis, risks...",
+    "realTimeAnalysis": "Real-time intelligent analysis",
+    "enterToSend": "Enter to send, Shift+Enter for new line",
+    "newChat": "New Chat",
+    "searchChats": "Search chats...",
+    "loadingHistory": "Loading history...",
+    "selectArticle": "Select an article to start",
+    "tryOtherTerms": "Try other terms",
+    "contextualAnalysis": "Contextual analysis",
+    "selectArticleToChat": "Select an article from history or go to a specific article to start chatting with our financial AI assistant.",
+    "multipleAIModels": "Intelligent analysis with multiple AI models",
+    "realTimeWebSearch": "Real-time web search"
   },
   "dashboard": {
     "title": "How Does Financial News Work?",
@@ -314,7 +341,25 @@
     "moderateFrequency": "Moderate",
     "lowFrequency": "Low",
     "keywords": "Keywords",
-    "keywordsDescription": "Add specific keywords to filter news"
+    "keywordsDescription": "Add specific keywords to filter news",
+    "keywordPlaceholder": "Ex: inflation, recession, growth",
+    "relevanceScore": "Feed Content Control",
+    "relevanceScoreDescription": "Decide how strict you want the filter to be. A high value shows only highly relevant articles for you.",
+    "saveRelevanceFilter": "Save Relevance Filter",
+    "minimumRelevanceRequired": "Minimum Relevance Required",
+    "seeAll": "See All",
+    "moreContent": "More Content",
+    "balanced": "Balanced",
+    "relevant": "Relevant",
+    "onlyTheBest": "Only the Best",
+    "youWillSeeAllArticles": "You'll see all articles",
+    "onlyArticlesAbove": "Only articles ≥{{score}}% relevance",
+    "all": "All",
+    "howItWorks": "How it works",
+    "seeAllArticlesNoFilter": "You'll see ALL available articles, without filters. Ideal for exploring new content.",
+    "balancedFilter": "You'll only see articles with {{score}}% or more match with your interests. Balance between quantity and relevance.",
+    "focusedFilter": "Only articles with {{score}}% or more relevance. Content more focused on your preferences.",
+    "strictFilter": "Very strict filter: only articles with {{score}}% or more relevance. You'll see less content but very personalized."
   },
   "settings": {
     "title": "Settings",
@@ -365,6 +410,46 @@
     "accountInfo": "Account Information",
     "email": "Email",
     "userId": "User ID"
+  },
+  "onboarding": {
+    "personalizeExperience": "Personalize Your Experience",
+    "tellUsInterests": "Tell us your interests to create a news feed perfectly tailored to you",
+    "step": "Step",
+    "of": "of",
+    "percentComplete": "{{percent}}% complete",
+    "whatMarketsInterest": "What markets interest you?",
+    "selectOneOrMore": "Select one or more markets",
+    "selectFavorites": "Select your favorites",
+    "chooseAssets": "Choose the assets you want to follow",
+    "sectorsOfInterest": "Sectors of interest",
+    "whatIndustries": "What industries do you want to follow?",
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "complete": "Complete",
+    "tickerSelected": "{{count}} ticker selected",
+    "tickerSelected_plural": "{{count}} tickers selected",
+    "perfectFeedReady": "Perfect! Your feed is ready 🎉",
+    "markets": {
+      "stocks": "Stocks",
+      "stocksDesc": "NYSE, NASDAQ, S&P 500",
+      "crypto": "Cryptocurrency",
+      "cryptoDesc": "Bitcoin, Ethereum, DeFi",
+      "forex": "Forex",
+      "forexDesc": "EUR/USD, GBP/USD",
+      "commodities": "Commodities",
+      "commoditiesDesc": "Gold, Oil, Silver"
+    },
+    "sectors": {
+      "technology": "Technology",
+      "finance": "Finance",
+      "healthcare": "Healthcare",
+      "energy": "Energy",
+      "consumer": "Consumer",
+      "industrial": "Industrial",
+      "realEstate": "Real Estate",
+      "materials": "Materials"
+    }
   },
   "search": {
     "title": "Search Articles",
@@ -435,6 +520,22 @@
     "activeUsers": "Active Users",
     "dataSources": "Data Sources",
     "availability": "Availability"
+  },
+  "tradingWidget": {
+    "realTimeData": "Real-time data by TradingView",
+    "liveData": "Live data",
+    "dayRange": "Day range",
+    "loadingMarketEvents": "Loading market events...",
+    "previous": "Previous:",
+    "tickerTape": "Ticker tape by TradingView"
+  },
+  "marketEvents": {
+    "loadingEvents": "Loading market events...",
+    "lastUpdate": "Last update: {{time}} ago"
+  },
+  "loading": {
+    "loading": "Loading...",
+    "loadingMore": "Loading more..."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
