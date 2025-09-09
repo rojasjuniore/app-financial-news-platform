@@ -592,82 +592,271 @@ const Metrics: React.FC = () => {
             </motion.div>
           </>
         ) : (
-          /* Global View */
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-              <Users className="w-5 h-5 text-blue-600" />
-              {t('common.locale') === 'es-ES' ? 'Métricas Globales de Usuarios' : 'Global User Metrics'}
-            </h3>
-            
-            {userMetrics.length === 0 ? (
-              <div className="text-center py-8">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">
-                  {t('common.locale') === 'es-ES' ? 'Sin datos de usuarios disponibles' : 'No user data available'}
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
-                        {t('common.locale') === 'es-ES' ? 'Usuario' : 'User'}
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
-                        {t('common.locale') === 'es-ES' ? 'LLM Requests' : 'LLM Requests'}
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
-                        {t('common.locale') === 'es-ES' ? 'Tokens' : 'Tokens'}
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
-                        {t('common.locale') === 'es-ES' ? 'Costo' : 'Cost'}
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
-                        {t('common.locale') === 'es-ES' ? 'Chats' : 'Chats'}
-                      </th>
-                      <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
-                        {t('common.locale') === 'es-ES' ? 'Noticias' : 'News'}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                    {userMetrics.map((user) => (
-                      <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <td className="px-4 py-3">
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-white">{user.userName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {t('common.locale') === 'es-ES' ? 'Desde' : 'Since'} {new Date(user.joinDate).toLocaleDateString()}
-                            </p>
+          /* Global Admin View */
+          <>
+            {/* Global System Overview */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+            >
+              {[
+                {
+                  title: t('common.locale') === 'es-ES' ? 'Total Usuarios' : 'Total Users',
+                  value: userMetrics.length.toLocaleString(),
+                  change: t('common.locale') === 'es-ES' ? 'Activos' : 'Active',
+                  icon: Users,
+                  color: 'blue',
+                  trend: 'up'
+                },
+                {
+                  title: t('common.locale') === 'es-ES' ? 'LLM Total' : 'Total LLM',
+                  value: userMetrics.reduce((sum, u) => sum + u.llmUsage.totalRequests, 0).toLocaleString(),
+                  change: `$${safeToFixed(userMetrics.reduce((sum, u) => sum + (typeof u.llmUsage.totalCost === 'number' ? u.llmUsage.totalCost : parseFloat(u.llmUsage.totalCost || '0')), 0))}`,
+                  icon: Brain,
+                  color: 'purple',
+                  trend: 'up'
+                },
+                {
+                  title: t('common.locale') === 'es-ES' ? 'News APIs' : 'News APIs',
+                  value: userMetrics.reduce((sum, u) => sum + (u.newsApiUsage?.totalRequests || 0), 0).toLocaleString(),
+                  change: `${userMetrics.reduce((sum, u) => sum + (u.newsApiUsage?.totalArticlesRetrieved || 0), 0).toLocaleString()} articles`,
+                  icon: Globe,
+                  color: 'green',
+                  trend: 'up'
+                },
+                {
+                  title: t('common.locale') === 'es-ES' ? 'Costo Total' : 'Total Cost',
+                  value: `$${safeToFixed(
+                    userMetrics.reduce((sum, u) => sum + (typeof u.llmUsage.totalCost === 'number' ? u.llmUsage.totalCost : parseFloat(u.llmUsage.totalCost || '0')), 0) +
+                    userMetrics.reduce((sum, u) => sum + (u.newsApiUsage?.totalCost || 0), 0)
+                  )}`,
+                  change: t('common.locale') === 'es-ES' ? 'Todos los servicios' : 'All services',
+                  icon: DollarSign,
+                  color: 'orange',
+                  trend: 'up'
+                }
+              ].map((stat, index) => (
+                <motion.div
+                  key={index}
+                  variants={itemVariants}
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <div className={`p-3 rounded-lg bg-${stat.color}-50 dark:bg-${stat.color}-900/20`}>
+                      <stat.icon className={`w-5 h-5 text-${stat.color}-600 dark:text-${stat.color}-400`} />
+                    </div>
+                    <span className={`text-sm font-medium ${
+                      stat.trend === 'up' ? 'text-green-600 dark:text-green-400' : 
+                      'text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {stat.change}
+                    </span>
+                  </div>
+                  <h3 className="text-sm text-gray-600 dark:text-gray-400 mb-1">{stat.title}</h3>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* System-wide LLM Usage by Model */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-8"
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <Bot className="w-5 h-5 text-purple-600" />
+                  {t('common.locale') === 'es-ES' ? 'Uso Global por Modelo LLM' : 'Global Usage by LLM Model'}
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {['openai', 'claude', 'gemini', 'grok'].map((modelName) => {
+                    const modelData = userMetrics.reduce((acc, user) => {
+                      const model = user.llmUsage.byModel?.[modelName];
+                      if (model) {
+                        acc.requests += model.requests || 0;
+                        acc.inputTokens += model.inputTokens || 0;
+                        acc.outputTokens += model.outputTokens || 0;
+                        acc.cost += typeof model.cost === 'number' ? model.cost : parseFloat(model.cost || '0');
+                      }
+                      return acc;
+                    }, { requests: 0, inputTokens: 0, outputTokens: 0, cost: 0 });
+
+                    return (
+                      <div key={modelName} className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-semibold text-gray-900 dark:text-white capitalize">{modelName}</h4>
+                          <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            ${safeToFixed(modelData.cost)}
+                          </span>
+                        </div>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Requests:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{modelData.requests.toLocaleString()}</span>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
-                          {user.llmUsage.totalRequests.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
-                          {user.llmUsage.totalTokens.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
-                          ${user.llmUsage.totalCost.toFixed(4)}
-                        </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
-                          {user.userActivity.chatMessages.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-gray-900 dark:text-white">
-                          {user.newsMetrics.articlesRead.toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Tokens:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{(modelData.inputTokens + modelData.outputTokens).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            )}
-          </motion.div>
+            </motion.div>
+
+            {/* Global News API Usage */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-8"
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-green-600" />
+                  {t('common.locale') === 'es-ES' ? 'Uso Global de APIs de Noticias' : 'Global News APIs Usage'}
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {['newsapi', 'alphaVantage', 'cryptoCompare'].map((providerName) => {
+                    const providerData = userMetrics.reduce((acc, user) => {
+                      const provider = user.newsApiUsage?.byProvider?.[providerName];
+                      if (provider) {
+                        acc.requests += provider.requests || 0;
+                        acc.articles += provider.articlesRetrieved || 0;
+                        acc.cost += typeof provider.cost === 'number' ? provider.cost : parseFloat(provider.cost || '0');
+                      }
+                      return acc;
+                    }, { requests: 0, articles: 0, cost: 0 });
+
+                    return (
+                      <div key={providerName} className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-white capitalize mb-3">
+                          {providerName === 'newsapi' ? 'NewsAPI' : 
+                           providerName === 'alphaVantage' ? 'Alpha Vantage' : 
+                           'CryptoCompare'}
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Requests:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{providerData.requests.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Articles:</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{providerData.articles.toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600 dark:text-gray-400">Cost:</span>
+                            <span className="font-bold text-green-600 dark:text-green-400">
+                              ${safeToFixed(providerData.cost)} {providerData.cost === 0 && '(Free)'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* User Table */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+            >
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                <Users className="w-5 h-5 text-blue-600" />
+                {t('common.locale') === 'es-ES' ? 'Detalle de Usuarios' : 'User Details'}
+              </h3>
+              
+              {userMetrics.length === 0 ? (
+                <div className="text-center py-8">
+                  <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {t('common.locale') === 'es-ES' ? 'Sin datos de usuarios disponibles' : 'No user data available'}
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'Usuario' : 'User'}
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'LLM Requests' : 'LLM Requests'}
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'Tokens' : 'Tokens'}
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'Costo LLM' : 'LLM Cost'}
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'News API' : 'News API'}
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'Costo Total' : 'Total Cost'}
+                        </th>
+                        <th className="px-4 py-3 text-left font-medium text-gray-900 dark:text-white">
+                          {t('common.locale') === 'es-ES' ? 'Última Actividad' : 'Last Activity'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {userMetrics.map((user) => {
+                        const llmCost = typeof user.llmUsage.totalCost === 'number' ? user.llmUsage.totalCost : parseFloat(user.llmUsage.totalCost || '0');
+                        const newsCost = user.newsApiUsage?.totalCost || 0;
+                        const totalUserCost = llmCost + newsCost;
+                        
+                        return (
+                          <tr key={user.userId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                            <td className="px-4 py-3">
+                              <div>
+                                <p className="font-medium text-gray-900 dark:text-white">{user.userName}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  {user.userId.substring(0, 8)}...
+                                </p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
+                              {user.llmUsage.totalRequests.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
+                              {user.llmUsage.totalTokens.toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
+                              ${safeToFixed(llmCost)}
+                            </td>
+                            <td className="px-4 py-3 text-gray-900 dark:text-white">
+                              {(user.newsApiUsage?.totalRequests || 0).toLocaleString()}
+                            </td>
+                            <td className="px-4 py-3 font-bold text-gray-900 dark:text-white">
+                              ${safeToFixed(totalUserCost)}
+                            </td>
+                            <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                              {user.userActivity?.lastActivity ? new Date(user.userActivity.lastActivity).toLocaleString() : 'N/A'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </motion.div>
+          </>
         )}
       </div>
     </div>
