@@ -298,7 +298,7 @@ const TwitterFeedListV2: React.FC = () => {
                 <div className="flex items-center justify-center gap-2">
                   <Loader className="w-4 h-4 animate-spin text-blue-500" />
                   <span className="text-sm text-blue-700 dark:text-blue-300">
-                    Loading your interests...
+                    {t('feed.loadingInterests')}
                   </span>
                 </div>
               ) : userProfile?.interests ? (
@@ -314,7 +314,7 @@ const TwitterFeedListV2: React.FC = () => {
                   {userProfile.interests.topics && userProfile.interests.topics.length > 0 && (
                     <div className="flex flex-wrap gap-1 items-center">
                       <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-                        Topics:
+                        {t('settings.topics')}:
                       </span>
                       {userProfile.interests.topics.map((topic) => (
                         <span
@@ -331,7 +331,7 @@ const TwitterFeedListV2: React.FC = () => {
                   {userProfile.interests.tickers && userProfile.interests.tickers.length > 0 && (
                     <div className="flex flex-wrap gap-1 items-center">
                       <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-                        Tickers:
+                        {t('settings.tickers')}:
                       </span>
                       {userProfile.interests.tickers.slice(0, 5).map((ticker) => (
                         <span
@@ -354,7 +354,7 @@ const TwitterFeedListV2: React.FC = () => {
                   {userProfile.interests.sectors && userProfile.interests.sectors.length > 0 && (
                     <div className="flex flex-wrap gap-1 items-center">
                       <span className="text-xs text-blue-700 dark:text-blue-300 font-medium">
-                        Sectors:
+                        {t('settings.sectors')}:
                       </span>
                       {userProfile.interests.sectors.map((sector) => (
                         <span
@@ -373,13 +373,13 @@ const TwitterFeedListV2: React.FC = () => {
                     className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:underline mt-2"
                   >
                     <Settings className="w-3 h-3" />
-                    Modify interests
+                    {t('settings.modifyInterests')}
                   </Link>
                 </div>
               ) : (
                 <div className="text-center text-sm text-blue-700 dark:text-blue-300">
                   <Target className="w-5 h-5 mx-auto mb-1 opacity-60" />
-                  Configure your interests in Settings to see personalized news
+                  {t('feed.configureInterestsMessage')}
                 </div>
               )}
             </div>

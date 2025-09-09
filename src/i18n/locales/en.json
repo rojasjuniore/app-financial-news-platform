@@ -72,6 +72,9 @@
   },
   "feed": {
     "title": "Latest News",
+    "filterActive": "Active Filters",
+    "loadingInterests": "Loading your interests...",
+    "configureInterestsMessage": "Configure your interests in Settings to see personalized news",
     "personalizedFeed": "Personalized Feed",
     "allNews": "All News",
     "todayNews": "Today's News",
@@ -348,6 +351,7 @@
     "themeDescription": "Switch between light and dark mode to customize your visual experience",
     "sectors": "Sectors",
     "topics": "Topics",
+    "tickers": "Tickers",
     "marketTypes": "Market Types",
     "loginRequired": "You must sign in to access settings",
     "breakingNews": "Breaking news notifications",
