@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { feedService } from '../services/news/feedService';
 import { FirestoreTimestamp } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Loader, 
   Bookmark, 
@@ -16,7 +17,8 @@ import {
   TrendingDown,
   Minus,
   Calendar,
-  FileText
+  FileText,
+  BookmarkX
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import QualityBadge from '../components/QualityBadge/QualityBadge';
@@ -24,6 +26,7 @@ import QualityBadge from '../components/QualityBadge/QualityBadge';
 const Saved: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [removingIds, setRemovingIds] = useState<Set<string>>(new Set());
 
   // Obtener artículos guardados directamente del endpoint
   const { data: savedResponse, isLoading, error } = useQuery({
@@ -32,20 +35,58 @@ const Saved: React.FC = () => {
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
 
-  const savedArticles = savedResponse?.articles || [];
+  // Filtrar artículos que están siendo removidos
+  const savedArticles = (savedResponse?.articles || []).filter(
+    article => !removingIds.has(article.id)
+  );
 
   // Mutation para quitar artículos guardados
   const unsaveMutation = useMutation({
     mutationFn: (articleId: string) => feedService.unsaveArticle(articleId),
-    onSuccess: () => {
-      // Refrescar la lista de artículos guardados
-      queryClient.invalidateQueries({ queryKey: ['savedArticles'] });
-      // También refrescar el perfil por si acaso
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      toast.success(t('saved.removedFromSaved'));
+    onMutate: async (articleId: string) => {
+      // Optimistic update: marcar como removiendo
+      setRemovingIds(prev => new Set(prev).add(articleId));
+      
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['savedArticles'] });
+      
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(['savedArticles']);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(['savedArticles'], (old: any) => ({
+        ...old,
+        articles: old?.articles?.filter((article: any) => article.id !== articleId) || []
+      }));
+      
+      // Return a context object with the snapshotted value
+      return { previousData, articleId };
     },
-    onError: (error: any) => {
+    onError: (error: any, articleId: string, context: any) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(['savedArticles'], context.previousData);
+      setRemovingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(articleId);
+        return newSet;
+      });
       toast.error(`Error: ${error.response?.data?.error || error.message}`);
+    },
+    onSettled: (data, error, articleId) => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: ['savedArticles'] });
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      
+      // Remove from removing set
+      setRemovingIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(articleId);
+        return newSet;
+      });
+      
+      if (!error) {
+        toast.success(t('saved.removedFromSaved'));
+      }
     },
   });
 
@@ -176,28 +217,45 @@ const Saved: React.FC = () => {
 
         {/* Content */}
         {savedArticles.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm">
-            <Bookmark className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="bg-white dark:bg-gray-800 rounded-xl p-12 text-center shadow-sm border border-gray-200 dark:border-gray-700"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 200 }}
+            >
+              <BookmarkX className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            </motion.div>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
               {t('saved.noSaved')}
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-gray-600 dark:text-gray-400 mb-6 max-w-sm mx-auto">
               {t('saved.saveForLater')}
             </p>
             <Link
               to="/feed"
-              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
+              <ArrowLeft className="w-4 h-4" />
               {t('saved.exploreNews')}
             </Link>
-          </div>
+          </motion.div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {savedArticles.map((article) => (
-              <div 
-                key={article.id}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all hover:scale-[1.02] overflow-hidden"
-              >
+            <AnimatePresence mode="popLayout">
+              {savedArticles.map((article) => (
+                <motion.div 
+                  key={article.id}
+                  layout
+                  initial={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
+                  whileHover={{ scale: 1.02 }}
+                  className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow overflow-hidden"
+                >
                 {/* Imagen del artículo como header */}
                 {article.urlToImage && (
                   <div className="relative">
@@ -211,11 +269,15 @@ const Saved: React.FC = () => {
                     />
                     <button
                       onClick={() => handleUnsave(article.id)}
-                      disabled={unsaveMutation.isPending}
-                      className="absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white text-gray-600 hover:text-red-500 rounded-full shadow-sm transition-all"
+                      disabled={removingIds.has(article.id)}
+                      className="absolute top-2 right-2 p-2 bg-white/90 hover:bg-white dark:bg-gray-800/90 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-full shadow-md backdrop-blur-sm transition-all group"
                       title={t('saved.removeFromSaved')}
                     >
-                      <X className="w-4 h-4" />
+                      {removingIds.has(article.id) ? (
+                        <Loader className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <BookmarkX className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                      )}
                     </button>
                   </div>
                 )}
@@ -226,11 +288,15 @@ const Saved: React.FC = () => {
                     <div className="flex justify-end mb-2">
                       <button
                         onClick={() => handleUnsave(article.id)}
-                        disabled={unsaveMutation.isPending}
-                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all"
+                        disabled={removingIds.has(article.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-all group"
                         title={t('saved.removeFromSaved')}
                       >
-                        <X className="w-4 h-4" />
+                        {removingIds.has(article.id) ? (
+                          <Loader className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <BookmarkX className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                        )}
                       </button>
                     </div>
                   )}
@@ -335,8 +401,9 @@ const Saved: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
