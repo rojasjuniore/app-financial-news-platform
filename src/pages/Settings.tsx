@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,21 +10,134 @@ import {
   Shield,
   Palette,
   Smartphone,
-  Info
+  Info,
+  Check
 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { db } from '../services/firebase';
+import { toast } from 'react-hot-toast';
+
+interface UserSettings {
+  notifications: {
+    breakingNews: boolean;
+    priceAlerts: boolean;
+    marketUpdates: boolean;
+  };
+  privacy: {
+    shareAnalytics: boolean;
+    personalizedAds: boolean;
+  };
+}
 
 const Settings: React.FC = () => {
   const { actualTheme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { t, i18n } = useTranslation();
   const isDarkMode = actualTheme === 'dark';
+  
+  const [settings, setSettings] = useState<UserSettings>({
+    notifications: {
+      breakingNews: true,
+      priceAlerts: true,
+      marketUpdates: false
+    },
+    privacy: {
+      shareAnalytics: false,
+      personalizedAds: false
+    }
+  });
+  
+  const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
     localStorage.setItem('language', lng);
+  };
+
+  // Cargar configuraciones al montar el componente
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user) return;
+
+      try {
+        // Primero intentar cargar desde localStorage para respuesta inmediata
+        const localSettings = localStorage.getItem(`settings_${user.uid}`);
+        if (localSettings) {
+          const parsed = JSON.parse(localSettings);
+          setSettings(parsed);
+        }
+
+        // Luego sincronizar con Firebase
+        const docRef = doc(db, 'userSettings', user.uid);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists()) {
+          const firebaseSettings = docSnap.data() as UserSettings;
+          setSettings(firebaseSettings);
+          // Actualizar localStorage con datos de Firebase
+          localStorage.setItem(`settings_${user.uid}`, JSON.stringify(firebaseSettings));
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+
+    loadSettings();
+  }, [user]);
+
+  // Guardar configuraciones
+  const saveSettings = async () => {
+    if (!user) return;
+
+    setSaving(true);
+    try {
+      // Guardar en localStorage inmediatamente
+      localStorage.setItem(`settings_${user.uid}`, JSON.stringify(settings));
+
+      // Guardar en Firebase
+      const docRef = doc(db, 'userSettings', user.uid);
+      await setDoc(docRef, {
+        ...settings,
+        updatedAt: new Date().toISOString(),
+        userId: user.uid
+      });
+
+      toast.success(t('settings.changesSaved'));
+      setHasChanges(false);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error(t('errors.savingPreferences'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Manejar cambios en notificaciones
+  const handleNotificationChange = (key: keyof typeof settings.notifications) => {
+    setSettings(prev => ({
+      ...prev,
+      notifications: {
+        ...prev.notifications,
+        [key]: !prev.notifications[key]
+      }
+    }));
+    setHasChanges(true);
+  };
+
+  // Manejar cambios en privacidad
+  const handlePrivacyChange = (key: keyof typeof settings.privacy) => {
+    setSettings(prev => ({
+      ...prev,
+      privacy: {
+        ...prev.privacy,
+        [key]: !prev.privacy[key]
+      }
+    }));
+    setHasChanges(true);
   };
 
   if (!user) {
@@ -121,8 +234,8 @@ const Settings: React.FC = () => {
                 onChange={(e) => changeLanguage(e.target.value)}
                 className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="en">English</option>
-                <option value="es">Español</option>
+                <option value="en">{t('settings.english')}</option>
+                <option value="es">{t('settings.spanish')}</option>
               </select>
             </div>
           </motion.div>
@@ -141,33 +254,37 @@ const Settings: React.FC = () => {
               </h3>
             </div>
             <div className="space-y-3">
-              <label className="flex items-center justify-between">
+              <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-gray-700 dark:text-gray-300">
                   {t('settings.breakingNews')}
                 </span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  defaultChecked
+                  checked={settings.notifications.breakingNews}
+                  onChange={() => handleNotificationChange('breakingNews')}
                 />
               </label>
-              <label className="flex items-center justify-between">
+              <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-gray-700 dark:text-gray-300">
                   {t('settings.priceAlerts')}
                 </span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  defaultChecked
+                  checked={settings.notifications.priceAlerts}
+                  onChange={() => handleNotificationChange('priceAlerts')}
                 />
               </label>
-              <label className="flex items-center justify-between">
+              <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-gray-700 dark:text-gray-300">
                   {t('settings.marketUpdates')}
                 </span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  checked={settings.notifications.marketUpdates}
+                  onChange={() => handleNotificationChange('marketUpdates')}
                 />
               </label>
             </div>
@@ -187,22 +304,26 @@ const Settings: React.FC = () => {
               </h3>
             </div>
             <div className="space-y-3">
-              <label className="flex items-center justify-between">
+              <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-gray-700 dark:text-gray-300">
                   {t('settings.shareAnalytics')}
                 </span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  checked={settings.privacy.shareAnalytics}
+                  onChange={() => handlePrivacyChange('shareAnalytics')}
                 />
               </label>
-              <label className="flex items-center justify-between">
+              <label className="flex items-center justify-between cursor-pointer">
                 <span className="text-gray-700 dark:text-gray-300">
                   {t('settings.personalizedAds')}
                 </span>
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                  checked={settings.privacy.personalizedAds}
+                  onChange={() => handlePrivacyChange('personalizedAds')}
                 />
               </label>
             </div>
@@ -267,6 +388,49 @@ const Settings: React.FC = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Botón de guardar cambios */}
+          {hasChanges && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="fixed bottom-6 right-6 z-50"
+            >
+              <button
+                onClick={saveSettings}
+                disabled={saving}
+                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                        fill="none"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    <span>{t('common.saving')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-5 h-5" />
+                    <span>{t('settings.saveChanges')}</span>
+                  </>
+                )}
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
