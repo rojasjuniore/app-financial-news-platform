@@ -56,11 +56,11 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
       return null;
     };
     
-    // Try different date fields
-    const date = parseDate(article.publishedAt) || 
-                 parseDate(article.published_at) || 
-                 parseDate(article.createdAt) || 
-                 parseDate(article.created_at);
+    // Try different date fields - priorizar created_at (cuándo se agregó)
+    const date = parseDate(article.createdAt) || 
+                 parseDate(article.created_at) || 
+                 parseDate(article.publishedAt) || 
+                 parseDate(article.published_at);
     
     // Verificar si la fecha es válida
     if (!date || isNaN(date.getTime())) return 'Fecha no disponible';
@@ -74,7 +74,7 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
       minute: '2-digit',
       hour12: false
     });
-  }, [article.publishedAt]);
+  }, [article.createdAt, article.created_at, article.publishedAt, article.published_at]);
 
 
   // Animation variants for staggered animations

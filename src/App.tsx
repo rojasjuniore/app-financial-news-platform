@@ -17,6 +17,7 @@ import Search from './pages/Search';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Metrics from './pages/Metrics';
+import Notifications from './pages/Notifications';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -135,6 +136,14 @@ function App() {
                   element={
                     <PrivateRouteWithLayout>
                       <Chat />
+                    </PrivateRouteWithLayout>
+                  } 
+                />
+                <Route 
+                  path="/notifications" 
+                  element={
+                    <PrivateRouteWithLayout>
+                      <Notifications />
                     </PrivateRouteWithLayout>
                   } 
                 />

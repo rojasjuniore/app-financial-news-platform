@@ -137,7 +137,13 @@ const TwitterFeedListV2: React.FC = () => {
       let articleDate: Date;
       
       if (typeof date === 'string') {
-        articleDate = new Date(date);
+        // Arreglar formato de fecha mal formateado: 20250908T162507 → 2025-09-08T16:25:07
+        if (/^\d{8}T\d{6}$/.test(date)) {
+          const fixed = date.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/, '$1-$2-$3T$4:$5:$6');
+          articleDate = new Date(fixed);
+        } else {
+          articleDate = new Date(date);
+        }
       } else if ((date as FirestoreTimestamp)._seconds) {
         articleDate = new Date((date as FirestoreTimestamp)._seconds * 1000);
       } else {
@@ -483,7 +489,7 @@ const TwitterFeedListV2: React.FC = () => {
                       {/* Time */}
                       <div className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        <span>{formatTimeAgo(article.publishedAt || article.published_at || article.createdAt || article.created_at)}</span>
+                        <span>{formatTimeAgo(article.createdAt || article.created_at || article.publishedAt || article.published_at)}</span>
                       </div>
                       
                       {/* Sentiment */}

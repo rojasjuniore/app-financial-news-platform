@@ -126,17 +126,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           </Link>
         ))}
 
-        {/* Notifications Button */}
-        <button
-          onClick={() => setShowNotificationDot(false)}
-          className={`w-full flex items-center ${
+        {/* Notifications Link */}
+        <Link
+          to="/notifications"
+          onClick={() => {
+            setShowNotificationDot(false);
+            if (onClose) onClose();
+          }}
+          className={`flex items-center ${
             isCollapsed ? 'justify-center' : 'justify-start'
-          } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800`}
+          } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
+            isActive('/notifications')
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
+          }`}
           title={isCollapsed ? t('nav.notifications') || 'Notifications' : undefined}
         >
           <div className="relative">
             <Bell className="w-5 h-5 flex-shrink-0" />
-            {showNotificationDot && (
+            {showNotificationDot && !isActive('/notifications') && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
             )}
           </div>
@@ -148,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               {t('nav.notifications') || 'Notifications'}
             </div>
           )}
-        </button>
+        </Link>
       </nav>
 
       {/* Bottom Section */}

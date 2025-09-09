@@ -502,7 +502,7 @@ const TwitterFeedList: React.FC = () => {
                       )}
                       <span className="text-gray-500 dark:text-gray-400">·</span>
                       <span className="text-gray-500 dark:text-gray-400 text-sm">
-                        {formatTimeAgo(article.publishedAt || article.published_at || article.createdAt || article.created_at)}
+                        {formatTimeAgo(article.createdAt || article.created_at || article.publishedAt || article.published_at)}
                       </span>
                       {article.sentiment && getSentimentIcon(article.sentiment)}
                       {/* Quality Badge */}

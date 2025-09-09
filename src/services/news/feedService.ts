@@ -14,7 +14,12 @@ export const feedService = {
     onlyMyInterests?: boolean;
     minRelevanceScore?: number;
   } = {}): Promise<FeedResponse> => {
-    const { data } = await apiClient.get('/api/feed', { params });
+    // Feed simple - obtener últimas noticias
+    const enhancedParams = {
+      ...params,
+      forceRefresh: true // Siempre forzar refresh para obtener lo más reciente
+    };
+    const { data } = await apiClient.get('/api/feed', { params: enhancedParams });
     return data;
   },
 
