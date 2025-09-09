@@ -18,6 +18,7 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Metrics from './pages/Metrics';
 import Notifications from './pages/Notifications';
+import VoiceAssistantContinuous from './pages/VoiceAssistantContinuous';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -144,6 +145,14 @@ function App() {
                   element={
                     <PrivateRouteWithLayout>
                       <Notifications />
+                    </PrivateRouteWithLayout>
+                  } 
+                />
+                <Route 
+                  path="/voice" 
+                  element={
+                    <PrivateRouteWithLayout>
+                      <VoiceAssistantContinuous />
                     </PrivateRouteWithLayout>
                   } 
                 />

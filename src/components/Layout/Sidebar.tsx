@@ -15,7 +15,8 @@ import {
   ChevronRight,
   TrendingUp,
   Sliders,
-  BarChart3
+  BarChart3,
+  Bot
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -54,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     { path: '/saved', icon: Bookmark, label: t('nav.saved') },
     { path: '/search', icon: Search, label: t('nav.search') },
     { path: '/chat', icon: MessageCircle, label: t('nav.chat') || 'Chat' },
+    { path: '/voice', icon: Bot, label: 'AI Voice Assistant', badge: 'NEW' },
   ];
 
   const bottomItems = [
@@ -116,7 +118,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           >
             <item.icon className="w-5 h-5 flex-shrink-0" />
             {!isCollapsed && (
-              <span className="text-sm font-medium">{item.label}</span>
+              <>
+                <span className="text-sm font-medium flex-1">{item.label}</span>
+                {(item as any).badge && (
+                  <span className="px-2 py-0.5 text-xs font-bold bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full">
+                    {(item as any).badge}
+                  </span>
+                )}
+              </>
             )}
             {isCollapsed && (
               <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap z-50">
