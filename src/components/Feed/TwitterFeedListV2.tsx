@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useFeed } from '../../hooks/useFeed';
+import { useLatestNews } from '../../hooks/useLatestNews';
 import { useAuth } from '../../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { feedService } from '../../services/news/feedService';
@@ -40,24 +41,23 @@ const TwitterFeedListV2: React.FC = () => {
   
   const { user } = useAuth();
 
-  // Use different sort strategies based on active tab
-  const sortStrategy = activeTab === 'latest' ? 'time' : 'personalized';
+  // 🔄 USAR DIFERENTES HOOKS SEGÚN LA PESTAÑA ACTIVA
   
-  // Configurar opciones según el tab activo
-  const feedOptions = activeTab === 'personalized' 
-    ? {
-        limit,
-        sortBy: 'personalized' as const,
-        onlyMyInterests: true, // Filtrar por intereses del usuario
-        minRelevanceScore: 30 // Mínimo 30% de relevancia
-      }
-    : {
-        limit,
-        sortBy: 'time' as const,
-        onlyMyInterests: false, // Mostrar todo en cronológico
-        minRelevanceScore: 0
-      };
-
+  // Hook para "Latest News" - TODOS los artículos sin filtros
+  const latestNewsData = useLatestNews({
+    limit,
+    timeRange: 30 // Últimos 30 días para asegurar que veamos todos los artículos
+  });
+  
+  // Hook para "My Personalized Interests" - Solo artículos personalizados
+  const personalizedFeedData = useFeed({
+    limit,
+    sortBy: 'personalized' as const,
+    onlyMyInterests: true, // Filtrar por intereses del usuario
+    minRelevanceScore: 30 // Mínimo 30% de relevancia
+  });
+  
+  // 🎯 USAR DATOS SEGÚN LA PESTAÑA ACTIVA
   const {
     articles,
     isLoading,
@@ -67,7 +67,9 @@ const TwitterFeedListV2: React.FC = () => {
     likeArticle,
     saveArticle,
     refetch,
-  } = useFeed(feedOptions);
+  } = activeTab === 'latest' 
+    ? latestNewsData    // Latest News: TODOS los artículos
+    : personalizedFeedData; // My Personalized Interests: Solo personalizados
 
   // Get user profile for personalized interests
   const { data: userProfile, isLoading: profileLoading } = useQuery({
@@ -227,8 +229,10 @@ const TwitterFeedListV2: React.FC = () => {
               }`}
             >
               <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden sm:inline">{t('feed.title')}</span>
+              <span className="hidden sm:inline">Latest News</span>
               <span className="sm:hidden">Latest</span>
+              {/* Indicador de que usa endpoint diferente */}
+              <div className="w-1.5 h-1.5 bg-green-500 rounded-full opacity-60" title="Todos los artículos - Sin filtros"></div>
             </button>
             
             {user && (
@@ -243,6 +247,8 @@ const TwitterFeedListV2: React.FC = () => {
                 <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">{t('feed.myPersonalizedInterests')}</span>
                 <span className="sm:hidden">Personal</span>
+                {/* Indicador de que usa endpoint personalizado */}
+                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full opacity-60" title="Solo tus intereses - Filtrado personalizado"></div>
               </button>
             )}
           </div>
@@ -296,6 +302,21 @@ const TwitterFeedListV2: React.FC = () => {
               {t('article.sentiments.negative')}
             </button>
           </div>
+
+          {/* Endpoint Info Panel - Debug */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                <span className="font-mono">🔗 Endpoint:</span>
+                <span className={`font-mono px-2 py-0.5 rounded ${activeTab === 'latest' ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300' : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'}`}>
+                  {activeTab === 'latest' ? '/api/articles/latest' : '/api/feed'}
+                </span>
+                <span className="text-gray-500 dark:text-gray-500">
+                  ({activeTab === 'latest' ? 'Todos los artículos' : 'Solo personalizados'})
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Personalized Interests Info Panel */}
           {activeTab === 'personalized' && user && (
