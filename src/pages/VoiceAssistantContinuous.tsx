@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
   Mic, 
   MicOff,
@@ -34,6 +35,7 @@ type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 type AssistantState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
 const VoiceAssistantContinuous: React.FC = () => {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   
   // State management
@@ -92,7 +94,7 @@ const VoiceAssistantContinuous: React.FC = () => {
             config: {
               model: 'gpt-4o-realtime',
               voice: 'alloy',
-              language: 'es',
+              language: i18n.language, // Use current language
               mode: 'manual', // Manual mode - only start on button press
               vad: false // Disable auto Voice Activity Detection
             }
@@ -102,7 +104,7 @@ const VoiceAssistantContinuous: React.FC = () => {
           setMessages(prev => [...prev, {
             id: Date.now().toString(),
             type: 'system',
-            content: '✅ Conectado al servicio de voz',
+            content: t('voiceAssistantContinuous.connectedToService'),
             timestamp: new Date()
           }]);
         }
@@ -117,7 +119,7 @@ const VoiceAssistantContinuous: React.FC = () => {
     wsRef.current.onerror = (error) => {
       console.error('❌ WebSocket error:', error);
       setConnectionState('error');
-      toast.error('Error de conexión');
+      toast.error(t('voiceAssistantContinuous.connectionError'));
     };
     
     wsRef.current.onclose = () => {
@@ -257,7 +259,7 @@ const VoiceAssistantContinuous: React.FC = () => {
       setAssistantState('listening');
       
       // Add visual feedback
-      toast.success('🎤 Conversación iniciada - Puedes hablar libremente');
+      toast.success(t('voiceAssistantContinuous.conversationStarted'));
       
     } catch (error) {
       console.error('Failed to start conversation:', error);
@@ -391,7 +393,7 @@ const VoiceAssistantContinuous: React.FC = () => {
       
     } catch (error) {
       console.error('Failed to start continuous stream:', error);
-      toast.error('No se pudo iniciar la conversación');
+      toast.error(t('voiceAssistantContinuous.couldNotStart'));
     }
   };
 
@@ -432,7 +434,7 @@ const VoiceAssistantContinuous: React.FC = () => {
       }));
     }
     
-    toast.success('🛑 Conversación terminada');
+    toast.success(t('voiceAssistantContinuous.conversationEnded'));
   };
 
   // Toggle conversation
@@ -692,13 +694,13 @@ const VoiceAssistantContinuous: React.FC = () => {
                 >
                   {!conversationActive && (
                     <div>
-                      <p className="text-blue-400 font-medium">Presiona para INICIAR conversación</p>
-                      <p className="text-xs text-gray-500 mt-1">El asistente saludará cuando inicies</p>
+                      <p className="text-blue-400 font-medium">{t('voiceAssistantContinuous.pressToStart')}</p>
+                      <p className="text-xs text-gray-500 mt-1">{t('voiceAssistantContinuous.assistantWillGreet')}</p>
                     </div>
                   )}
                   {conversationActive && assistantState === 'listening' && (
                     <div>
-                      <p className="text-red-400">Escuchando... Habla cuando quieras</p>
+                      <p className="text-red-400">{t('voiceAssistantContinuous.listeningSpeak')}</p>
                       {currentTranscript && (
                         <p className="text-sm mt-2 text-gray-500 max-w-md">{currentTranscript}</p>
                       )}
@@ -706,19 +708,19 @@ const VoiceAssistantContinuous: React.FC = () => {
                   )}
                   {conversationActive && assistantState === 'thinking' && (
                     <div>
-                      <p className="text-purple-400">Procesando...</p>
+                      <p className="text-purple-400">{t('voiceAssistantContinuous.processing')}</p>
                       {toolsUsed.length > 0 && (
                         <div className="flex items-center gap-2 mt-2 justify-center">
                           <Sparkles className="w-4 h-4 text-purple-400" />
                           <span className="text-xs text-gray-500">
-                            Consultando: {toolsUsed.join(', ')}
+                            {t('voiceAssistantContinuous.consulting')}: {toolsUsed.join(', ')}
                           </span>
                         </div>
                       )}
                     </div>
                   )}
                   {conversationActive && assistantState === 'speaking' && (
-                    <p className="text-green-400">Respondiendo...</p>
+                    <p className="text-green-400">{t('voiceAssistantContinuous.responding')}</p>
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -773,13 +775,13 @@ const VoiceAssistantContinuous: React.FC = () => {
         {/* Instructions */}
         {connectionState === 'connected' && !conversationActive && (
           <div className="absolute bottom-6 right-6 text-xs text-gray-600">
-            ▶️ Presiona para INICIAR - El asistente te saludará
+            {t('voiceAssistantContinuous.pressToStartInstructions')}
           </div>
         )}
         
         {conversationActive && (
           <div className="absolute bottom-6 right-6 text-xs text-purple-400">
-            ⏸️ Presiona para DETENER conversación
+            {t('voiceAssistantContinuous.pressToStop')}
           </div>
         )}
       </div>

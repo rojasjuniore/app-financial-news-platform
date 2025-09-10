@@ -441,7 +441,7 @@ const Notifications: React.FC = () => {
                             
                             {notification.priority && (
                               <span className={`text-sm font-medium ${getPriorityColor(notification.priority)}`}>
-                                {notification.priority.toUpperCase()}
+                                {t(`notifications.priority.${notification.priority.toLowerCase()}`)}
                               </span>
                             )}
                           </div>

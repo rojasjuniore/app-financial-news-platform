@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { 
   Mic, 
   MicOff,
@@ -32,6 +33,7 @@ type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
 type AssistantState = 'idle' | 'listening' | 'thinking' | 'speaking';
 
 const VoiceAssistant: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   
   // State management
@@ -126,6 +128,19 @@ const VoiceAssistant: React.FC = () => {
     console.log('📨 Server message:', data.type);
     
     switch (data.type) {
+      case 'stop_audio':
+        // Stop any current audio playback immediately (barge-in)
+        try {
+          // Close existing audio context if any to stop playback
+          if (audioContextRef.current) {
+            audioContextRef.current.close();
+            audioContextRef.current = null;
+          }
+        } catch (e) {
+          console.error('Error stopping audio:', e);
+        }
+        setAssistantState('listening');
+        break;
       case 'transcription':
         setCurrentTranscript(data.text);
         setMessages(prev => [...prev, {
@@ -550,7 +565,7 @@ const VoiceAssistant: React.FC = () => {
                     </div>
                   )}
                   {assistantState === 'speaking' && (
-                    <p className="text-green-400">Respondiendo...</p>
+                    <p className="text-green-400">{t('voiceAssistant.responding')}</p>
                   )}
                 </motion.div>
               </AnimatePresence>
@@ -608,7 +623,10 @@ const VoiceAssistant: React.FC = () => {
         {/* Keyboard shortcut hint */}
         {connectionState === 'connected' && assistantState === 'idle' && (
           <div className="absolute bottom-6 right-6 text-xs text-gray-600">
-            Press <kbd className="px-2 py-1 bg-gray-800 rounded">Space</kbd> to talk
+            {t('voiceAssistant.pressSpaceToTalk').split('Space').map((part, i) => 
+              i === 0 ? <span key={i}>{part}</span> : 
+              <span key={i}><kbd className="px-2 py-1 bg-gray-800 rounded">Space</kbd>{part}</span>
+            )}
           </div>
         )}
       </div>
