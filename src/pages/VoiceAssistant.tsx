@@ -72,7 +72,7 @@ const VoiceAssistant: React.FC = () => {
     
     const userId = user?.uid || 'anonymous';
     const wsUrl = process.env.NODE_ENV === 'production' 
-      ? `wss://your-api.com/api/voice/realtime?userId=${userId}`
+      ? `wss://api-financial-news-platform-production.up.railway.app/api/voice/realtime?userId=${userId}`
       : `ws://localhost:3001/api/voice/realtime?userId=${userId}`;
     
     wsRef.current = new WebSocket(wsUrl);
