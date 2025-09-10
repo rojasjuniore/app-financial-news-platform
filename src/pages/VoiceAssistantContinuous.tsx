@@ -85,7 +85,7 @@ const VoiceAssistantContinuous: React.FC = () => {
       // Ensure WebSocket is ready before sending
       setTimeout(() => {
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          // Send initialization with continuous mode
+          // Send initialization WITHOUT continuous mode (only on button press)
           wsRef.current.send(JSON.stringify({
             type: 'init',
             userId: user?.uid || 'anonymous',
@@ -93,8 +93,8 @@ const VoiceAssistantContinuous: React.FC = () => {
               model: 'gpt-4o-realtime',
               voice: 'alloy',
               language: 'es',
-              mode: 'continuous',
-              vad: true // Enable Voice Activity Detection
+              mode: 'manual', // Manual mode - only start on button press
+              vad: false // Disable auto Voice Activity Detection
             }
           }));
           
@@ -137,6 +137,19 @@ const VoiceAssistantContinuous: React.FC = () => {
     console.log('📨 Server message:', data.type);
     
     switch (data.type) {
+      case 'connected':
+        // Server connected with greeting message
+        console.log('Server connected:', data.message);
+        if (data.message) {
+          setMessages(prev => [...prev, {
+            id: Date.now().toString(),
+            type: 'assistant',
+            content: data.message,
+            timestamp: new Date()
+          }]);
+        }
+        break;
+        
       case 'ready':
         // Server is ready, greeting will come soon
         console.log('Server ready for conversation');
@@ -170,8 +183,12 @@ const VoiceAssistantContinuous: React.FC = () => {
         break;
         
       case 'audio':
+        console.log('🎵 Audio chunk received in frontend, length:', data.audio ? data.audio.length : 0);
         if (audioEnabled) {
+          console.log('🔊 Playing audio chunk...');
           playAudioChunk(data.audio);
+        } else {
+          console.log('🔇 Audio disabled, skipping playback');
         }
         break;
         
@@ -357,11 +374,12 @@ const VoiceAssistantContinuous: React.FC = () => {
       
       // Wait a moment before sending start signal to ensure audio is ready
       setTimeout(() => {
-        // Send start signal - this will trigger the greeting
+        // Send start signal - this will trigger the greeting and enable VAD
         if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
           wsRef.current.send(JSON.stringify({ 
             type: 'conversation_start',
-            continuous: true 
+            continuous: true,
+            enableVAD: true // Enable Voice Activity Detection now
           }));
           console.log('🎤 Conversation start signal sent');
         } else {
@@ -429,9 +447,11 @@ const VoiceAssistantContinuous: React.FC = () => {
 
   // Play audio with proper PCM16 handling
   const playAudioChunk = async (audioData: string) => {
+    console.log('🎵 Adding audio to queue, length:', audioData ? audioData.length : 0);
     audioQueueRef.current.push(audioData);
     
     if (!isPlayingRef.current) {
+      console.log('🎬 Starting audio playback queue');
       processAudioQueue();
     }
   };
@@ -671,7 +691,10 @@ const VoiceAssistantContinuous: React.FC = () => {
                   className="text-gray-400"
                 >
                   {!conversationActive && (
-                    <p>Toca para iniciar conversación continua</p>
+                    <div>
+                      <p className="text-blue-400 font-medium">Presiona para INICIAR conversación</p>
+                      <p className="text-xs text-gray-500 mt-1">El asistente saludará cuando inicies</p>
+                    </div>
                   )}
                   {conversationActive && assistantState === 'listening' && (
                     <div>
@@ -750,13 +773,13 @@ const VoiceAssistantContinuous: React.FC = () => {
         {/* Instructions */}
         {connectionState === 'connected' && !conversationActive && (
           <div className="absolute bottom-6 right-6 text-xs text-gray-600">
-            Presiona el botón para comenzar una conversación continua
+            ▶️ Presiona para INICIAR - El asistente te saludará
           </div>
         )}
         
         {conversationActive && (
           <div className="absolute bottom-6 right-6 text-xs text-purple-400">
-            🎤 Conversación activa - Habla cuando quieras
+            ⏸️ Presiona para DETENER conversación
           </div>
         )}
       </div>
