@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import QualityBadge from '../components/QualityBadge/QualityBadge';
+import { isPositiveSentiment, isNegativeSentiment } from '../utils/sentimentHelpers';
 
 const Search: React.FC = () => {
   const { t } = useTranslation();
@@ -72,13 +74,12 @@ const Search: React.FC = () => {
     toast.success(t('article.saved'));
   };
 
-  const getSentimentIcon = (sentiment?: string) => {
+  const getSentimentIcon = (sentiment?: any) => {
     if (!sentiment) return null;
     
-    const s = sentiment.toLowerCase();
-    if (s.includes('bullish') || s === 'positive') {
+    if (isPositiveSentiment(sentiment)) {
       return <TrendingUp className="w-4 h-4 text-green-500" />;
-    } else if (s.includes('bearish') || s === 'negative') {
+    } else if (isNegativeSentiment(sentiment)) {
       return <TrendingDown className="w-4 h-4 text-red-500" />;
     }
     return <Minus className="w-4 h-4 text-gray-500" />;

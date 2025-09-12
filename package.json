@@ -40,7 +40,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "serve -s build -l 3000",
+    "start": "serve -s build -l 3001",
     "dev": "PORT=3001 react-scripts start",
     "build": "react-scripts build",
     "docker-build": "docker build -t financial-news-app .",

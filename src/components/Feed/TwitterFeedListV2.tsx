@@ -28,6 +28,7 @@ import {
 import toast from 'react-hot-toast';
 import QualityBadge from '../QualityBadge/QualityBadge';
 import { FirestoreTimestamp } from '../../types';
+import { getSentimentString, isPositiveSentiment, isNegativeSentiment, formatSentiment } from '../../utils/sentimentHelpers';
 
 type SentimentFilter = 'all' | 'positive' | 'neutral' | 'negative';
 type FeedTab = 'latest' | 'personalized';
@@ -83,14 +84,12 @@ const TwitterFeedListV2: React.FC = () => {
   const filteredArticles = articles.filter((article) => {
     if (sentimentFilter === 'all') return true;
     
-    const sentiment = article.sentiment?.toLowerCase() || 'neutral';
-    
     if (sentimentFilter === 'positive') {
-      return sentiment.includes('bullish') || sentiment === 'positive' || sentiment === 'very_bullish';
+      return isPositiveSentiment(article.sentiment);
     } else if (sentimentFilter === 'negative') {
-      return sentiment.includes('bearish') || sentiment === 'negative' || sentiment === 'very_bearish';
+      return isNegativeSentiment(article.sentiment);
     } else {
-      return sentiment === 'neutral';
+      return !isPositiveSentiment(article.sentiment) && !isNegativeSentiment(article.sentiment);
     }
   });
 
@@ -120,13 +119,12 @@ const TwitterFeedListV2: React.FC = () => {
     }
   }, [t]);
 
-  const getSentimentIcon = (sentiment?: string) => {
+  const getSentimentIcon = (sentiment?: any) => {
     if (!sentiment) return null;
     
-    const s = sentiment.toLowerCase();
-    if (s.includes('bullish') || s === 'positive') {
+    if (isPositiveSentiment(sentiment)) {
       return <TrendingUp className="w-4 h-4 text-green-500" />;
-    } else if (s.includes('bearish') || s === 'negative') {
+    } else if (isNegativeSentiment(sentiment)) {
       return <TrendingDown className="w-4 h-4 text-red-500" />;
     }
     return <Minus className="w-4 h-4 text-gray-500" />;
@@ -536,7 +534,7 @@ const TwitterFeedListV2: React.FC = () => {
                         <div className="flex items-center gap-1">
                           {getSentimentIcon(article.sentiment)}
                           <span className="capitalize">
-                            {article.sentiment.replace('_', ' ').toLowerCase()}
+                            {formatSentiment(article.sentiment).toLowerCase()}
                           </span>
                         </div>
                       )}

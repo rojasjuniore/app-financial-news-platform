@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Firebase Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .warning { background: #fff3cd; color: #856404; }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Firebase Connection Test</h1>
+        
+        <div id="config" class="status info">
+            <h3>Configuration:</h3>
+            <pre id="configDetails">Loading...</pre>
+        </div>
+        
+        <div id="status" class="status info">
+            <p>Initializing Firebase...</p>
+        </div>
+        
+        <div>
+            <button onclick="testRead()">Test Read</button>
+            <button onclick="testWrite()">Test Write</button>
+            <button onclick="location.reload()">Refresh</button>
+        </div>
+        
+        <div id="results"></div>
+        
+        <div class="status warning">
+            <h3>⚠️ If you see permission errors:</h3>
+            <ol>
+                <li>Go to <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a></li>
+                <li>Select project: <strong>trading-system-ac16f</strong></li>
+                <li>Go to <strong>Firestore Database → Rules</strong></li>
+                <li>Update rules to:
+                    <pre>rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}</pre>
+                </li>
+                <li>Click <strong>"Publish"</strong></li>
+                <li>Wait 1-2 minutes and refresh this page</li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, query, limit } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDubXVl4xvj3lkitjqb8dqPzACPRiCuHjQ",
+            authDomain: "trading-system-ac16f.firebaseapp.com",
+            projectId: "trading-system-ac16f",
+            storageBucket: "trading-system-ac16f.firebasestorage.app",
+            messagingSenderId: "909464561219",
+            appId: "1:909464561219:web:bdecb736984edce05a56f6",
+            measurementId: "G-7V40105X75"
+        };
+        
+        // Show configuration
+        document.getElementById('configDetails').textContent = JSON.stringify(firebaseConfig, null, 2);
+        
+        let db;
+        
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            
+            document.getElementById('status').className = 'status success';
+            document.getElementById('status').innerHTML = '<p>✅ Firebase initialized successfully!</p>';
+        } catch (error) {
+            document.getElementById('status').className = 'status error';
+            document.getElementById('status').innerHTML = `<p>❌ Failed to initialize Firebase: ${error.message}</p>`;
+        }
+        
+        window.testRead = async function() {
+            const resultsDiv = document.getElementById('results');
+            try {
+                resultsDiv.innerHTML = '<div class="status info">Reading from Firestore...</div>';
+                
+                // Try to read from 'test' collection
+                const q = query(collection(db, 'test'), limit(5));
+                const snapshot = await getDocs(q);
+                
+                if (snapshot.empty) {
+                    resultsDiv.innerHTML = '<div class="status success">✅ Read successful! (No documents found in test collection)</div>';
+                } else {
+                    let html = '<div class="status success">✅ Read successful! Found documents:</div>';
+                    snapshot.forEach(doc => {
+                        html += `<pre>ID: ${doc.id}\n${JSON.stringify(doc.data(), null, 2)}</pre>`;
+                    });
+                    resultsDiv.innerHTML = html;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="status error">❌ Read failed: ${error.message}</div>`;
+            }
+        };
+        
+        window.testWrite = async function() {
+            const resultsDiv = document.getElementById('results');
+            try {
+                resultsDiv.innerHTML = '<div class="status info">Writing to Firestore...</div>';
+                
+                const testDoc = {
+                    test: true,
+                    timestamp: new Date().toISOString(),
+                    message: 'Test from browser'
+                };
+                
+                const docRef = doc(collection(db, 'test'), 'test_' + Date.now());
+                await setDoc(docRef, testDoc);
+                
+                resultsDiv.innerHTML = `<div class="status success">✅ Write successful! Document created with data:<pre>${JSON.stringify(testDoc, null, 2)}</pre></div>`;
+                
+                // Clean up after 5 seconds
+                setTimeout(async () => {
+                    await deleteDoc(docRef);
+                    resultsDiv.innerHTML += '<div class="status info">Document deleted after test</div>';
+                }, 5000);
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="status error">❌ Write failed: ${error.message}</div>`;
+            }
+        };
+    </script>
+</body>
+</html>

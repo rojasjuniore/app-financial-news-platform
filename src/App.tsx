@@ -24,6 +24,7 @@ import VoiceAssistantContinuous from './pages/VoiceAssistantContinuous';
 import PrivateRoute from './components/PrivateRoute';
 import PrivateRouteWithLayout from './components/PrivateRouteWithLayout';
 import InterestsSetup from './components/Onboarding/InterestsSetup';
+// import { TestFirebaseConnection } from './components/TestFirebaseConnection';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,8 @@ function App() {
         <AuthProvider>
           <Router>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+              {/* Componente de prueba de conexión Firebase - Desactivado */}
+              {/* {process.env.NODE_ENV === 'development' && <TestFirebaseConnection />} */}
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />

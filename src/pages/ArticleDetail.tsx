@@ -10,6 +10,7 @@ import { Calendar, TrendingUp, AlertCircle, Loader, ArrowLeft, Bot, Sparkles, Re
 import { Article, FirestoreTimestamp } from '../types';
 import { feedService } from '../services/news/feedService';
 import toast from 'react-hot-toast';
+import { isPositiveSentiment, isNegativeSentiment, formatSentiment } from '../utils/sentimentHelpers';
 
 const ArticleDetail: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
@@ -26,8 +27,36 @@ const ArticleDetail: React.FC = () => {
   const { data: article, isLoading, error } = useQuery<Article>({
     queryKey: ['article', articleId],
     queryFn: async () => {
-      const { data } = await apiClient.get(`/api/articles/${articleId}`);
-      return data;
+      try {
+        const response = await apiClient.get(`/api/articles/${articleId}`);
+        console.log('🔍 Full API response:', response.data);
+        
+        // Handle standardized API response format
+        if (response.data.success === false) {
+          console.error('❌ API returned error:', response.data.message);
+          throw new Error(response.data.message || 'Article not found');
+        }
+        
+        const article = response.data.success ? response.data.data : response.data;
+        console.log('✅ Article loaded successfully:', {
+          id: article?.id,
+          title: article?.title?.substring(0, 50) + '...',
+          hasContent: !!article?.content,
+          hasDescription: !!article?.description,
+          hasLLMAnalysis: !!article?.llm_analysis
+        });
+        
+        // Ensure the article has required fields
+        if (!article || !article.title) {
+          console.error('❌ Invalid article data:', article);
+          throw new Error('Invalid article data received');
+        }
+        
+        return article;
+      } catch (error) {
+        console.error('❌ Error fetching article:', error);
+        throw error;
+      }
     },
     enabled: !!articleId
   });
@@ -36,13 +65,49 @@ const ArticleDetail: React.FC = () => {
   const generateAnalysisMutation = useMutation({
     mutationFn: ({ aiModel, forceRegenerate }: { aiModel: 'openai' | 'claude' | 'gemini' | 'grok'; forceRegenerate?: boolean }) => 
       feedService.generateAnalysis(articleId!, aiModel, forceRegenerate || false),
-    onSuccess: (data) => {
-      // Check if this was a fallback response
-      if (data._fallback) {
+    onSuccess: (response) => {
+      console.log('Analysis generated:', response);
+      
+      // Handle standardized API response format
+      const data = response.success ? response.data : (response.data || response);
+      
+      // Store the analysis in the article data
+      if (data && data.agents) {
+        // Buscar el análisis exitoso del modelo seleccionado o cualquier otro
+        const selectedAgent = data.agents[selectedAI];
+        const successfulAgent = selectedAgent?.success ? selectedAgent : 
+                               Object.values(data.agents).find((agent: any) => agent.success);
+        
+        if (successfulAgent) {
+          // Update the article with the new analysis
+          queryClient.setQueryData(['article', articleId], (oldData: any) => ({
+            ...oldData,
+            llm_analysis: data.agents, // Guardar todos los agentes
+            llm_analysis_summary: data.summary,
+            llm_analysis_generated_at: new Date().toISOString(),
+            llm_analysis_models_used: Object.keys(data.agents).filter((k: string) => data.agents[k].success)
+          }));
+          
+          toast.success(`✨ ${t('analysis.generatedWith')} ${successfulAgent.model?.toUpperCase() || selectedAI.toUpperCase()}`);
+        }
+      } else if (data && data._fallback) {
+        // Si hay fallback, también guardarlo
+        queryClient.setQueryData(['article', articleId], (oldData: any) => ({
+          ...oldData,
+          llm_analysis: {
+            [selectedAI]: {
+              content: data._fallback.analysis,
+              model: data._fallback.fallback_model,
+              success: true
+            }
+          },
+          llm_analysis_generated_at: new Date().toISOString()
+        }));
         toast.success(`🔄 ${t('errors.fallbackSuccess')} (${data._fallback.fallback_model.toUpperCase()})`, { duration: 4000 });
       } else {
-        toast.success(`✨ ${t('analysis.generatedWith')} ${data.aiModel?.toUpperCase()}`);
+        toast.error(`❌ ${t('errors.generic')}: No se pudo generar el análisis`);
       }
+      
       // Refrescar el artículo para mostrar el nuevo análisis
       queryClient.invalidateQueries({ queryKey: ['article', articleId] });
       setShowAnalysisGenerator(false);
@@ -67,13 +132,34 @@ const ArticleDetail: React.FC = () => {
       feedService.trackInteraction(articleId, 'view');
       
       // 🤖 Auto-generar análisis si no existe (usando modelo por defecto del usuario)
-      if (!article.llm_analysis) {
-        // Auto-generate analysis with user's default model
-        generateAnalysisMutation.mutate({ 
-          aiModel: selectedAI, 
-          forceRegenerate: false 
-        });
+      let hasAnyAnalysis = false;
+      
+      if (article.llm_analysis) {
+        // Verificar si hay algún análisis exitoso
+        const models = ['openai', 'claude', 'gemini', 'grok'];
+        for (const model of models) {
+          if (article.llm_analysis[model] && article.llm_analysis[model].success) {
+            hasAnyAnalysis = true;
+            break;
+          }
+        }
       }
+      
+      // Deshabilitado auto-generador para debugging
+      // if (!hasAnyAnalysis && !generateAnalysisMutation.isPending) {
+      //   // Auto-generate analysis with user's default model
+      //   console.log('Auto-generating analysis for article:', articleId);
+      //   generateAnalysisMutation.mutate({ 
+      //     aiModel: selectedAI, 
+      //     forceRegenerate: false 
+      //   });
+      // }
+      
+      console.log('Article analysis check:', {
+        articleId,
+        hasAnalysis: hasAnyAnalysis,
+        analysisData: article.llm_analysis
+      });
     }
   }, [article, articleId]);
 
@@ -90,15 +176,28 @@ const ArticleDetail: React.FC = () => {
     { id: 'grok', name: t('analysis.models.grok.name'), icon: '⚡', color: 'bg-orange-500', description: t('analysis.models.grok.description') }
   ] as const;
 
+  console.log('🎯 ArticleDetail render state:', {
+    isLoading,
+    hasError: !!error,
+    hasArticle: !!article,
+    articleId,
+    articleTitle: article?.title?.substring(0, 30) + '...'
+  });
+
   if (isLoading) {
+    console.log('🔄 Showing loading state');
     return (
-      <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
-        <Loader className="animate-spin w-8 h-8 text-blue-500" />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="animate-spin w-8 h-8 text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Cargando artículo...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !article) {
+    console.log('❌ Showing error state:', { error: error?.message, hasArticle: !!article });
     return (
       <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center">
         <div className="text-center glass-dark rounded-xl p-8">
@@ -139,10 +238,17 @@ const ArticleDetail: React.FC = () => {
             </Link>
 
             <article className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 border border-gray-200 dark:border-gray-700 shadow-lg transition-colors">
+              {/* Debug info */}
+              {process.env.NODE_ENV === 'development' && (
+                <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-900/20 text-xs text-yellow-800 dark:text-yellow-200 rounded">
+                  <strong>Debug:</strong> Article ID: {article?.id}, Title: {article?.title ? 'Present' : 'Missing'}
+                </div>
+              )}
+              
               {/* Header */}
               <div className="mb-4 sm:mb-6">
                 <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 transition-colors">
-                  {article.title}
+                  {article.title || 'Título no disponible'}
                 </h1>
                 
                 {/* Fecha y fuente */}
@@ -160,6 +266,11 @@ const ArticleDetail: React.FC = () => {
                           return new Date(dateValue);
                         } else if ((dateValue as FirestoreTimestamp)._seconds) {
                           return new Date((dateValue as FirestoreTimestamp)._seconds * 1000);
+                        } else if (dateValue instanceof Date) {
+                          return dateValue;
+                        } else if (typeof dateValue === 'object' && 'seconds' in dateValue) {
+                          // Handle other Firestore timestamp formats
+                          return new Date((dateValue as any).seconds * 1000);
                         }
                         return null;
                       };
@@ -239,6 +350,15 @@ const ArticleDetail: React.FC = () => {
 
               {/* Contenido */}
               <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8 text-gray-700 dark:text-gray-300 transition-colors">
+                {/* Debug info for content */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900/20 text-xs text-blue-800 dark:text-blue-200 rounded">
+                    <strong>Content Debug:</strong> 
+                    Description: {article.description ? `${article.description.substring(0, 50)}...` : 'Missing'}, 
+                    Content: {article.content ? `${article.content.substring(0, 50)}...` : 'Missing'}
+                  </div>
+                )}
+                
                 {article.description && (
                   <p className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6">
                     {article.description}
@@ -247,7 +367,44 @@ const ArticleDetail: React.FC = () => {
                 {article.content && (
                   <div className="text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: article.content }} />
                 )}
+                
+                {/* Fallback if no content */}
+                {!article.description && !article.content && (
+                  <p className="text-gray-500 dark:text-gray-400 italic">
+                    Contenido no disponible
+                  </p>
+                )}
               </div>
+              
+              {/* Botón para generar análisis si no existe */}
+              {(() => {
+                let hasAnyAnalysis = false;
+                
+                if (article.llm_analysis) {
+                  // Verificar si hay algún análisis exitoso
+                  const models = ['openai', 'claude', 'gemini', 'grok'];
+                  for (const model of models) {
+                    if (article.llm_analysis[model] && article.llm_analysis[model].success) {
+                      hasAnyAnalysis = true;
+                      break;
+                    }
+                  }
+                }
+                
+                return !hasAnyAnalysis && !generateAnalysisMutation.isPending && !showAnalysisGenerator ? (
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8 transition-colors">
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => setShowAnalysisGenerator(true)}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                      >
+                        <Sparkles className="w-5 h-5" />
+                        <span className="font-medium">{t('analysis.generateAnalysis')}</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
               {/* 🤖 INDICADOR DE GENERACIÓN AUTOMÁTICA */}
               {generateAnalysisMutation.isPending && !article.llm_analysis && (
@@ -276,7 +433,7 @@ const ArticleDetail: React.FC = () => {
               )}
 
               {/* 🤖 GENERADOR DE ANÁLISIS CON IA (Manual) */}
-              {showAnalysisGenerator && !article.llm_analysis && !generateAnalysisMutation.isPending && (
+              {showAnalysisGenerator && !generateAnalysisMutation.isPending && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6 sm:pt-8 mb-6 sm:mb-8 transition-colors">
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 sm:p-6 transition-colors">
                     <div className="flex items-center mb-3 sm:mb-4">
@@ -362,16 +519,21 @@ const ArticleDetail: React.FC = () => {
               )}
 
               {/* Análisis Existente */}
-              {article.llm_analysis && (
-                <div className={`${article.llm_analysis.polygon_data ? '' : 'border-t border-gray-200 dark:border-gray-700'} pt-6 sm:pt-8 transition-colors`}>
+              {(() => {
+                console.log('Checking llm_analysis:', article.llm_analysis);
+                const hasAnalysis = article.llm_analysis && Object.keys(article.llm_analysis).length > 0;
+                console.log('Has analysis:', hasAnalysis);
+                return hasAnalysis;
+              })() && article.llm_analysis && (
+                <div className={`${article.llm_analysis?.polygon_data ? '' : 'border-t border-gray-200 dark:border-gray-700'} pt-6 sm:pt-8 transition-colors`}>
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3">
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white transition-colors">{t('analysis.title')}</h2>
                     
                     {/* Badge del modelo usado */}
-                    {article.llm_analysis.model_used && (
+                    {(article.llm_analysis?.model_used || article.llm_analysis?.[selectedAI]?.model) && (
                       <div className="flex items-center space-x-2 sm:space-x-3">
                         <span className="px-2 sm:px-3 py-1 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium transition-colors">
-                          {t('analysis.generatedWith')} {article.llm_analysis.model_used.toUpperCase()}
+                          {t('analysis.generatedWith')} {(article.llm_analysis?.model_used || article.llm_analysis?.[selectedAI]?.model || selectedAI).toUpperCase()}
                         </span>
                         
                         <button
@@ -390,8 +552,153 @@ const ArticleDetail: React.FC = () => {
                     )}
                   </div>
                   
+                  {/* Mostrar el contenido del análisis de IA */}
+                  {(() => {
+                    // Buscar análisis en diferentes formatos posibles
+                    let analysisToShow = null;
+                    let modelUsed = null;
+                    let parsedAnalysis = null;
+                    
+                    // Primero intentar con el modelo seleccionado
+                    if (article.llm_analysis && article.llm_analysis[selectedAI]) {
+                      analysisToShow = article.llm_analysis[selectedAI];
+                      modelUsed = selectedAI;
+                    }
+                    
+                    // Si no, buscar cualquier análisis exitoso
+                    if (!analysisToShow && article.llm_analysis) {
+                      const models = ['openai', 'claude', 'gemini', 'grok'];
+                      for (const model of models) {
+                        if (article.llm_analysis[model] && article.llm_analysis[model].success) {
+                          analysisToShow = article.llm_analysis[model];
+                          modelUsed = model;
+                          break;
+                        }
+                      }
+                    }
+                    
+                    // Intentar parsear el contenido JSON si está disponible
+                    if (analysisToShow?.content) {
+                      try {
+                        // Limpiar markdown code blocks
+                        const cleanContent = analysisToShow.content
+                          .replace(/```json\n?/g, '')
+                          .replace(/```\n?/g, '')
+                          .trim();
+                        
+                        parsedAnalysis = JSON.parse(cleanContent);
+                      } catch (e) {
+                        console.log('Could not parse analysis as JSON, showing raw content');
+                      }
+                    }
+                    
+                    if (analysisToShow?.content) {
+                      return (
+                        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6 transition-colors">
+                          {modelUsed && (
+                            <div className="flex items-center gap-2 mb-3">
+                              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                                {modelUsed.toUpperCase()} Analysis
+                              </span>
+                              {analysisToShow.analyzedAt && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {new Date(analysisToShow.analyzedAt).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Mostrar análisis estructurado si se pudo parsear */}
+                          {parsedAnalysis ? (
+                            <div className="space-y-4">
+                              {/* Trading Signals */}
+                              {parsedAnalysis.trading_signals && (
+                                <div className="space-y-3">
+                                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white">Trading Signals</h4>
+                                  {parsedAnalysis.trading_signals.map((signal: any, idx: number) => (
+                                    <div key={idx} className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="font-bold text-lg">${signal.ticker}</span>
+                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                          signal.trading_signal.action === 'BUY' ? 'bg-green-100 text-green-700' :
+                                          signal.trading_signal.action === 'SELL' ? 'bg-red-100 text-red-700' :
+                                          'bg-gray-100 text-gray-700'
+                                        }`}>
+                                          {signal.trading_signal.action}
+                                        </span>
+                                      </div>
+                                      
+                                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                          <span className="text-gray-500">Confidence:</span>
+                                          <p className="font-medium">{signal.trading_signal.confidence_level}/10</p>
+                                        </div>
+                                        {signal.trading_signal.entry_points && (
+                                          <div>
+                                            <span className="text-gray-500">Entry:</span>
+                                            <p className="font-medium">
+                                              {typeof signal.trading_signal.entry_points === 'object' 
+                                                ? `$${signal.trading_signal.entry_points.ideal_entry || 'N/A'}`
+                                                : signal.trading_signal.entry_points}
+                                            </p>
+                                          </div>
+                                        )}
+                                        {signal.trading_signal.stop_loss && (
+                                          <div>
+                                            <span className="text-gray-500">Stop Loss:</span>
+                                            <p className="font-medium text-red-600">${signal.trading_signal.stop_loss}</p>
+                                          </div>
+                                        )}
+                                        {signal.trading_signal.take_profit && (
+                                          <div>
+                                            <span className="text-gray-500">Target:</span>
+                                            <p className="font-medium text-green-600">${signal.trading_signal.take_profit}</p>
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {signal.trading_signal.risk_assessment && (
+                                        <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Risk Assessment:</span>
+                                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                            {signal.trading_signal.risk_assessment.explanation}
+                                          </p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Alternative Plays */}
+                              {parsedAnalysis.alternative_plays && (
+                                <div>
+                                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Alternative Strategies</h4>
+                                  <div className="space-y-2">
+                                    {parsedAnalysis.alternative_plays.map((play: any, idx: number) => (
+                                      <div key={idx} className="bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-700">
+                                        <h5 className="font-medium text-gray-900 dark:text-white">{play.strategy}</h5>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{play.explanation}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            /* Fallback: mostrar contenido raw */
+                            <div className="prose prose-sm sm:prose-base max-w-none text-gray-700 dark:text-gray-300">
+                              <div className="whitespace-pre-wrap">{analysisToShow.content}</div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                  
                   {/* Mensaje de No Ticker */}
-                  {article.llm_analysis.no_ticker_message && (
+                  {article.llm_analysis?.no_ticker_message && (
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 transition-colors">
                       <div className="flex items-start space-x-3">
                         <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
@@ -400,7 +707,7 @@ const ArticleDetail: React.FC = () => {
                             {t('analysis.noAnalysis')}
                           </h3>
                           <p className="text-amber-800 dark:text-amber-300 text-xs sm:text-sm leading-relaxed">
-                            {article.llm_analysis.no_ticker_message}
+                            {article.llm_analysis?.no_ticker_message}
                           </p>
                         </div>
                       </div>
@@ -408,7 +715,7 @@ const ArticleDetail: React.FC = () => {
                   )}
                   
                   {/* Análisis Técnico */}
-                  {article.llm_analysis.technical_analysis && !article.llm_analysis.no_ticker_message && (
+                  {article.llm_analysis?.technical_analysis && !article.llm_analysis?.no_ticker_message && (
                     <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 transition-colors">
                       <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center text-gray-900 dark:text-white transition-colors">
                         <TrendingUp className="w-4 sm:w-5 h-4 sm:h-5 mr-2 text-blue-600 dark:text-blue-400 transition-colors" />
@@ -417,9 +724,9 @@ const ArticleDetail: React.FC = () => {
                       <div className="space-y-2 sm:space-y-3 text-sm sm:text-base">
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.trend')}:</span>{' '}
-                          <span className="text-gray-600 dark:text-gray-400 transition-colors">{article.llm_analysis.technical_analysis.trend}</span>
+                          <span className="text-gray-600 dark:text-gray-400 transition-colors">{article.llm_analysis?.technical_analysis?.trend}</span>
                         </div>
-                        {article.llm_analysis.technical_analysis.key_levels && (
+                        {article.llm_analysis?.technical_analysis?.key_levels && (
                           <div>
                             <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.keyLevels')}:</span>
                             <ul className="mt-2 space-y-1">
@@ -437,29 +744,29 @@ const ArticleDetail: React.FC = () => {
 
 
                   {/* Análisis de Sentimiento */}
-                  {article.llm_analysis.sentiment_analysis && (
+                  {article.llm_analysis?.sentiment_analysis && (
                     <div className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 transition-colors">
                       <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white transition-colors">{t('analysis.sentimentAnalysis')}</h3>
                       <div className="space-y-2 sm:space-y-3 text-sm sm:text-base">
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.overallSentiment')}:</span>{' '}
                           <span className={`px-2 py-1 rounded text-xs sm:text-sm ${
-                            article.llm_analysis.sentiment_analysis.overall_sentiment.includes('bullish') 
+                            article.llm_analysis?.sentiment_analysis?.overall_sentiment?.includes('bullish') 
                               ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400'
-                              : article.llm_analysis.sentiment_analysis.overall_sentiment.includes('bearish')
+                              : article.llm_analysis?.sentiment_analysis?.overall_sentiment?.includes('bearish')
                               ? 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400'
                               : 'bg-gray-100 dark:bg-gray-500/20 text-gray-700 dark:text-gray-400'
                           } transition-colors`}>
-                            {article.llm_analysis.sentiment_analysis.overall_sentiment}
+                            {article.llm_analysis?.sentiment_analysis?.overall_sentiment}
                           </span>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.confidence')}:</span>{' '}
                           <span className="text-gray-600 dark:text-gray-400 transition-colors">
-                            {Math.round(article.llm_analysis.sentiment_analysis.confidence * 100)}%
+                            {Math.round((article.llm_analysis?.sentiment_analysis?.confidence || 0) * 100)}%
                           </span>
                         </div>
-                        {article.llm_analysis.sentiment_analysis.key_factors && (
+                        {article.llm_analysis?.sentiment_analysis?.key_factors && (
                           <div>
                             <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.keyFactors')}:</span>
                             <ul className="mt-2 list-disc list-inside space-y-1">
@@ -474,36 +781,36 @@ const ArticleDetail: React.FC = () => {
                   )}
 
                   {/* Plan de Trading - Responsive Grid */}
-                  {article.llm_analysis.trading_plan && (
+                  {article.llm_analysis?.trading_plan && (
                     <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-500/20 rounded-lg p-4 sm:p-6 transition-colors">
                       <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-gray-900 dark:text-white transition-colors">{t('analysis.tradingPlan')}</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm sm:text-base">
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.entryPoints')}:</span>
                           <div className="text-gray-600 dark:text-gray-400 transition-colors">
-                            {article.llm_analysis.trading_plan.entry_points.join(', ')}
+                            {article.llm_analysis?.trading_plan?.entry_points?.join(', ')}
                           </div>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.stopLoss')}:</span>
                           <div className="text-red-600 dark:text-red-400 font-medium transition-colors">
-                            {article.llm_analysis.trading_plan.stop_loss}
+                            {article.llm_analysis?.trading_plan?.stop_loss}
                           </div>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.takeProfit')}:</span>
                           <div className="text-green-600 dark:text-green-400 font-medium transition-colors">
-                            {article.llm_analysis.trading_plan.take_profit.join(', ')}
+                            {article.llm_analysis?.trading_plan?.take_profit?.join(', ')}
                           </div>
                         </div>
                         <div>
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.riskReward')}:</span>
                           <div className="text-gray-600 dark:text-gray-400 transition-colors">
-                            1:{article.llm_analysis.trading_plan.risk_reward}
+                            1:{article.llm_analysis?.trading_plan?.risk_reward}
                           </div>
                         </div>
                       </div>
-                      {article.llm_analysis.trading_plan.strategy && (
+                      {article.llm_analysis?.trading_plan?.strategy && (
                         <div className="mt-3 sm:mt-4">
                           <span className="font-medium text-gray-700 dark:text-gray-300 transition-colors">{t('analysis.strategy')}:</span>
                           <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm sm:text-base transition-colors">
@@ -522,13 +829,13 @@ const ArticleDetail: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{t('article.marketSentiment')}:</span>
                     <span className={`font-bold text-sm sm:text-base ${
-                      article.sentiment.includes('bullish') || article.sentiment === 'positive' 
+                      isPositiveSentiment(article.sentiment)
                         ? 'text-green-600 dark:text-green-400'
-                        : article.sentiment.includes('bearish') || article.sentiment === 'negative'
+                        : isNegativeSentiment(article.sentiment)
                         ? 'text-red-600 dark:text-red-400'
                         : 'text-gray-600 dark:text-gray-400'
                     }`}>
-                      {article.sentiment.toUpperCase().replace('_', ' ')}
+                      {formatSentiment(article.sentiment)}
                     </span>
                   </div>
                 </div>

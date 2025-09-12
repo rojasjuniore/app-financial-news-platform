@@ -26,6 +26,7 @@ export interface Article {
   // NUEVO: Campos agregados para Hugging Face NER
   companies?: string[];
   sectors?: Array<string | { sector: string; confidence?: number }>;
+  category?: string; // Añadido para categorización
   extraction_metadata?: {
     method: string;
     confidence: number;
@@ -33,7 +34,7 @@ export interface Article {
     timestamp: string;
   };
   market_type?: MarketType;
-  sentiment?: Sentiment;
+  sentiment?: Sentiment | { score?: number; label?: string };
   llm_analysis?: LLMAnalysis;
   quality_classification?: QualityClassification;
   userInteraction?: {
@@ -56,6 +57,14 @@ export interface Article {
       searchedIn: string[];
     };
   };
+}
+
+export interface AIAnalysisData {
+  content?: string;
+  model?: string;
+  success?: boolean;
+  analyzedAt?: string;
+  tokens?: any;
 }
 
 export interface LLMAnalysis {
@@ -115,12 +124,20 @@ export interface LLMAnalysis {
   version?: string;
   ai_personality?: string;
   no_ticker_message?: string;
+  
+  // Análisis por modelo de IA
+  openai?: AIAnalysisData;
+  claude?: AIAnalysisData;
+  gemini?: AIAnalysisData;
+  grok?: AIAnalysisData;
+  [key: string]: any; // Permitir acceso dinámico
 }
 
 export interface FeedResponse {
-  success: boolean;
+  success?: boolean;
   articles: Article[];
-  totalCount: number;
+  total?: number; // Añadido para compatibilidad
+  totalCount?: number;
   hasMore: boolean;
   feedMetadata?: {
     generatedAt: string;

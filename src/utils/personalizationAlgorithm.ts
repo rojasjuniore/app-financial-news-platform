@@ -1,4 +1,5 @@
 import { Article, UserInterests, UserPreferences, UserBehavior } from '../types';
+import { getSentimentString } from './sentimentHelpers';
 
 /**
  * Advanced Personalization Algorithm
@@ -206,7 +207,7 @@ export class PersonalizationAlgorithm {
       return 50; // Neutral score
     }
 
-    const articleSentiment = article.sentiment.toLowerCase();
+    const articleSentiment = getSentimentString(article.sentiment).toLowerCase();
     const userBias = preferences.sentimentBias;
 
     // Map sentiment to numeric values

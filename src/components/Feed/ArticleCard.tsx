@@ -6,6 +6,7 @@ import { Article, FirestoreTimestamp } from '../../types';
 import { useIntersectionObserver, useLazyImage } from '../../hooks/usePerformance';
 import { useContentAnnounce } from '../A11y/LiveRegion';
 import QualityBadge from '../QualityBadge/QualityBadge';
+import { getSentimentColor, formatSentiment, isPositiveSentiment, isNegativeSentiment } from '../../utils/sentimentHelpers';
 
 interface ArticleCardProps {
   article: Article;
@@ -35,12 +36,7 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
 
   // Memoize expensive computations
   const sentimentColor = useMemo(() => {
-    if (!article.sentiment) return 'text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800';
-    if (article.sentiment.includes('bullish') || article.sentiment === 'positive') 
-      return 'text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
-    if (article.sentiment.includes('bearish') || article.sentiment === 'negative') 
-      return 'text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
-    return 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800';
+    return getSentimentColor(article.sentiment);
   }, [article.sentiment]);
 
   const { addedDate, publishedDate } = useMemo(() => {
@@ -158,7 +154,7 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
             {/* Sentiment Badge */}
             {article.sentiment && (
               <span className={`px-2.5 py-1 rounded-full text-xs font-medium border ${sentimentColor}`}>
-                {article.sentiment.replace('_', ' ')}
+                {formatSentiment(article.sentiment)}
               </span>
             )}
           </div>

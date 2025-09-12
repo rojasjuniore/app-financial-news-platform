@@ -22,6 +22,10 @@ interface LLMOpinion {
   disagreesWithPoints?: string[];
   newInsights?: string[];
   consensus?: any;
+  sentiment?: string;
+  confidence?: number;
+  keyPoints?: string[];
+  isAiGenerated?: boolean;
 }
 
 interface MarketData {
@@ -155,26 +159,40 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
     try {
       const response = await panelDiscussionService.generatePanelDiscussion(articleId, regenerate);
       
+      // La respuesta puede venir en diferentes formatos
+      const discussionResponse = response as any;
+      const discussionList = discussionResponse.discussion?.opinions || discussionResponse.discussion || [];
+      const consensusData = discussionResponse.discussion?.consensus || discussionResponse.consensus;
+      
       // Extract market data from response if available
       if (response.marketData) {
         setMarketData(response.marketData);
       }
       
-      const discussionData = response.discussion.map(d => ({
-        ...d,
-        timestamp: new Date(d.timestamp)
+      const discussionData = discussionList.map((d: any) => ({
+        model: d.panelistName || d.model,
+        icon: d.panelistAvatar || d.icon || '🤖',
+        color: d.color || 'from-blue-500 to-purple-600',
+        role: d.panelistRole || d.role || 'AI Expert',
+        message: d.content || d.message || '',
+        timestamp: new Date(d.timestamp),
+        type: d.type || 'analysis',
+        sentiment: d.sentiment,
+        confidence: d.confidence,
+        keyPoints: d.keyPoints,
+        isAiGenerated: d.isAiGenerated
       }));
 
       if (response.cached) {
         setDiscussion(discussionData);
-        if (response.consensus) {
-          setFinalSynthesis(response.consensus);
+        if (consensusData) {
+          setFinalSynthesis(consensusData);
           setConsensusReached(true);
         }
         setCurrentSpeaker(null);
       } else {
-        for (let i = 0; i < response.discussion.length; i++) {
-          const opinion = response.discussion[i];
+        for (let i = 0; i < discussionList.length; i++) {
+          const opinion = discussionList[i];
           const expertInfo = llmExperts.find(e => 
             e.name === opinion.model || e.id === opinion.model.toLowerCase()
           );
@@ -191,8 +209,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
           } as LLMOpinion]);
         }
         
-        if (response.consensus) {
-          setFinalSynthesis(response.consensus);
+        if (consensusData) {
+          setFinalSynthesis(consensusData);
           setConsensusReached(true);
         }
       }
@@ -201,7 +219,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       panelCacheService.savePanel(
         articleId,
         discussionData,
-        response.consensus,
+        consensusData,
         response.marketData
       );
       
@@ -612,20 +630,27 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                     </div>
 
                     <div className="flex items-center gap-3">
-                      {/* Mini badges de acuerdos/desacuerdos */}
-                      {opinion.agreesWithPoints && opinion.agreesWithPoints.length > 0 && (
-                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs">
-                          +{opinion.agreesWithPoints.length}
+                      {/* Mini badges de sentimiento y confianza */}
+                      {opinion.sentiment && (
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          opinion.sentiment === 'positive' 
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : opinion.sentiment === 'negative'
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                            : 'bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400'
+                        }`}>
+                          {opinion.sentiment === 'positive' ? '↑' : opinion.sentiment === 'negative' ? '↓' : '—'}
+                          {opinion.confidence ? ` ${Math.round(opinion.confidence * 100)}%` : ''}
                         </span>
                       )}
-                      {opinion.disagreesWithPoints && opinion.disagreesWithPoints.length > 0 && (
-                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded text-xs">
-                          -{opinion.disagreesWithPoints.length}
-                        </span>
-                      )}
-                      {opinion.newInsights && opinion.newInsights.length > 0 && (
+                      {opinion.keyPoints && opinion.keyPoints.length > 0 && (
                         <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs">
-                          💡{opinion.newInsights.length}
+                          💡 {opinion.keyPoints.length}
+                        </span>
+                      )}
+                      {opinion.isAiGenerated && (
+                        <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-xs">
+                          AI
                         </span>
                       )}
                       
@@ -640,25 +665,23 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                     isExpanded ? 'max-h-[600px]' : 'max-h-0'
                   } ${isExpanded ? 'overflow-y-auto' : 'overflow-hidden'}`}>
                     <div className="px-4 pb-4">
-                      {/* Puntos de acuerdo/desacuerdo */}
-                      {(opinion.agreesWithPoints || opinion.disagreesWithPoints || opinion.newInsights) && (
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {opinion.agreesWithPoints?.map((point, i) => (
-                            <span
-                              key={`agree-${i}`}
-                              className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs"
-                            >
-                              ✓ {point}
+                      {/* Puntos clave del análisis */}
+                      {opinion.keyPoints && opinion.keyPoints.length > 0 && (
+                        <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Info className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              {t('analysis.panel.keyPoints')}
                             </span>
-                          ))}
-                          {opinion.disagreesWithPoints?.map((point, i) => (
-                            <span
-                              key={`disagree-${i}`}
-                              className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs"
-                            >
-                              ✗ {point}
-                            </span>
-                          ))}
+                          </div>
+                          <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                            {opinion.keyPoints.map((point, i) => (
+                              <li key={i} className="flex items-start gap-1">
+                                <span className="text-blue-600 dark:text-blue-400 mt-0.5">•</span>
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       )}
 
@@ -677,20 +700,11 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                         </ReactMarkdown>
                       </div>
 
-                      {/* Nuevos insights */}
-                      {opinion.newInsights && opinion.newInsights.length > 0 && (
-                        <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Zap className="w-3 h-3 text-blue-600" />
-                            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">
-                              {t('analysis.panel.uniqueInsights')}
-                            </span>
-                          </div>
-                          <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-0.5">
-                            {opinion.newInsights.map((insight, i) => (
-                              <li key={i}>• {insight}</li>
-                            ))}
-                          </ul>
+                      {/* Información adicional del análisis */}
+                      {opinion.isAiGenerated && (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                          <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                          <span>{t('analysis.panel.generatedByAI')}</span>
                         </div>
                       )}
                     </div>
