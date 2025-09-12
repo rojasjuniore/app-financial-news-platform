@@ -100,7 +100,26 @@ export const chatService = {
   // Obtener historial del usuario
   getUserHistory: async (userId: string = 'user123'): Promise<ChatSession[]> => {
     try {
-      // For now, return active sessions
+      // Get all sessions from the backend
+      const { data } = await apiClient.get(`/api/chat/user/${userId}/sessions`);
+      
+      if (data.success && data.data?.sessions) {
+        // Transform backend sessions to frontend format
+        return data.data.sessions.map((session: any) => ({
+          sessionId: session.sessionId || session.id,
+          articleId: session.articleId,
+          articleTitle: session.articleTitle,
+          articleTickers: session.articleTickers,
+          messages: [],
+          userId: session.userId,
+          createdAt: session.createdAt,
+          lastActiveAt: session.lastActiveAt,
+          messagesCount: session.messagesCount,
+          isActive: session.isActive
+        }));
+      }
+      
+      // Fallback to local sessions if backend fails
       const sessions: ChatSession[] = [];
       for (const [articleId, sessionId] of Object.entries(activeSessions)) {
         sessions.push({
@@ -113,7 +132,17 @@ export const chatService = {
       return sessions;
     } catch (error) {
       console.error('Error getting user history:', error);
-      return [];
+      // Return local sessions as fallback
+      const sessions: ChatSession[] = [];
+      for (const [articleId, sessionId] of Object.entries(activeSessions)) {
+        sessions.push({
+          sessionId,
+          articleId,
+          messages: [],
+          userId
+        });
+      }
+      return sessions;
     }
   },
 

@@ -13,12 +13,25 @@ export const feedService = {
     sortBy?: 'time' | 'quality' | 'personalized';
     onlyMyInterests?: boolean;
     minRelevanceScore?: number;
+    tickers?: string;
+    sectors?: string;
+    topics?: string;
+    keywords?: string;
   } = {}): Promise<FeedResponse> => {
     try {
       // Usar la ruta correcta que existe en la API
+      console.log('📡 Fetching feed with params:', params);
       const response = await apiClient.get('/api/news/feed', { params });
+      console.log('📦 Feed response:', response.data);
+      
       // Handle standardized API response format
       const data = response.data.success ? response.data.data : response.data;
+      
+      console.log('✅ Processed feed data:', {
+        articlesCount: data?.articles?.length || 0,
+        total: data?.total || 0,
+        hasMore: data?.hasMore || false
+      });
       
       // Ensure we always return a valid FeedResponse
       return data || {

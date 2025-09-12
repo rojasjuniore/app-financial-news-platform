@@ -233,7 +233,10 @@ export interface ChatSession {
   };
   createdAt?: string;
   lastActivity?: string;
+  lastActiveAt?: string;
   totalMessages?: number;
+  messagesCount?: number;
+  isActive?: boolean;
 }
 
 export interface ChatMessage {

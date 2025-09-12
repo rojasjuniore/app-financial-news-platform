@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { feedService } from '../services/news/feedService';
 import { useAuth } from './useAuth';
 import { FeedResponse } from '../types';
+import { useProfile } from './useProfile';
 
 interface UseFeedOptions {
   limit?: number;
@@ -17,14 +18,32 @@ interface UseFeedOptions {
 export const useFeed = (options: UseFeedOptions = {}) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { profile } = useProfile();
 
+  // Get user interests from profile
+  const userInterests = profile?.interests || { tickers: [], sectors: [], topics: [], keywords: [] };
+  
   // Aplicar opciones por defecto para personalización
-  const feedOptions = {
+  const feedOptions: any = {
     onlyMyInterests: true, // POR DEFECTO: Solo mostrar contenido de interés
     minRelevanceScore: 0, // Se usará el del perfil del usuario en el backend
     sortBy: 'personalized' as const, // POR DEFECTO: Ordenar por personalización
     ...options
   };
+  
+  // Only add interests parameters if they exist and have values
+  if (userInterests.tickers && userInterests.tickers.length > 0) {
+    feedOptions.tickers = userInterests.tickers.join(',');
+  }
+  if (userInterests.sectors && userInterests.sectors.length > 0) {
+    feedOptions.sectors = userInterests.sectors.join(',');
+  }
+  if (userInterests.topics && userInterests.topics.length > 0) {
+    feedOptions.topics = userInterests.topics.join(',');
+  }
+  if (userInterests.keywords && userInterests.keywords.length > 0) {
+    feedOptions.keywords = userInterests.keywords.join(',');
+  }
 
   // Query para obtener feed
   const feedQuery = useQuery<FeedResponse>({

@@ -86,32 +86,55 @@ const Search: React.FC = () => {
   };
 
   const formatTimeAgo = (date: string | FirestoreTimestamp | undefined) => {
-    if (!date) return t('common.dateNotAvailable');
+    if (!date) return 'Recently';
     
     try {
       let articleDate: Date;
       
+      // Si es una cadena, intentar parsearla
       if (typeof date === 'string') {
-        articleDate = new Date(date);
+        // Formato especial: 20250905T220907
+        if (date.match(/^\d{8}T\d{6}$/)) {
+          const year = date.substring(0, 4);
+          const month = date.substring(4, 6);
+          const day = date.substring(6, 8);
+          const hour = date.substring(9, 11);
+          const minute = date.substring(11, 13);
+          const second = date.substring(13, 15);
+          articleDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+        } else {
+          articleDate = new Date(date);
+        }
       } else if ((date as FirestoreTimestamp)._seconds) {
         articleDate = new Date((date as FirestoreTimestamp)._seconds * 1000);
       } else {
         articleDate = new Date(date as any);
       }
       
-      if (isNaN(articleDate.getTime())) return t('common.dateNotAvailable');
+      if (isNaN(articleDate.getTime())) return 'Recently';
       
-      return articleDate.toLocaleString('es-ES', { 
-        year: 'numeric',
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-        timeZone: 'America/Mexico_City'
-      });
+      // Calcular diferencia de tiempo
+      const now = new Date();
+      const diffMs = now.getTime() - articleDate.getTime();
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffHours / 24);
+      
+      if (diffHours < 1) {
+        return 'Just now';
+      } else if (diffHours < 24) {
+        return `${diffHours}h ago`;
+      } else if (diffDays < 7) {
+        return `${diffDays}d ago`;
+      } else {
+        return articleDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          day: 'numeric',
+          year: diffDays > 365 ? 'numeric' : undefined
+        });
+      }
     } catch (error) {
-      return t('common.dateNotAvailable');
+      console.error('Error formatting date:', error);
+      return 'Recently';
     }
   };
 
