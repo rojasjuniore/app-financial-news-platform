@@ -14,10 +14,27 @@ export const feedService = {
     onlyMyInterests?: boolean;
     minRelevanceScore?: number;
   } = {}): Promise<FeedResponse> => {
-    // Usar la ruta correcta que existe en la API
-    const response = await apiClient.get('/api/news/feed', { params });
-    // Handle standardized API response format
-    return response.data.success ? response.data.data : response.data;
+    try {
+      // Usar la ruta correcta que existe en la API
+      const response = await apiClient.get('/api/news/feed', { params });
+      // Handle standardized API response format
+      const data = response.data.success ? response.data.data : response.data;
+      
+      // Ensure we always return a valid FeedResponse
+      return data || {
+        articles: [],
+        total: 0,
+        hasMore: false
+      };
+    } catch (error) {
+      console.error('Error fetching feed:', error);
+      // Return empty feed on error
+      return {
+        articles: [],
+        total: 0,
+        hasMore: false
+      };
+    }
   },
 
   // Obtener perfil del usuario - USANDO TRACKING
@@ -99,8 +116,19 @@ export const feedService = {
 
   // Obtener artículos guardados - USANDO API
   getSavedArticles: async (): Promise<FeedResponse> => {
-    const { data } = await apiClient.get('/api/tracking/saved');
-    return data;
+    try {
+      const { data } = await apiClient.get('/api/tracking/saved');
+      console.log('📚 Saved articles response:', data);
+      return data;
+    } catch (error: any) {
+      console.error('❌ Error fetching saved articles:', error);
+      // Return empty response on error
+      return {
+        articles: [],
+        total: 0,
+        hasMore: false
+      };
+    }
   },
 
   // Guardar artículo - USANDO API
