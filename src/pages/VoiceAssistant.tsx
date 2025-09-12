@@ -10,7 +10,11 @@ import {
   Activity,
   Sparkles,
   Circle,
-  Square
+  Square,
+  Search,
+  Database,
+  Globe,
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -18,7 +22,7 @@ import '../styles/voice-assistant.css';
 
 interface Message {
   id: string;
-  type: 'user' | 'assistant' | 'system';
+  type: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
   timestamp: Date;
   metadata?: {
@@ -26,7 +30,14 @@ interface Message {
     sentiment?: string;
     confidence?: number;
     tools?: string[];
+    sources?: any[];
   };
+}
+
+interface ToolUsage {
+  name: string;
+  status: 'pending' | 'running' | 'completed' | 'error';
+  result?: any;
 }
 
 type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'error';
@@ -44,7 +55,8 @@ const VoiceAssistant: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [audioLevel, setAudioLevel] = useState(0);
-  const [toolsUsed, setToolsUsed] = useState<string[]>([]);
+  const [activeTools, setActiveTools] = useState<ToolUsage[]>([]);
+  const [lastResponse, setLastResponse] = useState<string>('');
   
   // Refs
   const wsRef = useRef<WebSocket | null>(null);
@@ -96,7 +108,7 @@ const VoiceAssistant: React.FC = () => {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         type: 'system',
-        content: 'Asistente financiero conectado. Puedes preguntarme sobre el mercado, noticias y análisis.',
+        content: '🤖 Asistente financiero con IA conectado.\n\nPuedo ayudarte con:\n• 📊 Análisis de mercado y noticias financieras\n• 📈 Información sobre acciones y criptomonedas\n• 💡 Análisis técnico y fundamental\n• 🎯 Señales de trading y recomendaciones\n\nMantén presionado el botón para hablar.',
         timestamp: new Date()
       }]);
     };
@@ -153,8 +165,30 @@ const VoiceAssistant: React.FC = () => {
         break;
         
       case 'tool_use':
-        // Show which MCP tools are being used
-        setToolsUsed(prev => [...prev, data.tool]);
+        // Show which tools are being used with enhanced UI
+        const toolUsage: ToolUsage = {
+          name: data.tool,
+          status: 'running'
+        };
+        setActiveTools(prev => [...prev, toolUsage]);
+        
+        // Add tool usage message
+        setMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          type: 'tool',
+          content: `🔧 Usando herramienta: ${getToolDisplayName(data.tool)}`,
+          timestamp: new Date(),
+          metadata: { tools: [data.tool] }
+        }]);
+        break;
+        
+      case 'tool_result':
+        // Update tool status
+        setActiveTools(prev => prev.map(tool => 
+          tool.name === data.tool 
+            ? { ...tool, status: 'completed', result: data.result }
+            : tool
+        ));
         break;
         
       case 'response':
@@ -166,7 +200,7 @@ const VoiceAssistant: React.FC = () => {
           metadata: data.metadata
         }]);
         setAssistantState('speaking');
-        setToolsUsed([]);
+        setActiveTools([]);
         
         // Stop speaking animation after a delay
         setTimeout(() => {
@@ -369,6 +403,28 @@ const VoiceAssistant: React.FC = () => {
     return bytes.buffer;
   };
 
+  // Helper function to get tool display name
+  const getToolDisplayName = (toolName: string) => {
+    const toolNames: Record<string, string> = {
+      'search_web': '🌐 Búsqueda Web (Brave)',
+      'search_database': '📊 Base de Datos',
+      'get_market_data': '📈 Datos de Mercado',
+      'analyze_sentiment': '💡 Análisis de Sentimiento'
+    };
+    return toolNames[toolName] || toolName;
+  };
+
+  // Get tool icon
+  const getToolIcon = (toolName: string) => {
+    switch(toolName) {
+      case 'search_web': return Globe;
+      case 'search_database': return Database;
+      case 'get_market_data': return TrendingUp;
+      case 'analyze_sentiment': return Brain;
+      default: return Search;
+    }
+  };
+
   // Initialize connection
   useEffect(() => {
     connectWebSocket();
@@ -554,12 +610,27 @@ const VoiceAssistant: React.FC = () => {
                   {assistantState === 'thinking' && (
                     <div>
                       <p className="text-purple-400">Analizando...</p>
-                      {toolsUsed.length > 0 && (
-                        <div className="flex items-center gap-2 mt-2 justify-center">
-                          <Sparkles className="w-4 h-4 text-purple-400" />
-                          <span className="text-xs text-gray-500">
-                            Consultando: {toolsUsed.join(', ')}
-                          </span>
+                      {activeTools.length > 0 && (
+                        <div className="mt-3 space-y-2">
+                          {activeTools.map((tool, index) => {
+                            const Icon = getToolIcon(tool.name);
+                            return (
+                              <div key={index} className="flex items-center gap-2 justify-center">
+                                <Icon className={`w-4 h-4 ${
+                                  tool.status === 'running' ? 'text-purple-400 animate-pulse' :
+                                  tool.status === 'completed' ? 'text-green-400' :
+                                  tool.status === 'error' ? 'text-red-400' :
+                                  'text-gray-400'
+                                }`} />
+                                <span className="text-xs text-gray-500">
+                                  {getToolDisplayName(tool.name)}
+                                </span>
+                                {tool.status === 'completed' && (
+                                  <span className="text-green-400">✓</span>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
@@ -620,13 +691,12 @@ const VoiceAssistant: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Keyboard shortcut hint */}
+        {/* Status bar */}
         {connectionState === 'connected' && assistantState === 'idle' && (
-          <div className="absolute bottom-6 right-6 text-xs text-gray-600">
-            {t('voiceAssistant.pressSpaceToTalk').split('Space').map((part, i) => 
-              i === 0 ? <span key={i}>{part}</span> : 
-              <span key={i}><kbd className="px-2 py-1 bg-gray-800 rounded">Space</kbd>{part}</span>
-            )}
+          <div className="absolute bottom-6 left-6 right-6 text-center">
+            <div className="text-xs text-gray-600">
+              Mantén presionado el botón para hablar
+            </div>
           </div>
         )}
       </div>

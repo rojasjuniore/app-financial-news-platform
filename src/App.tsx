@@ -18,7 +18,10 @@ import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 import Metrics from './pages/Metrics';
 import Notifications from './pages/Notifications';
-import VoiceAssistantContinuous from './pages/VoiceAssistantContinuous';
+import ConversationalVoice from './pages/ConversationalVoice';
+import FuturisticVoice from './pages/FuturisticVoice';
+import TechnicalAnalysis from './pages/TechnicalAnalysis';
+import ForexMetals from './pages/ForexMetals';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
@@ -47,121 +50,137 @@ function App() {
               <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route 
-                  path="/onboarding" 
+                <Route
+                  path="/onboarding"
                   element={
                     <PrivateRoute>
                       <InterestsSetup />
                     </PrivateRoute>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/dashboard" 
+                <Route
+                  path="/dashboard"
                   element={
                     <PrivateRouteWithLayout>
                       <Dashboard />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/feed" 
+                <Route
+                  path="/feed"
                   element={
                     <PrivateRouteWithLayout>
                       <Feed />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/preferences" 
+                <Route
+                  path="/preferences"
                   element={
                     <PrivateRouteWithLayout>
                       <Preferences />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/article/:articleId" 
+                <Route
+                  path="/article/:articleId"
                   element={
                     <PrivateRouteWithLayout>
                       <ArticleDetailClean />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/saved" 
+                <Route
+                  path="/saved"
                   element={
                     <PrivateRouteWithLayout>
                       <Saved />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/settings" 
+                <Route
+                  path="/settings"
                   element={
                     <PrivateRouteWithLayout>
                       <Settings />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/profile" 
+                <Route
+                  path="/profile"
                   element={
                     <PrivateRouteWithLayout>
                       <Profile />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/metrics" 
+                <Route
+                  path="/metrics"
                   element={
                     <PrivateRouteWithLayout>
                       <Metrics />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
-                  path="/search" 
+                <Route
+                  path="/search"
                   element={
                     <PrivateRouteWithLayout>
                       <Search />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
+                {/* <Route 
                   path="/chat" 
                   element={
                     <PrivateRouteWithLayout>
                       <Chat />
                     </PrivateRouteWithLayout>
                   } 
-                />
-                <Route 
-                  path="/chat/:articleId" 
+                /> */}
+                <Route
+                  path="/chat/:articleId"
                   element={
                     <PrivateRouteWithLayout>
                       <Chat />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
                 />
-                <Route 
+                {/* <Route 
                   path="/notifications" 
                   element={
                     <PrivateRouteWithLayout>
                       <Notifications />
                     </PrivateRouteWithLayout>
                   } 
-                />
-                <Route 
-                  path="/voice" 
+                /> */}
+                <Route
+                  path="/technical-analysis"
                   element={
                     <PrivateRouteWithLayout>
-                      <VoiceAssistantContinuous />
+                      <TechnicalAnalysis />
                     </PrivateRouteWithLayout>
-                  } 
+                  }
+                />
+                <Route
+                  path="/voice"
+                  element={
+                    <PrivateRouteWithLayout>
+                      <FuturisticVoice />
+                    </PrivateRouteWithLayout>
+                  }
+                />
+                <Route
+                  path="/forex-metals"
+                  element={
+                    <PrivateRouteWithLayout>
+                      <ForexMetals />
+                    </PrivateRouteWithLayout>
+                  }
                 />
               </Routes>
             </div>
-            <Toaster 
+            <Toaster
               position="top-right"
               toastOptions={{
                 duration: 4000,

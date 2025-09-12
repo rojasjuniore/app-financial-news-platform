@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { 
+import {
   Home,
   Newspaper,
   Bookmark,
@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Sliders,
   BarChart3,
-  Bot
+  Bot,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -51,29 +52,30 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const navItems = [
     { path: '/dashboard', icon: Home, label: t('nav.dashboard') },
     { path: '/feed', icon: Newspaper, label: t('nav.feed') },
+    { path: '/technical-analysis', icon: BarChart3, label: 'Análisis Técnico', badge: 'PRO' },
+    { path: '/forex-metals', icon: TrendingUp, label: 'Forex & Metales', badge: 'PRO' },
     { path: '/preferences', icon: Sliders, label: 'Preferences' },
     { path: '/saved', icon: Bookmark, label: t('nav.saved') },
-    { path: '/search', icon: Search, label: t('nav.search') },
-    { path: '/chat', icon: MessageCircle, label: t('nav.chat') || 'Chat' },
+    // { path: '/search', icon: Search, label: t('nav.search') },
+    // { path: '/chat', icon: MessageCircle, label: t('nav.chat') || 'Chat' },
     { path: '/voice', icon: Bot, label: 'AI Voice Assistant', badge: 'NEW' },
   ];
 
   const bottomItems = [
-    { path: '/metrics', icon: BarChart3, label: t('common.locale') === 'es-ES' ? 'Métricas' : 'Metrics' },
+    { path: '/metrics', icon: Activity, label: t('common.locale') === 'es-ES' ? 'Métricas' : 'Metrics' },
     { path: '/profile', icon: User, label: t('nav.profile') },
     { path: '/settings', icon: Settings, label: t('nav.settings') },
   ];
 
   return (
-    <aside 
-      className={`${
-        isCollapsed ? 'w-20' : 'w-64'
-      } bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 h-full flex flex-col transition-all duration-300 relative`}
+    <aside
+      className={`${isCollapsed ? 'w-20' : 'w-64'
+        } bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 h-full flex flex-col transition-all duration-300 relative`}
     >
       {/* Logo Section */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-        <Link 
-          to="/dashboard" 
+        <Link
+          to="/dashboard"
           className="flex items-center space-x-3 group"
         >
           <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-all duration-200 flex-shrink-0">
@@ -107,13 +109,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
             key={item.path}
             to={item.path}
             onClick={onClose}
-            className={`flex items-center ${
-              isCollapsed ? 'justify-center' : 'justify-start'
-            } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
-              isActive(item.path)
+            className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'
+              } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${isActive(item.path)
                 ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
-            }`}
+              }`}
             title={isCollapsed ? item.label : undefined}
           >
             <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -136,19 +136,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         ))}
 
         {/* Notifications Link */}
-        <Link
+        {/* <Link
           to="/notifications"
           onClick={() => {
             setShowNotificationDot(false);
             if (onClose) onClose();
           }}
-          className={`flex items-center ${
-            isCollapsed ? 'justify-center' : 'justify-start'
-          } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
-            isActive('/notifications')
+          className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'
+            } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${isActive('/notifications')
               ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
               : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
-          }`}
+            }`}
           title={isCollapsed ? t('nav.notifications') || 'Notifications' : undefined}
         >
           <div className="relative">
@@ -165,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               {t('nav.notifications') || 'Notifications'}
             </div>
           )}
-        </Link>
+        </Link> */}
       </nav>
 
       {/* Bottom Section */}
@@ -203,13 +201,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
               key={item.path}
               to={item.path}
               onClick={onClose}
-              className={`flex items-center ${
-                isCollapsed ? 'justify-center' : 'justify-start'
-              } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
-                isActive(item.path)
+              className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'
+                } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${isActive(item.path)
                   ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800'
-              }`}
+                }`}
               title={isCollapsed ? item.label : undefined}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -227,9 +223,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center ${
-              isCollapsed ? 'justify-center' : 'justify-start'
-            } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`}
+            className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'justify-start'
+              } space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20`}
             title={isCollapsed ? t('nav.logout') : undefined}
           >
             <LogOut className="w-5 h-5 flex-shrink-0" />

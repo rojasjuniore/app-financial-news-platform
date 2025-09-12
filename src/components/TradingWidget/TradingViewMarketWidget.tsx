@@ -13,7 +13,7 @@ import {
   Eye,
   Settings
 } from 'lucide-react';
-import { TradingViewMarketOverview, TradingViewSymbolOverview } from './TradingViewWidget';
+import TradingViewWidget from './TradingViewWidget';
 
 interface TradingViewMarketWidgetProps {
   viewMode?: 'overview' | 'symbols' | 'compact';
@@ -103,13 +103,15 @@ const TradingViewMarketWidget: React.FC<TradingViewMarketWidgetProps> = ({
               className="space-y-4"
             >
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-                <TradingViewMarketOverview
-                  colorTheme="light"
-                  dateRange="1D"
-                  showChart={true}
+                <TradingViewWidget
+                  symbol="NASDAQ:AAPL"
+                  theme="Light"
+                  style="candles"
                   locale="es"
                   width="100%"
                   height={isExpanded ? 500 : 350}
+                  hideTopToolbar={false}
+                  allowSymbolChange={true}
                 />
               </div>
             </motion.div>
@@ -124,25 +126,16 @@ const TradingViewMarketWidget: React.FC<TradingViewMarketWidgetProps> = ({
               className="space-y-4"
             >
               <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
-                <TradingViewSymbolOverview
-                  symbols={[
-                    { symbol: 'NASDAQ:AAPL', displayName: 'Apple' },
-                    { symbol: 'NASDAQ:GOOGL', displayName: 'Alphabet' },
-                    { symbol: 'NASDAQ:TSLA', displayName: 'Tesla' },
-                    { symbol: 'NASDAQ:AMZN', displayName: 'Amazon' },
-                    { symbol: 'NASDAQ:MSFT', displayName: 'Microsoft' },
-                    { symbol: 'NASDAQ:META', displayName: 'Meta' },
-                    { symbol: 'NASDAQ:NVDA', displayName: 'NVIDIA' },
-                    { symbol: 'NYSE:JPM', displayName: 'JPMorgan' }
-                  ]}
-                  chartOnly={false}
+                <TradingViewWidget
+                  symbol="NASDAQ:GOOGL"
+                  theme="Light"
+                  style="area"
+                  locale="es"
                   width="100%"
                   height={isExpanded ? 500 : 350}
-                  locale="es"
-                  colorTheme="light"
-                  showVolume={true}
-                  showMA={true}
-                  chartType="area"
+                  hideTopToolbar={false}
+                  allowSymbolChange={true}
+                  studies={['EMA', 'Volume']}
                 />
               </div>
             </motion.div>
@@ -160,13 +153,16 @@ const TradingViewMarketWidget: React.FC<TradingViewMarketWidgetProps> = ({
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
                   Índices Principales
                 </h3>
-                <TradingViewMarketOverview
-                  colorTheme="light"
-                  dateRange="1D"
-                  showChart={true}
+                <TradingViewWidget
+                  symbol="TVC:SPX"
+                  theme="Light"
+                  style="line"
                   locale="es"
                   width="100%"
                   height={250}
+                  hideTopToolbar={true}
+                  hideSideToolbar={true}
+                  allowSymbolChange={false}
                 />
               </div>
               
@@ -174,19 +170,16 @@ const TradingViewMarketWidget: React.FC<TradingViewMarketWidgetProps> = ({
                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
                   Top Acciones
                 </h3>
-                <TradingViewSymbolOverview
-                  symbols={[
-                    { symbol: 'NASDAQ:AAPL', displayName: 'Apple' },
-                    { symbol: 'NASDAQ:GOOGL', displayName: 'Google' },
-                    { symbol: 'NASDAQ:TSLA', displayName: 'Tesla' },
-                    { symbol: 'NASDAQ:AMZN', displayName: 'Amazon' }
-                  ]}
-                  chartOnly={true}
+                <TradingViewWidget
+                  symbol="NASDAQ:AAPL"
+                  theme="Light"
+                  style="line"
+                  locale="es"
                   width="100%"
                   height={250}
-                  locale="es"
-                  colorTheme="light"
-                  chartType="line"
+                  hideTopToolbar={true}
+                  hideSideToolbar={true}
+                  allowSymbolChange={true}
                 />
               </div>
             </motion.div>
