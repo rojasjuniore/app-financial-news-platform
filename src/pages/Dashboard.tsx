@@ -54,7 +54,7 @@ const Dashboard: React.FC = () => {
   // Fetch real statistics from API
   const fetchStatistics = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/dashboard/statistics`);
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/dashboard/statistics`);
       if (response.ok) {
         const data = await response.json();
         console.log('Dashboard statistics received:', data);

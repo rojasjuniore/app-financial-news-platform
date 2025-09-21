@@ -127,7 +127,21 @@ const FuturisticVoice: React.FC = () => {
     }
     
     const userId = user?.uid || 'anonymous';
-    const wsUrl = `ws://localhost:3005/api/voice/chat?userId=${userId}&language=${selectedLanguage}`;
+    
+    // Detectar si estamos en producción y construir WebSocket URL apropiada
+    const getWebSocketUrl = () => {
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      
+      if (isProduction) {
+        // En producción usar wss:// y el hostname de la API
+        return `wss://api-financial-news-platform-production.up.railway.app/api/voice/chat?userId=${userId}&language=${selectedLanguage}`;
+      } else {
+        // En desarrollo usar ws:// y localhost
+        return `ws://localhost:3005/api/voice/chat?userId=${userId}&language=${selectedLanguage}`;
+      }
+    };
+    
+    const wsUrl = getWebSocketUrl();
     
     console.log('🔌 Attempting WebSocket connection to:', wsUrl);
     

@@ -83,9 +83,11 @@ const VoiceAssistant: React.FC = () => {
     setConnectionState('connecting');
     
     const userId = user?.uid || 'anonymous';
-    const wsUrl = process.env.NODE_ENV === 'production' 
-      ? `wss://api-financial-news-platform-production.up.railway.app/api/voice/realtime?userId=${userId}`
-      : `ws://localhost:3001/api/voice/realtime?userId=${userId}`;
+    // Get base API URL and convert to WebSocket URL
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+    const wsProtocol = apiUrl.startsWith('https') ? 'wss' : 'ws';
+    const wsHost = apiUrl.replace(/^https?:\/\//, '');
+    const wsUrl = `${wsProtocol}://${wsHost}/api/voice/realtime?userId=${userId}`;
     
     wsRef.current = new WebSocket(wsUrl);
     
