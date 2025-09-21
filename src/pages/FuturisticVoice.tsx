@@ -136,8 +136,8 @@ const FuturisticVoice: React.FC = () => {
         // En producción usar wss:// y el hostname de la API
         return `wss://api-financial-news-platform-production.up.railway.app/api/voice/chat?userId=${userId}&language=${selectedLanguage}`;
       } else {
-        // En desarrollo usar ws:// y localhost
-        return `ws://localhost:3005/api/voice/chat?userId=${userId}&language=${selectedLanguage}`;
+        // En desarrollo usar ws:// y localhost con el puerto correcto del servidor API
+        return `ws://localhost:3000/api/voice/chat?userId=${userId}&language=${selectedLanguage}`;
       }
     };
     
