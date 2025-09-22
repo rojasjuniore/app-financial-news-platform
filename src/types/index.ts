@@ -30,6 +30,14 @@ export interface Article {
   companies?: string[];
   sectors?: Array<string | { sector: string; confidence?: number }>;
   category?: string; // Añadido para categorización
+  quality_score?: number; // Puntuación de calidad 0-100
+  importance_score?: number; // Puntuación de importancia 0-100
+  importance_factors?: string[]; // Factores que contribuyen a la importancia
+  extracted_entities?: { // Entidades extraídas avanzadas
+    topics?: string[];
+    extraction_method?: string;
+    timestamp?: string;
+  };
   extraction_metadata?: {
     method: string;
     confidence: number;
@@ -160,6 +168,30 @@ export interface FeedResponse {
   total?: number; // Añadido para compatibilidad
   totalCount?: number;
   hasMore: boolean;
+  metadata?: {
+    // For simple feed
+    mode?: 'trending' | 'my-interests' | 'all';
+    sortBy?: 'time' | 'importance' | 'quality';
+    userInterests?: {
+      tickers?: string[];
+      sectors?: string[];
+      keywords?: string[];
+      marketTypes?: string[];
+    };
+    // For legacy/improved feed
+    timeRange?: number;
+    minQuality?: number;
+    includeSentiments?: string;
+    stats?: {
+      totalArticles: number;
+      returnedArticles: number;
+      averageQuality: number;
+      averageImportance: number;
+      sentimentDistribution: Record<string, number>;
+      topSectors: Array<{ sector: string; count: number }>;
+      topTickers: Array<{ ticker: string; count: number }>;
+    };
+  };
   feedMetadata?: {
     generatedAt: string;
     userInterests: UserInterests;

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import apiClient from '../services/news/api';
 import ChatWidget from '../components/Chat/ChatWidget';
 import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
+import ImprovedMarketTab from '../components/MarketData/ImprovedMarketTab';
 import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
 import {
   Calendar,
@@ -649,55 +650,226 @@ const ArticleDetailClean: React.FC = () => {
                   {article.title}
                 </h1>
 
-                {/* Meta Information */}
-                <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    <span>{formatDate(article.publishedAt || article.published_at || article.createdAt)}</span>
+                {/* Enhanced Meta Information Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {/* Date & Time Info */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Calendar className="w-4 h-4 text-blue-500" />
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Timing</span>
+                    </div>
+                    <div className="text-sm text-gray-900 dark:text-white">
+                      <div>Published: {formatDate(article.publishedAt || article.published_at)}</div>
+                      {article.createdAt && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Added: {formatDate(article.createdAt || article.created_at)}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {article.source && (
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4" />
-                      <span>{typeof article.source === 'string' ? article.source : article.source.name}</span>
+                  {/* Source & Quality */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <ExternalLink className="w-4 h-4 text-purple-500" />
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Source</span>
                     </div>
-                  )}
+                    <div className="text-sm">
+                      <div className="text-gray-900 dark:text-white">
+                        {typeof article.source === 'string' ? article.source : article.source?.name || 'Unknown'}
+                      </div>
+                      {article.quality_score && (
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-amber-600 dark:text-amber-400">Quality:</span>
+                            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                              {article.quality_score}/100
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <span key={i} className={`text-xs ${i < Math.floor((article.quality_score || 0) / 20) ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600'}`}>
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {article.quality_classification && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Classification: <span className="font-medium capitalize">
+                            {typeof article.quality_classification === 'string'
+                              ? article.quality_classification
+                              : article.quality_classification.label || 'unknown'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                  {article.sentiment && (
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-4 h-4" />
-                      <span className={`font-medium ${
-                        (typeof article.sentiment === 'string' ? article.sentiment : article.sentiment.label || '').toLowerCase().includes('bullish')
+                  {/* Sentiment Analysis */}
+                  <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Activity className="w-4 h-4 text-green-500" />
+                      <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Sentiment</span>
+                    </div>
+                    <div className="text-sm">
+                      <div className={`font-semibold ${
+                        (typeof article.sentiment === 'string' ? article.sentiment : article.sentiment?.label || '').toLowerCase().includes('bullish')
                           ? 'text-green-600 dark:text-green-400'
-                          : (typeof article.sentiment === 'string' ? article.sentiment : article.sentiment.label || '').toLowerCase().includes('bearish')
+                          : (typeof article.sentiment === 'string' ? article.sentiment : article.sentiment?.label || '').toLowerCase().includes('bearish')
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-gray-600 dark:text-gray-400'
                       }`}>
-                        {typeof article.sentiment === 'string' ? article.sentiment : article.sentiment.label || 'Neutral'}
-                      </span>
+                        {typeof article.sentiment === 'string' ? article.sentiment : article.sentiment?.label || 'Neutral'}
+                      </div>
+                      {typeof article.sentiment === 'object' && article.sentiment?.score && (
+                        <div className="mt-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">Confidence:</span>
+                            <span className="text-xs font-bold">{(article.sentiment.score * 100).toFixed(0)}%</span>
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
+                            <div
+                              className="bg-gradient-to-r from-green-400 to-green-600 h-1.5 rounded-full"
+                              style={{ width: `${article.sentiment.score * 100}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* Tickers */}
-                {article.tickers && article.tickers.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-6">
-                    {article.tickers.filter((ticker, index, self) => ticker && self.indexOf(ticker) === index).map(ticker => (
-                      <span key={ticker} className="inline-flex items-center px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-semibold">
-                        <DollarSign className="w-3 h-3 mr-1" />
-                        {ticker}
-                      </span>
-                    ))}
-                  </div>
-                )}
+                {/* Enhanced Entities Display */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Tickers & Companies Column */}
+                  <div className="space-y-3">
+                    {article.tickers && article.tickers.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Stock Tickers</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {article.tickers.filter((ticker, index, self) => ticker && self.indexOf(ticker) === index).map(ticker => (
+                            <span key={ticker} className="inline-flex items-center px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-semibold hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors cursor-pointer">
+                              <DollarSign className="w-3 h-3 mr-1" />
+                              {ticker}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
-                {/* Summary */}
+                    {article.companies && article.companies.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Companies Mentioned</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {article.companies.map((company, index) => (
+                            <span key={index} className="inline-flex items-center px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg text-sm font-semibold">
+                              <Target className="w-3 h-3 mr-1" />
+                              {company}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sectors & Topics Column */}
+                  <div className="space-y-3">
+                    {article.sectors && article.sectors.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Industry Sectors</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {article.sectors.map((sector, index) => {
+                            const sectorName = typeof sector === 'string' ? sector : sector.sector;
+                            const confidence = typeof sector === 'object' ? sector.confidence : null;
+                            return (
+                              <span key={index} className="inline-flex items-center px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-sm font-semibold">
+                                <Shield className="w-3 h-3 mr-1" />
+                                {sectorName}
+                                {confidence && (
+                                  <span className="ml-1 text-xs opacity-75">({Math.round(confidence * 100)}%)</span>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {article.extracted_entities?.topics && article.extracted_entities.topics.length > 0 && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">Key Topics</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {article.extracted_entities.topics.map((topic: string) => {
+                            const topicIcons: Record<string, any> = {
+                              'earnings': TrendingUp,
+                              'merger': Zap,
+                              'IPO': Sparkles,
+                              'FDA': Shield,
+                              'legal': AlertCircle,
+                              'dividend': DollarSign,
+                              'layoffs': TrendingDown,
+                              'partnership': Users,
+                              'macro_economy': BarChart3,
+                              'analyst_rating': Target,
+                              'cybersecurity': Shield,
+                              'stock_split': Activity
+                            };
+                            const IconComponent = topicIcons[topic] || Sparkles;
+                            return (
+                              <span key={topic} className="inline-flex items-center px-3 py-1.5 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-lg text-sm font-semibold">
+                                <IconComponent className="w-3 h-3 mr-1" />
+                                {topic.replace('_', ' ').toUpperCase()}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Enhanced Summary Section */}
                 {article.description && (
-                  <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Summary</h3>
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Article Summary</h3>
+                    </div>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {article.description}
                     </p>
+
+                    {/* Article Stats */}
+                    <div className="mt-4 pt-3 border-t border-blue-100 dark:border-blue-800 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+                      {article.url && (
+                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                          <ExternalLink className="w-3 h-3" />
+                          <a href={article.url} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 dark:hover:text-blue-400">
+                            Original Article
+                          </a>
+                        </div>
+                      )}
+                      {article.author && (
+                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                          <Users className="w-3 h-3" />
+                          <span>{article.author}</span>
+                        </div>
+                      )}
+                      {article.market_type && (
+                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                          <BarChart3 className="w-3 h-3" />
+                          <span className="capitalize">{article.market_type}</span>
+                        </div>
+                      )}
+                      {article.extraction_metadata?.enhanced && (
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <Zap className="w-3 h-3" />
+                          <span>AI Enhanced</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -756,30 +928,196 @@ const ArticleDetailClean: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Article Details */}
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Article Details</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {article.market_type && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Market Type:</span>
-                              <span className="font-medium text-gray-900 dark:text-white capitalize">
-                                {article.market_type}
-                              </span>
+                      {/* Comprehensive Article Details */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Left Column - Article Metadata */}
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                              <BarChart3 className="w-5 h-5 text-blue-500" />
+                              Article Metrics
+                            </h3>
+                            <div className="space-y-3">
+                              {article.quality_score && (
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Quality Score</span>
+                                    <span className="text-sm font-bold text-gray-900 dark:text-white">
+                                      {article.quality_score}/100
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div
+                                      className={`h-2 rounded-full transition-all duration-500 ${
+                                        article.quality_score >= 80
+                                          ? 'bg-green-500'
+                                          : article.quality_score >= 50
+                                          ? 'bg-yellow-500'
+                                          : 'bg-red-500'
+                                      }`}
+                                      style={{ width: `${article.quality_score}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {article.market_type && (
+                                <div className="flex items-center justify-between py-2 border-t border-gray-200 dark:border-gray-700">
+                                  <span className="text-sm text-gray-600 dark:text-gray-400">Market Type</span>
+                                  <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded text-xs font-medium capitalize">
+                                    {article.market_type}
+                                  </span>
+                                </div>
+                              )}
+
+                              {(article as any).impact_level && (
+                                <div className="flex items-center justify-between py-2 border-t border-gray-200 dark:border-gray-700">
+                                  <span className="text-sm text-gray-600 dark:text-gray-400">Impact Level</span>
+                                  <span className={`px-2 py-1 rounded text-xs font-medium capitalize ${
+                                    (article as any).impact_level === 'high'
+                                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                                      : (article as any).impact_level === 'medium'
+                                      ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                      : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                  }`}>
+                                    {(article as any).impact_level}
+                                  </span>
+                                </div>
+                              )}
+
+                              {article.extraction_metadata && (
+                                <div className="py-2 border-t border-gray-200 dark:border-gray-700">
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-sm text-gray-600 dark:text-gray-400">Extraction Confidence</span>
+                                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {Math.round((article.extraction_metadata.confidence || 0) * 100)}%
+                                    </span>
+                                  </div>
+                                  {article.extraction_metadata.enhanced && (
+                                    <div className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 mt-1">
+                                      <Zap className="w-3 h-3" />
+                                      AI Enhanced Extraction
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Trading Analysis Preview if available */}
+                          {article.trading_analysis?.recommendations && article.trading_analysis.recommendations.length > 0 && (
+                            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
+                                Trading Signals Available
+                              </h3>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                                {article.trading_analysis.recommendations.length} trading recommendation{article.trading_analysis.recommendations.length > 1 ? 's' : ''} available
+                              </p>
+                              <button
+                                onClick={() => setSelectedTab('signals')}
+                                className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                              >
+                                View Trading Signals
+                              </button>
                             </div>
                           )}
-                          {(article as any).impact_level && (
-                            <div className="flex items-center justify-between">
-                              <span className="text-gray-600 dark:text-gray-400">Impact Level:</span>
-                              <span className={`font-medium capitalize ${
-                                (article as any).impact_level === 'high'
-                                  ? 'text-red-600 dark:text-red-400'
-                                  : (article as any).impact_level === 'medium'
-                                  ? 'text-yellow-600 dark:text-yellow-400'
-                                  : 'text-green-600 dark:text-green-400'
-                              }`}>
-                                {(article as any).impact_level}
-                              </span>
+                        </div>
+
+                        {/* Right Column - Entity Summary */}
+                        <div className="space-y-4">
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                              <Brain className="w-5 h-5 text-purple-500" />
+                              Entity Analysis
+                            </h3>
+                            <div className="space-y-4">
+                              {/* Entity Stats Grid */}
+                              <div className="grid grid-cols-2 gap-3">
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                                    {article.tickers?.length || 0}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">Tickers</div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                  <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                                    {article.sectors?.length || 0}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">Sectors</div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                                    {article.companies?.length || 0}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">Companies</div>
+                                </div>
+                                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                  <div className="text-2xl font-bold text-teal-600 dark:text-teal-400">
+                                    {article.extracted_entities?.topics?.length || 0}
+                                  </div>
+                                  <div className="text-xs text-gray-500 dark:text-gray-400">Topics</div>
+                                </div>
+                              </div>
+
+                              {/* Extraction Method */}
+                              {article.extracted_entities?.extraction_method && (
+                                <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Extraction Method</span>
+                                    <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded">
+                                      {article.extracted_entities.extraction_method}
+                                    </span>
+                                  </div>
+                                  {article.extracted_entities.timestamp && (
+                                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                      Extracted: {new Date(article.extracted_entities.timestamp).toLocaleString()}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* AI Analysis Status */}
+                          {article.llm_analysis && (
+                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                <Brain className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                AI Analysis Available
+                              </h3>
+                              <div className="space-y-2 text-sm">
+                                {article.llm_analysis.openai && (
+                                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    OpenAI Analysis
+                                  </div>
+                                )}
+                                {article.llm_analysis.claude && (
+                                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Claude Analysis
+                                  </div>
+                                )}
+                                {article.llm_analysis.gemini && (
+                                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Gemini Analysis
+                                  </div>
+                                )}
+                                {article.llm_analysis.grok && (
+                                  <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                                    Grok Analysis
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => setSelectedTab('analysis')}
+                                className="w-full mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
+                              >
+                                View AI Analysis
+                              </button>
                             </div>
                           )}
                         </div>
@@ -1122,108 +1460,13 @@ const ArticleDetailClean: React.FC = () => {
                   </div>
                 )}
 
-                {selectedTab === 'market' && article.tickers && article.tickers.length > 0 && (
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                      <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Activity className="w-6 h-6 text-green-500" />
-                        Market Data - {article.tickers[0]}
-                      </h2>
-                    </div>
-
-                    <div className="p-6">
-                      {(() => {
-                        console.log('📈 Checking Polygon data:', {
-                          hasLLMAnalysis: !!article.llm_analysis,
-                          hasPolygonData: !!article.llm_analysis?.polygon_data,
-                          polygonData: article.llm_analysis?.polygon_data
-                        });
-                        return article.llm_analysis?.polygon_data;
-                      })() ? (
-                        <PolygonDataCardFixed
-                          polygonData={article.llm_analysis?.polygon_data!}
-                          ticker={article.tickers[0]}
-                        />
-                      ) : article.llm_analysis?.technical_analysis || parsedAnalysis?.technical_analysis ? (
-                        // Show technical analysis if available but no polygon data
-                        <div className="space-y-6">
-                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Technical Analysis</h3>
-                            {(article.llm_analysis?.technical_analysis || parsedAnalysis?.technical_analysis) && (
-                              <div className="space-y-3">
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Trend: </span>
-                                  <span className="font-medium text-gray-900 dark:text-white">
-                                    {article.llm_analysis?.technical_analysis?.trend || parsedAnalysis?.technical_analysis?.trend || 'N/A'}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600 dark:text-gray-400">Outlook: </span>
-                                  <span className="font-medium text-gray-900 dark:text-white">
-                                    {article.llm_analysis?.technical_analysis?.outlook || parsedAnalysis?.technical_analysis?.outlook || 'N/A'}
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {!article.llm_analysis?.polygon_data && (
-                            <div className="text-center">
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                                Real-time market data not available. Generate fresh analysis to include live data.
-                              </p>
-                              <button
-                                onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true })}
-                                disabled={generateAnalysisMutation.isPending}
-                                className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 text-sm"
-                              >
-                                {generateAnalysisMutation.isPending ? (
-                                  <>
-                                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                                    Refreshing...
-                                  </>
-                                ) : (
-                                  <>
-                                    <RefreshCw className="w-4 h-4 mr-2" />
-                                    Refresh with Live Data
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            No Market Data Available
-                          </h3>
-                          <p className="text-gray-600 dark:text-gray-400 mb-6">
-                            Generate analysis with real-time market data
-                          </p>
-                          <button
-                            onClick={() => {
-                              generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true });
-                            }}
-                            disabled={generateAnalysisMutation.isPending}
-                            className="inline-flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                          >
-                            {generateAnalysisMutation.isPending ? (
-                              <>
-                                <Loader className="w-5 h-5 mr-2 animate-spin" />
-                                Loading Data...
-                              </>
-                            ) : (
-                              <>
-                                <Activity className="w-5 h-5 mr-2" />
-                                Load Market Data
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                {selectedTab === 'market' && (
+                  <ImprovedMarketTab
+                    article={article}
+                    parsedAnalysis={parsedAnalysis}
+                    generateAnalysisMutation={generateAnalysisMutation}
+                    selectedAI={selectedAI}
+                  />
                 )}
 
                 {selectedTab === 'discussion' && (

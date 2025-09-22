@@ -3,6 +3,71 @@ import { FeedResponse, Article, UserProfile, Interaction } from '../../types';
 import { usageTracker } from '../tracking';
 
 export const feedService = {
+  // Obtener feed simple con 3 modos: trending, my-interests, all
+  getSimpleFeed: async (params: {
+    mode?: 'trending' | 'my-interests' | 'all';
+    sortBy?: 'time' | 'importance' | 'quality';
+    limit?: number;
+    offset?: number;
+    timeRange?: number;
+    userId?: string;
+  } = {}): Promise<FeedResponse> => {
+    try {
+      console.log('📡 FeedService: Fetching simple feed with params:', params);
+      console.log('📡 FeedService: API Base URL:', apiClient.defaults.baseURL);
+
+      // OPTIMIZACIÓN: Usar el endpoint simple-feed que tiene el algoritmo de importancia
+      const response = await apiClient.get('/api/news/simple-feed', { params });
+      console.log('📦 FeedService: Simple feed response status:', response.status);
+      console.log('📦 FeedService: Simple feed response data:', response.data);
+
+      // Handle standardized API response format
+      const data = response.data.success ? response.data.data : response.data;
+
+      console.log('✅ Processed simple feed data:', {
+        articlesCount: data?.articles?.length || 0,
+        total: data?.total || 0,
+        hasMore: data?.hasMore || false,
+        mode: data?.mode,
+        sortBy: data?.sortBy
+      });
+
+      // Add importance_score to articles interface - ahora viene del backend
+      const articlesWithImportance = data?.articles?.map((article: any) => ({
+        ...article,
+        importance_score: article.importance_score || 0
+      })) || [];
+
+      // Ensure we always return a valid FeedResponse
+      if (!data) {
+        return {
+          articles: [],
+          total: 0,
+          hasMore: false
+        };
+      }
+
+      return {
+        articles: articlesWithImportance,
+        total: data.total || 0,
+        hasMore: data.hasMore || false,
+        metadata: {
+          mode: data.mode,
+          sortBy: data.sortBy,
+          userInterests: data.userInterests
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching simple feed:', error);
+      // Return empty feed on error
+      return {
+        articles: [],
+        total: 0,
+        hasMore: false
+      };
+    }
+  },
+
   // Obtener feed personalizado - USANDO RUTA CORRECTA
   getFeed: async (params: {
     limit?: number;

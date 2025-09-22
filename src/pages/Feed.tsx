@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import TwitterFeedListV2 from '../components/Feed/TwitterFeedListV2';
+import SimpleFeed from '../components/Feed/SimpleFeed';
 import { useProfile } from '../hooks/useProfile';
 import { Loader } from 'lucide-react';
 
@@ -30,10 +30,7 @@ const Feed: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-        {/* TwitterFeedListV2 ya incluye tabs para personalizado/cronológico */}
-        <TwitterFeedListV2 />
-      </div>
+      <SimpleFeed />
     </div>
   );
 };
