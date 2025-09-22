@@ -1,26 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import apiClient from '../services/news/api';
 import ChatWidget from '../components/Chat/ChatWidget';
 import PolygonDataCardFixed from '../components/Analysis/PolygonDataCardFixed';
 import LLMPanelDiscussionV2 from '../components/Analysis/LLMPanelDiscussionV2';
-import { 
-  Calendar, 
-  TrendingUp, 
-  AlertCircle, 
-  Loader, 
-  ArrowLeft, 
-  Bot, 
-  Sparkles, 
-  RefreshCw, 
-  MessageCircle, 
-  X, 
+import {
+  Calendar,
+  AlertCircle,
+  Loader,
+  ArrowLeft,
+  Sparkles,
+  RefreshCw,
+  MessageCircle,
+  X,
   Users,
-  ChevronDown,
-  ChevronUp,
   ExternalLink,
   BarChart3,
   Brain,
@@ -33,15 +28,14 @@ import toast from 'react-hot-toast';
 
 const ArticleDetailClean: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
-  
-  // Estados para controlar qué secciones están expandidas
-  const [showAnalysis, setShowAnalysis] = useState(true); // Mostrar por defecto si hay análisis
-  const [showMarketData, setShowMarketData] = useState(true); // Mostrar por defecto si hay datos
-  const [showPanelDiscussion, setShowPanelDiscussion] = useState(false);
-  const [selectedAI, setSelectedAI] = useState<'openai' | 'claude' | 'gemini' | 'grok'>('openai');
+
+  // Estado para controlar visibilidad individual de cada sección
+  const [showMarketData, setShowMarketData] = useState(false);
+  const [selectedAI] = useState<'openai' | 'claude' | 'gemini' | 'grok'>('openai');
   const [isChatExpanded, setIsChatExpanded] = useState(true);
+  const [showAIAnalysis, setShowAIAnalysis] = useState(true);
+  const [showAIPanel, setShowAIPanel] = useState(true);
   
   const { data: article, isLoading, error } = useQuery<Article>({
     queryKey: ['article', articleId],
@@ -97,7 +91,7 @@ const ArticleDetailClean: React.FC = () => {
       }
       
       queryClient.invalidateQueries({ queryKey: ['article', articleId] });
-      setShowAnalysis(true);
+      setShowAIAnalysis(true);
     },
     onError: (error: any) => {
       toast.error(`❌ ${error.response?.data?.error || error.message}`);
@@ -106,49 +100,116 @@ const ArticleDetailClean: React.FC = () => {
 
   useEffect(() => {
     if (article && articleId) {
+      // Track view
       feedService.trackInteraction(articleId, 'view');
+
+      // Auto-generar análisis si no existe
+      if (!article.llm_analysis && !generateAnalysisMutation.isPending && !generateAnalysisMutation.isError) {
+        console.log('🤖 Auto-generating AI analysis for article:', articleId);
+        generateAnalysisMutation.mutate({
+          aiModel: selectedAI,
+          forceRegenerate: false
+        });
+      }
+
+      // Si ya hay análisis, asegurar que se muestre
+      if (article.llm_analysis) {
+        setShowAIAnalysis(true);
+      }
     }
   }, [article, articleId]);
 
   const handleGenerateAnalysis = () => {
     if (!article?.llm_analysis) {
       generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: false });
-      setShowAnalysis(true); // Asegurar que se muestre después de generar
+      setShowAIAnalysis(true); // Asegurar que se muestre después de generar
     } else {
-      setShowAnalysis(!showAnalysis);
+      // Toggle visibility
+      setShowAIAnalysis(!showAIAnalysis);
     }
   };
 
-  // Helper para parsear el análisis de IA
+  // Helper para parsear el análisis de IA mejorado
   const getParsedAnalysis = () => {
     if (!article?.llm_analysis) return null;
-    
-    // Si llm_analysis es un objeto con agentes
-    if (article.llm_analysis.openai || article.llm_analysis.claude || article.llm_analysis.gemini || article.llm_analysis.grok) {
-      const agent = article.llm_analysis.openai || article.llm_analysis.claude || article.llm_analysis.gemini || article.llm_analysis.grok;
-      if (agent && agent.content) {
-        try {
-          // Limpiar el contenido de markdown
-          const cleanContent = agent.content
-            .replace(/```json\n?/g, '')
-            .replace(/```\n?/g, '')
-            .trim();
-          
-          const parsed = JSON.parse(cleanContent);
-          return parsed;
-        } catch (e) {
-          console.log('Could not parse analysis as JSON, returning formatted content');
-          // Try to extract useful information from raw content
-          return { rawContent: agent.content, formatted: true };
+
+    console.log('🔍 Parsing AI analysis:', article.llm_analysis);
+
+    // Función helper para limpiar contenido JSON
+    const cleanJsonContent = (content: string) => {
+      return content
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .replace(/^json\n?/g, '')
+        .trim();
+    };
+
+    // Función helper para intentar parsear JSON
+    const tryParseJson = (content: string) => {
+      try {
+        const cleaned = cleanJsonContent(content);
+        return JSON.parse(cleaned);
+      } catch (e) {
+        console.log('Failed to parse as JSON:', e);
+        return null;
+      }
+    };
+
+    // Caso 1: llm_analysis es un objeto con agentes específicos (openai, claude, etc.)
+    if (typeof article.llm_analysis === 'object' && !Array.isArray(article.llm_analysis)) {
+      const agentKeys = ['openai', 'claude', 'gemini', 'grok'];
+      for (const key of agentKeys) {
+        const agent = article.llm_analysis[key];
+        if (agent && (agent.content || agent.analysis)) {
+          const content = agent.content || agent.analysis;
+
+          // Intentar parsear como JSON primero
+          const parsed = tryParseJson(content);
+          if (parsed) {
+            console.log('✅ Successfully parsed agent content as JSON');
+            return parsed;
+          }
+
+          // Si no se puede parsear como JSON, devolver como contenido formateado
+          console.log('📝 Returning agent content as formatted text');
+          return { rawContent: content, formatted: true, agentModel: key };
         }
       }
     }
-    
-    // Si ya es un objeto estructurado
-    if (article.llm_analysis.technical_analysis || article.llm_analysis.sentiment_analysis) {
-      return article.llm_analysis;
+
+    // Caso 2: llm_analysis ya es un objeto estructurado
+    if (typeof article.llm_analysis === 'object' && !Array.isArray(article.llm_analysis)) {
+      const analysis = article.llm_analysis as any;
+      if (analysis.trading_signals || analysis.technical_analysis || analysis.sentiment_analysis) {
+        console.log('✅ Found structured analysis data');
+        return article.llm_analysis;
+      }
     }
-    
+
+    // Caso 3: llm_analysis es directamente un string
+    if (typeof article.llm_analysis === 'string') {
+      const parsed = tryParseJson(article.llm_analysis);
+      if (parsed) {
+        console.log('✅ Successfully parsed string analysis as JSON');
+        return parsed;
+      }
+      console.log('📝 Returning string analysis as formatted text');
+      return { rawContent: article.llm_analysis, formatted: true };
+    }
+
+    // Caso 4: llm_analysis es un array (múltiples análisis)
+    if (Array.isArray(article.llm_analysis) && article.llm_analysis.length > 0) {
+      console.log('📊 Found array of analyses');
+      return { trading_signals: article.llm_analysis, formatted: false };
+    }
+
+    // Caso 5: Fallback para cualquier otro contenido
+    if (article.llm_analysis && typeof article.llm_analysis === 'object' && Object.keys(article.llm_analysis).length > 0) {
+      console.log('🔧 Using fallback formatting for analysis');
+      return { rawContent: JSON.stringify(article.llm_analysis, null, 2), formatted: true };
+    }
+
+    console.log('❌ No parseable analysis content found');
     return null;
   };
 
@@ -289,18 +350,27 @@ const ArticleDetailClean: React.FC = () => {
             )}
             
             {/* Full Content */}
-            {article.content && article.content !== article.description && (
+            {(article.full_article || article.content) && article.content !== article.description && (
               <div className="mb-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Full Article</h2>
-                <div className="prose dark:prose-invert max-w-none text-gray-600 dark:text-gray-400">
-                  {article.content.split('\n').map((paragraph, index) => (
-                    paragraph.trim() && (
-                      <p key={index} className="mb-3">
-                        {paragraph}
-                      </p>
-                    )
-                  ))}
-                </div>
+                <div
+                  className="prose prose-gray dark:prose-invert max-w-none
+                    [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:dark:text-white [&_h2]:mt-6 [&_h2]:mb-4 [&_h2]:border-b [&_h2]:border-gray-200 [&_h2]:dark:border-gray-700 [&_h2]:pb-2
+                    [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:dark:text-white [&_h3]:mt-4 [&_h3]:mb-3
+                    [&_p]:mb-4 [&_p]:text-gray-700 [&_p]:dark:text-gray-300 [&_p]:leading-relaxed
+                    [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:underline [&_a]:hover:text-blue-700 [&_a]:dark:hover:text-blue-300
+                    [&_ul]:my-4 [&_ul]:ml-6 [&_ul]:space-y-2 [&_ul]:list-disc
+                    [&_ol]:my-4 [&_ol]:ml-6 [&_ol]:space-y-2 [&_ol]:list-decimal
+                    [&_li]:text-gray-700 [&_li]:dark:text-gray-300
+                    [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:dark:text-gray-400
+                    [&_strong]:font-bold [&_strong]:text-gray-900 [&_strong]:dark:text-white
+                    [&_em]:italic
+                    [&_figure]:my-4
+                    [&_img]:rounded-lg [&_img]:shadow-md [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto"
+                  dangerouslySetInnerHTML={{
+                    __html: article.full_article || article.content || ''
+                  }}
+                />
               </div>
             )}
 
@@ -357,85 +427,147 @@ const ArticleDetailClean: React.FC = () => {
                 No content available for this article
               </p>
             )}
-          </div>
 
-          {/* Action Buttons Section */}
-          <div className="px-6 pb-6 space-y-3">
-            {/* AI Analysis Button */}
-            <button
-              onClick={handleGenerateAnalysis}
-              disabled={generateAnalysisMutation.isPending}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/30 dark:hover:to-indigo-900/30 rounded-lg transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {article.llm_analysis ? 'View AI Analysis' : 'Generate AI Analysis'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                {generateAnalysisMutation.isPending && (
-                  <Loader className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
-                )}
-                {showAnalysis ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-              </div>
-            </button>
-
-            {/* Market Data Button */}
-            {article.tickers && article.tickers.length > 0 && (
-              <button
-                onClick={() => setShowMarketData(!showMarketData)}
-                className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/30 rounded-lg transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    Live Market Data {article.tickers[0] && `(${article.tickers[0]})`}
-                  </span>
+            {/* Quick AI Actions Bar */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-blue-500" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">AI Analysis Tools</span>
                 </div>
-                {showMarketData ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-              </button>
-            )}
-
-            {/* Panel Discussion Button */}
-            <button
-              onClick={() => setShowPanelDiscussion(!showPanelDiscussion)}
-              className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 hover:from-purple-100 hover:to-pink-100 dark:hover:from-purple-900/30 dark:hover:to-pink-900/30 rounded-lg transition-all group"
-            >
-              <div className="flex items-center gap-3">
-                <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <span className="font-medium text-gray-900 dark:text-white">AI Panel Discussion</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!article.llm_analysis ? (
+                    <button
+                      onClick={handleGenerateAnalysis}
+                      disabled={generateAnalysisMutation.isPending}
+                      className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                    >
+                      {generateAnalysisMutation.isPending ? (
+                        <>
+                          <Loader className="w-3 h-3 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="w-3 h-3" />
+                          Generate AI Analysis
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => setShowAIAnalysis(!showAIAnalysis)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                          showAIAnalysis
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        <Brain className="w-3 h-3" />
+                        {showAIAnalysis ? 'Hide' : 'Show'} Analysis
+                      </button>
+                      <button
+                        onClick={() => setShowAIPanel(!showAIPanel)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                          showAIPanel
+                            ? 'bg-purple-500 text-white'
+                            : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        <Users className="w-3 h-3" />
+                        {showAIPanel ? 'Hide' : 'Show'} Panel
+                      </button>
+                      {article.tickers && article.tickers.length > 0 && (
+                        <button
+                          onClick={() => setShowMarketData(!showMarketData)}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                            showMarketData
+                              ? 'bg-green-500 text-white'
+                              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          <BarChart3 className="w-3 h-3" />
+                          {showMarketData ? 'Hide' : 'Show'} Market Data
+                        </button>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-              {showPanelDiscussion ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-            </button>
-
+            </div>
           </div>
-        </article>
 
-        {/* Expandable Sections */}
-        <AnimatePresence>
+          {/* Info message while generating */}
+          {!article.llm_analysis && generateAnalysisMutation.isPending && (
+            <div className="px-6 pb-6">
+              <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                <div className="flex items-center gap-2 text-sm">
+                  <Loader className="w-4 h-4 animate-spin text-blue-600 dark:text-blue-400" />
+                  <p className="text-gray-700 dark:text-gray-300">
+                    Generando análisis de IA para este artículo...
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+        {/* Always Visible AI Sections */}
+        <div className="space-y-6">
           {/* AI Analysis Section */}
-          {showAnalysis && article.llm_analysis && (() => {
+          {article && (() => {
             const parsedAnalysis = getParsedAnalysis();
-            
+
+            // Always show the section - it will have a generate button if no data
             return (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.3 }}
-                className="mt-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="mx-6"
               >
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                    <Brain className="w-5 h-5 text-blue-500" />
-                    AI Analysis
-                  </h2>
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <Brain className="w-5 h-5 text-blue-500" />
+                      AI Analysis
+                      {generateAnalysisMutation.isPending && (
+                        <Loader className="w-4 h-4 animate-spin text-blue-500" />
+                      )}
+                    </h2>
+                    <div className="flex items-center gap-2">
+                      {!generateAnalysisMutation.isPending && (
+                        <button
+                          onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true })}
+                          className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                          title="Regenerate Analysis"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowAIAnalysis(!showAIAnalysis)}
+                        className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                      >
+                        {showAIAnalysis ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <AnimatePresence>
+                    {showAIAnalysis && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="p-6"
+                      >
                   
                   {parsedAnalysis ? (
                     <>
                       {/* For structured data */}
-                      {parsedAnalysis.trading_signals && (
+                      {parsedAnalysis.trading_signals ? (
                         <div className="space-y-4">
                           {parsedAnalysis.trading_signals.map((signal: any, idx: number) => (
                             <div key={idx} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
@@ -513,106 +645,167 @@ const ArticleDetailClean: React.FC = () => {
                             </div>
                           ))}
                         </div>
-                      )}
-                      
-                      {/* For formatted raw content */}
-                      {parsedAnalysis.formatted && parsedAnalysis.rawContent && (
+                      ) : parsedAnalysis.formatted && parsedAnalysis.rawContent ? (
                         <div className="space-y-4">
-                          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                              <Brain className="w-5 h-5 text-blue-500" />
-                              AI Trading Analysis
-                            </h3>
-                            <div className="space-y-3">
+                          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-gray-200 dark:border-gray-700">
+                              <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                <Brain className="w-5 h-5 text-blue-500" />
+                                AI Trading Analysis
+                              </h3>
+                            </div>
+                            <div className="p-4 space-y-4">
                               {(() => {
-                                // Try to extract the user presentation section first
-                                const presentationMatch = parsedAnalysis.rawContent.match(/###?\s*Presentación para el usuario final:?([\s\S]*)/i);
+                                // Extract presentation section for Spanish users
+                                const presentationMatch = parsedAnalysis.rawContent.match(/(?:###?\s*)?(?:Presentación (?:para el usuario final|en Español):?)([\s\S]*?)(?=\n\n###|\n\n\d+\.|$)/i);
                                 let contentToDisplay = presentationMatch ? presentationMatch[1] : parsedAnalysis.rawContent;
-                                
-                                // Clean up the content
+
+                                // Clean up content
                                 contentToDisplay = contentToDisplay
-                                  .replace(/```json[\s\S]*?```/g, '') // Remove JSON blocks
-                                  .replace(/```[\s\S]*?```/g, '') // Remove other code blocks
+                                  .replace(/```json[\s\S]*?```/g, '')
+                                  .replace(/```[\s\S]*?```/g, '')
                                   .trim();
-                                
-                                // Parse lines
-                                const lines = contentToDisplay.split('\n').filter((line: string) => line.trim());
-                                
-                                return lines.map((line: string, idx: number) => {
-                                  // Remove markdown formatting
-                                  line = line.replace(/```[^`]*```/g, '').trim();
-                                  
-                                  if (!line) return null; // Skip empty lines
-                                  
-                                  if (line.startsWith('- **') || line.startsWith('* **')) {
-                                    // Parse formatted bullet points
-                                    const match = line.match(/^[\-\*]\s*\*\*(.+?)\*\*:?\s*(.*)/);
-                                    if (match) {
-                                      const [, label, value] = match;
-                                      return (
-                                        <div key={`bullet-${idx}-${label}`} className="mb-3 pl-4 border-l-2 border-blue-500">
-                                          <strong className="text-gray-700 dark:text-gray-300">
-                                            {label}:
-                                          </strong>
-                                          <span className="ml-2 text-gray-600 dark:text-gray-400">
-                                            {value}
+
+                                // Parse ticker recommendations
+                                const tickerMatches = contentToDisplay.matchAll(/(\d+)\.\s*\*\*([A-Z]+(?:\s*\([^)]+\))?)\*\*[\s\S]*?(?=\n\d+\.|$)/g);
+                                const recommendations = [];
+
+                                for (const match of tickerMatches) {
+                                  const [fullMatch, , tickerInfo] = match;
+                                  const tickerName = tickerInfo.trim();
+
+                                  // Extract trading details
+                                  const actionMatch = fullMatch.match(/Acción:\s*(\w+)/i);
+                                  const confidenceMatch = fullMatch.match(/(?:Nivel de )?Confianza:\s*(\d+)/i);
+                                  const entryMatch = fullMatch.match(/Entrada (?:Ideal|ideal):\s*([\d.,]+)/i);
+                                  const stopLossMatch = fullMatch.match(/Stop Loss:\s*([\d.,]+)/i);
+                                  const takeProfitMatch = fullMatch.match(/Take Profit:\s*([\d.,]+)/i);
+                                  const horizonMatch = fullMatch.match(/Horizonte de Tiempo:\s*(\w+)/i);
+                                  const riskMatch = fullMatch.match(/Evaluación de Riesgo:\s*([^(\n]+)/i);
+                                  const catalystMatch = fullMatch.match(/(?:Análisis de )?Catalizadores?:\s*([^\n]+)/i);
+
+                                  recommendations.push({
+                                    ticker: tickerName,
+                                    action: actionMatch?.[1] || 'N/A',
+                                    confidence: confidenceMatch?.[1] || 'N/A',
+                                    entry: entryMatch?.[1] || 'N/A',
+                                    stopLoss: stopLossMatch?.[1] || 'N/A',
+                                    takeProfit: takeProfitMatch?.[1] || 'N/A',
+                                    horizon: horizonMatch?.[1] || 'N/A',
+                                    risk: riskMatch?.[1]?.trim() || 'N/A',
+                                    catalyst: catalystMatch?.[1]?.trim() || null
+                                  });
+                                }
+
+                                // If we found structured recommendations, display them nicely
+                                if (recommendations.length > 0) {
+                                  return recommendations.map((rec, idx) => (
+                                    <div key={`rec-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <h4 className="text-lg font-bold text-gray-900 dark:text-white">
+                                          {rec.ticker}
+                                        </h4>
+                                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                          rec.action.toLowerCase().includes('comprar') || rec.action.toLowerCase() === 'buy'
+                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                            : rec.action.toLowerCase().includes('vender') || rec.action.toLowerCase() === 'sell'
+                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                            : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300'
+                                        }`}>
+                                          {rec.action.toUpperCase()}
+                                        </span>
+                                      </div>
+
+                                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block">Confianza</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white">{rec.confidence}/10</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block">Entrada</span>
+                                          <span className="font-semibold text-blue-600 dark:text-blue-400">${rec.entry}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block">Stop Loss</span>
+                                          <span className="font-semibold text-red-600 dark:text-red-400">${rec.stopLoss}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block">Take Profit</span>
+                                          <span className="font-semibold text-green-600 dark:text-green-400">${rec.takeProfit}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block">Horizonte</span>
+                                          <span className="font-semibold text-gray-900 dark:text-white capitalize">{rec.horizon}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-gray-500 dark:text-gray-400 block">Riesgo</span>
+                                          <span className={`font-semibold capitalize ${
+                                            rec.risk.toLowerCase().includes('alto') || rec.risk.toLowerCase().includes('high')
+                                              ? 'text-red-600 dark:text-red-400'
+                                              : rec.risk.toLowerCase().includes('medio') || rec.risk.toLowerCase().includes('medium')
+                                              ? 'text-yellow-600 dark:text-yellow-400'
+                                              : 'text-green-600 dark:text-green-400'
+                                          }`}>
+                                            {rec.risk.split('(')[0].trim()}
                                           </span>
+                                        </div>
+                                      </div>
+
+                                      {rec.catalyst && (
+                                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                                          <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">CATALIZADOR:</span>
+                                          <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">{rec.catalyst}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ));
+                                }
+
+                                // Fallback to line-by-line parsing
+                                const lines = contentToDisplay.split('\n').filter((line: string) => line.trim());
+                                return lines.map((line: string, idx: number) => {
+                                  line = line.trim();
+                                  if (!line) return null;
+
+                                  // Headers
+                                  if (line.match(/^\d+\.\s*\*\*/)) {
+                                    const headerMatch = line.match(/^\d+\.\s*\*\*(.+?)\*\*/);
+                                    if (headerMatch) {
+                                      return (
+                                        <h4 key={`h-${idx}`} className="font-bold text-lg text-gray-900 dark:text-white mt-4 mb-2">
+                                          {headerMatch[1]}
+                                        </h4>
+                                      );
+                                    }
+                                  }
+
+                                  // Key-value pairs
+                                  if (line.includes(':') && !line.startsWith('http')) {
+                                    const colonIndex = line.indexOf(':');
+                                    const key = line.substring(0, colonIndex).replace(/^\W+/, '');
+                                    const value = line.substring(colonIndex + 1).trim();
+
+                                    if (key && value) {
+                                      return (
+                                        <div key={`kv-${idx}`} className="mb-2">
+                                          <span className="font-medium text-gray-700 dark:text-gray-300">{key}:</span>
+                                          <span className="ml-2 text-gray-600 dark:text-gray-400">{value}</span>
                                         </div>
                                       );
                                     }
-                                  } else if (line.startsWith('###')) {
-                                    const headerText = line.replace(/^#+\s*/, '');
-                                    return (
-                                      <h4 key={`header-${idx}-${headerText.substring(0, 20)}`} className="font-semibold text-gray-800 dark:text-gray-200 mt-4 mb-2 text-lg">
-                                        {headerText}
-                                      </h4>
-                                    );
-                                  } else if (line.includes(':') && !line.startsWith('http')) {
-                                    // Handle key-value pairs
-                                    const colonIndex = line.indexOf(':');
-                                    if (colonIndex > 0) {
-                                      const key = line.substring(0, colonIndex);
-                                      const value = line.substring(colonIndex + 1).trim();
-                                      if (key && value) {
-                                        return (
-                                          <div key={`kv-${idx}-${key.substring(0, 20)}`} className="mb-2">
-                                            <strong className="text-gray-700 dark:text-gray-300">
-                                              {key.replace(/^\-\s*/, '').trim()}:
-                                            </strong>
-                                            <span className="ml-2 text-gray-600 dark:text-gray-400">
-                                              {value}
-                                            </span>
-                                          </div>
-                                        );
-                                      }
-                                    }
                                   }
-                                  
-                                  // Default paragraph with unique key
+
                                   return (
-                                    <p key={`p-${idx}-${line.substring(0, 20)}`} className="text-gray-600 dark:text-gray-400 mb-2">
-                                      {line.replace(/^\-\s*/, '• ')}
+                                    <p key={`p-${idx}`} className="text-gray-600 dark:text-gray-400 mb-2">
+                                      {line}
                                     </p>
                                   );
                                 }).filter(Boolean);
                               })()}
                             </div>
-                            
-                            {/* Add a summary section if we have the raw content */}
-                            {parsedAnalysis.rawContent && parsedAnalysis.rawContent.includes('Recomendación') && (
-                              <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
-                                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Quick Summary</h4>
-                                <div className="text-sm text-gray-600 dark:text-gray-400">
-                                  Analysis complete. Review the recommendations above for trading insights.
-                                </div>
-                              </div>
-                            )}
                           </div>
                         </div>
-                      )}
-
-                      {/* Legacy format support */}
-                      {parsedAnalysis.technical_analysis && (
+                      ) : parsedAnalysis.technical_analysis ? (
                         <div className="mb-4">
                           <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">Technical Analysis</h3>
                           <div className="grid grid-cols-2 gap-4">
@@ -626,92 +819,204 @@ const ArticleDetailClean: React.FC = () => {
                             </div>
                           </div>
                         </div>
+                      ) : (
+                        /* Default display for any other content */
+                        <div className="prose prose-gray dark:prose-invert max-w-none">
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                            <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+                              {parsedAnalysis.rawContent || JSON.stringify(parsedAnalysis, null, 2)}
+                            </pre>
+                          </div>
+                        </div>
                       )}
                     </>
-                  ) : (
-                    /* Fallback: show message */
+                  ) : article.llm_analysis ? (
+                    /* Show raw analysis if it exists but couldn't be parsed */
+                    <div className="prose prose-gray dark:prose-invert max-w-none">
+                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
+                          {typeof article.llm_analysis === 'string'
+                            ? article.llm_analysis
+                            : JSON.stringify(article.llm_analysis, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : !article.llm_analysis ? (
+                    /* No analysis available - show generate button */
                     <div className="text-center py-8">
-                      <p className="text-gray-500 dark:text-gray-400 mb-4">
-                        AI analysis is available but needs formatting
-                      </p>
+                      <div className="mb-4">
+                        <Brain className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400 mb-2">
+                          No AI analysis available for this article
+                        </p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">
+                          Generate comprehensive trading insights with AI
+                        </p>
+                      </div>
                       <button
-                        onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true })}
+                        onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: false })}
                         disabled={generateAnalysisMutation.isPending}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+                        className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 flex items-center gap-2 mx-auto"
                       >
-                        {generateAnalysisMutation.isPending ? 'Regenerating...' : 'Regenerate Analysis'}
+                        {generateAnalysisMutation.isPending ? (
+                          <>
+                            <Loader className="w-4 h-4 animate-spin" />
+                            Generating Analysis...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            Generate AI Analysis
+                          </>
+                        )}
                       </button>
                     </div>
+                  ) : (
+                    /* Fallback: show message for unformattable data */
+                    <div className="text-center py-8">
+                      <div className="mb-4">
+                        <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-3" />
+                        <p className="text-gray-500 dark:text-gray-400 mb-2">
+                          AI analysis data needs formatting
+                        </p>
+                        <p className="text-sm text-gray-400 dark:text-gray-500">
+                          The analysis exists but couldn't be properly displayed
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <button
+                          onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true })}
+                          disabled={generateAnalysisMutation.isPending}
+                          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 mr-2"
+                        >
+                          {generateAnalysisMutation.isPending ? 'Regenerating...' : 'Regenerate Analysis'}
+                        </button>
+                        <details className="mt-4">
+                          <summary className="text-sm text-gray-500 cursor-pointer hover:text-gray-700">Show raw data</summary>
+                          <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded text-xs text-left">
+                            <pre className="whitespace-pre-wrap overflow-x-auto">
+                              {JSON.stringify(article.llm_analysis, null, 2)}
+                            </pre>
+                          </div>
+                        </details>
+                      </div>
+                    </div>
                   )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             );
           })()}
 
           {/* Market Data Section */}
-          {showMarketData && article.tickers && article.tickers[0] && (
+          {article.tickers && article.tickers.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mx-6"
             >
-              {article.llm_analysis?.polygon_data ? (
-                <PolygonDataCardFixed 
-                  polygonData={article.llm_analysis.polygon_data} 
-                  ticker={article.tickers[0]} 
-                />
-              ) : (
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-green-500" />
                     Market Data - {article.tickers[0]}
                   </h2>
-                  <div className="text-center py-8">
-                    <p className="text-gray-500 dark:text-gray-400 mb-4">
-                      Real-time market data not available for this article
-                    </p>
-                    <button
-                      onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true })}
-                      disabled={generateAnalysisMutation.isPending}
-                      className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
-                    >
-                      {generateAnalysisMutation.isPending ? (
-                        <span className="flex items-center gap-2">
-                          <Loader className="w-4 h-4 animate-spin" />
-                          Generating...
-                        </span>
-                      ) : (
-                        'Generate with Market Data'
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => setShowMarketData(!showMarketData)}
+                    className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    {showMarketData ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
-              )}
+
+                <AnimatePresence>
+                  {showMarketData && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="p-6"
+                    >
+                      {article.llm_analysis?.polygon_data ? (
+                        <PolygonDataCardFixed
+                          polygonData={article.llm_analysis.polygon_data}
+                          ticker={article.tickers[0]}
+                        />
+                      ) : (
+                        <div className="text-center py-8">
+                          <p className="text-gray-500 dark:text-gray-400 mb-4">
+                            Real-time market data not available for this article
+                          </p>
+                          <button
+                            onClick={() => generateAnalysisMutation.mutate({ aiModel: selectedAI, forceRegenerate: true })}
+                            disabled={generateAnalysisMutation.isPending}
+                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+                          >
+                            {generateAnalysisMutation.isPending ? (
+                              <span className="flex items-center gap-2">
+                                <Loader className="w-4 h-4 animate-spin" />
+                                Generating...
+                              </span>
+                            ) : (
+                              'Generate with Market Data'
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </motion.div>
           )}
 
-          {/* Panel Discussion Section */}
-          {showPanelDiscussion && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="mt-4"
-            >
-              <LLMPanelDiscussionV2 
-                articleId={articleId!} 
-                articleTitle={article.title}
-                tickers={article.tickers}
-              />
-            </motion.div>
-          )}
+          {/* AI Panel Discussion Section - Always Visible */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mx-6"
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Users className="w-5 h-5 text-purple-500" />
+                  AI Panel Discussion
+                </h2>
+                <button
+                  onClick={() => setShowAIPanel(!showAIPanel)}
+                  className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                >
+                  {showAIPanel ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
 
-        </AnimatePresence>
+              <AnimatePresence>
+                {showAIPanel && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <LLMPanelDiscussionV2
+                      articleId={articleId!}
+                      articleTitle={article.title}
+                      tickers={article.tickers}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        </div>
+      </article>
       </div>
-        
+
         {/* Fixed Chat Panel on the Right */}
         <div className={`hidden lg:block transition-all duration-300 ${
           isChatExpanded ? 'w-[480px]' : 'w-[60px]'

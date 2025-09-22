@@ -349,28 +349,64 @@ const ArticleDetail: React.FC = () => {
               </div>
 
               {/* Contenido */}
-              <div className="prose prose-sm sm:prose-base lg:prose-lg max-w-none mb-6 sm:mb-8 text-gray-700 dark:text-gray-300 transition-colors">
+              <div className="mb-6 sm:mb-8">
                 {/* Debug info for content */}
                 {process.env.NODE_ENV === 'development' && (
                   <div className="mb-4 p-2 bg-blue-100 dark:bg-blue-900/20 text-xs text-blue-800 dark:text-blue-200 rounded">
-                    <strong>Content Debug:</strong> 
-                    Description: {article.description ? `${article.description.substring(0, 50)}...` : 'Missing'}, 
-                    Content: {article.content ? `${article.content.substring(0, 50)}...` : 'Missing'}
+                    <strong>Content Debug:</strong>
+                    Description: {article.description ? `${article.description.substring(0, 50)}...` : 'Missing'},
+                    Content: {article.content ? `${article.content.substring(0, 50)}...` : 'Missing'},
+                    Full Article: {article.full_article ? 'Present' : 'Missing'}
                   </div>
                 )}
-                
-                {article.description && (
-                  <p className="text-base sm:text-lg leading-relaxed mb-4 sm:mb-6">
-                    {article.description}
-                  </p>
+
+                {/* Summary/Description */}
+                {(article.summary || article.description) && (
+                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-750 rounded-xl p-4 sm:p-6 mb-6 border border-gray-200 dark:border-gray-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                      <span className="mr-2">📝</span> Resumen
+                    </h3>
+                    <p className="text-base sm:text-lg leading-relaxed text-gray-700 dark:text-gray-300">
+                      {article.summary || article.description}
+                    </p>
+                  </div>
                 )}
-                {article.content && (
-                  <div className="text-sm sm:text-base" dangerouslySetInnerHTML={{ __html: article.content }} />
+
+                {/* Full Article Content */}
+                {(article.full_article || article.content) && (
+                  <div
+                    className="article-content-wrapper prose prose-gray dark:prose-invert max-w-none
+                      [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:dark:text-white [&_h2]:mt-6 [&_h2]:mb-4 [&_h2]:border-b [&_h2]:border-gray-200 [&_h2]:dark:border-gray-700 [&_h2]:pb-2
+                      [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-gray-900 [&_h3]:dark:text-white [&_h3]:mt-4 [&_h3]:mb-3
+                      [&_p]:mb-4 [&_p]:text-gray-700 [&_p]:dark:text-gray-300 [&_p]:leading-relaxed
+                      [&_a]:text-blue-600 [&_a]:dark:text-blue-400 [&_a]:underline [&_a]:hover:text-blue-700 [&_a]:dark:hover:text-blue-300
+                      [&_ul]:my-4 [&_ul]:ml-6 [&_ul]:space-y-2 [&_ul]:list-disc
+                      [&_ol]:my-4 [&_ol]:ml-6 [&_ol]:space-y-2 [&_ol]:list-decimal
+                      [&_li]:text-gray-700 [&_li]:dark:text-gray-300
+                      [&_blockquote]:border-l-4 [&_blockquote]:border-blue-500 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:italic [&_blockquote]:text-gray-600 [&_blockquote]:dark:text-gray-400
+                      [&_figure]:my-4
+                      [&_img]:rounded-lg [&_img]:shadow-md [&_img]:my-4 [&_img]:max-w-full [&_img]:h-auto
+                      [&_figcaption]:text-sm [&_figcaption]:text-gray-600 [&_figcaption]:dark:text-gray-400 [&_figcaption]:mt-2 [&_figcaption]:text-center
+                      [&_strong]:font-bold [&_strong]:text-gray-900 [&_strong]:dark:text-white
+                      [&_em]:italic
+                      [&_code]:bg-gray-100 [&_code]:dark:bg-gray-800 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-sm [&_code]:font-mono
+                      [&_pre]:bg-gray-100 [&_pre]:dark:bg-gray-800 [&_pre]:p-4 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_pre]:my-4
+                      [&_pre_code]:bg-transparent [&_pre_code]:p-0
+                      [&_table]:w-full [&_table]:border-collapse [&_table]:my-4
+                      [&_th]:border [&_th]:border-gray-300 [&_th]:dark:border-gray-600 [&_th]:p-2 [&_th]:text-left [&_th]:bg-gray-100 [&_th]:dark:bg-gray-800 [&_th]:font-semibold
+                      [&_td]:border [&_td]:border-gray-300 [&_td]:dark:border-gray-600 [&_td]:p-2 [&_td]:text-left
+                      [&_.wp-block-embed__wrapper]:my-4
+                      [&_.twitter-tweet]:mx-auto
+                      [&_.wp-block-heading]:text-xl [&_.wp-block-heading]:font-bold [&_.wp-block-heading]:text-gray-900 [&_.wp-block-heading]:dark:text-white [&_.wp-block-heading]:mt-6 [&_.wp-block-heading]:mb-4"
+                    dangerouslySetInnerHTML={{
+                      __html: article.full_article || article.content || ''
+                    }}
+                  />
                 )}
-                
+
                 {/* Fallback if no content */}
-                {!article.description && !article.content && (
-                  <p className="text-gray-500 dark:text-gray-400 italic">
+                {!article.description && !article.content && !article.full_article && !article.summary && (
+                  <p className="text-gray-500 dark:text-gray-400 italic text-center py-8">
                     Contenido no disponible
                   </p>
                 )}

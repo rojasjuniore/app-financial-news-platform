@@ -15,6 +15,8 @@ export interface Article {
   title: string;
   description?: string;
   content?: string;
+  full_article?: string;  // Contenido completo del artículo con HTML
+  summary?: string;       // Resumen del artículo
   url?: string;
   urlToImage?: string;
   publishedAt?: string | FirestoreTimestamp;
@@ -22,6 +24,7 @@ export interface Article {
   createdAt?: string | FirestoreTimestamp;
   created_at?: string | FirestoreTimestamp;
   source?: string | { name: string; id?: string };
+  author?: string;        // Autor del artículo
   tickers?: string[];
   // NUEVO: Campos agregados para Hugging Face NER
   companies?: string[];
@@ -57,6 +60,24 @@ export interface Article {
       searchedIn: string[];
     };
   };
+  trading_analysis?: {     // Análisis de trading
+    recommendations: Array<{
+      ticker: string;
+      action: string;
+      confidence: number;
+      entry_points: {
+        ideal: number;
+        maximum: number;
+      };
+      stop_loss: number;
+      take_profit: number;
+      risk_assessment: string;
+      time_horizon: string;
+      catalyst_analysis?: string;
+    }>;
+  };
+  ai_panel?: string;        // Panel de análisis de IA
+  ai_analysis?: string;     // Análisis completo de IA
 }
 
 export interface AIAnalysisData {
