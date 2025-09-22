@@ -175,7 +175,13 @@ const TradingSignalCard = ({
                 Catalyst
               </span>
               <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                {signal.catalyst}
+                {typeof signal.catalyst === 'string'
+                  ? signal.catalyst
+                  : typeof signal.catalyst === 'object' && signal.catalyst.potential_drivers
+                  ? signal.catalyst.potential_drivers
+                  : typeof signal.catalyst === 'object'
+                  ? JSON.stringify(signal.catalyst)
+                  : signal.catalyst}
               </p>
             </div>
           </div>
@@ -1039,7 +1045,13 @@ const ArticleDetailClean: React.FC = () => {
 
                                       {signal.trading_signal?.catalyst_analysis && (
                                         <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                                          <strong>Analysis:</strong> {signal.trading_signal.catalyst_analysis}
+                                          <strong>Analysis:</strong> {
+                                            typeof signal.trading_signal.catalyst_analysis === 'string'
+                                              ? signal.trading_signal.catalyst_analysis
+                                              : typeof signal.trading_signal.catalyst_analysis === 'object' && signal.trading_signal.catalyst_analysis.potential_drivers
+                                              ? signal.trading_signal.catalyst_analysis.potential_drivers
+                                              : JSON.stringify(signal.trading_signal.catalyst_analysis)
+                                          }
                                         </div>
                                       )}
                                     </div>

@@ -3,7 +3,7 @@ import { InitialLoadingState, FeedLoadingSkeleton } from './Loading/LoadingState
 
 // Lazy-loaded components for code splitting
 const LazyFeed = React.lazy(() => import('../pages/Feed'));
-const LazyArticleDetail = React.lazy(() => import('../pages/ArticleDetail'));
+const LazyArticleDetail = React.lazy(() => import('../pages/ArticleDetailClean'));
 const LazyLogin = React.lazy(() => import('../pages/Login'));
 const LazyVirtualizedFeedList = React.lazy(() => import('./Feed/VirtualizedFeedList'));
 
@@ -46,13 +46,13 @@ export const preloadComponents = () => {
   // Preload critical components when the app is idle
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(() => {
-      import('../pages/ArticleDetail');
+      import('../pages/ArticleDetailClean');
       import('./Feed/VirtualizedFeedList');
     });
   } else {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {
-      import('../pages/ArticleDetail');
+      import('../pages/ArticleDetailClean');
       import('./Feed/VirtualizedFeedList');
     }, 2000);
   }
