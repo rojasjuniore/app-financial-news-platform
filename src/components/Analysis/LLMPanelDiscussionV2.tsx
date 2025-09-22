@@ -71,7 +71,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
   const [consensusReached, setConsensusReached] = useState(false);
   const [finalSynthesis, setFinalSynthesis] = useState<any>(null);
   const [expandedExpert, setExpandedExpert] = useState<string | null>(null);
-  const [showFullPanel, setShowFullPanel] = useState(false);
+  const [showFullPanel, setShowFullPanel] = useState(true); // Siempre expandido por defecto
   const [lastGeneratedLanguage, setLastGeneratedLanguage] = useState<string | null>(null);
   const [marketData, setMarketData] = useState<{[key: string]: MarketData}>({});
   const [hasGeneratedOnce, setHasGeneratedOnce] = useState(false);
@@ -92,7 +92,7 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
       setHasGeneratedOnce(true);
       setIsPanelLoaded(true);
       setLastGeneratedLanguage(cachedPanel.language);
-      setShowFullPanel(false); // Mantener colapsado inicialmente
+      setShowFullPanel(true); // Mantener expandido para mostrar siempre el contenido
     }
   }, [articleId]);
 
@@ -337,13 +337,14 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
                       </span>
                     </div>
                   )}
-                  <button
+                  {/* Botón de expandir/colapsar - opcional, comentado para siempre mostrar expandido */}
+                  {/* <button
                     onClick={() => setShowFullPanel(!showFullPanel)}
                     className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
                     title={showFullPanel ? t('common.collapse') : t('common.expand')}
                   >
                     {showFullPanel ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
+                  </button> */}
                   <button
                     onClick={() => startPanelDiscussion(true)}
                     disabled={isGenerating}
@@ -573,8 +574,8 @@ const LLMPanelDiscussionV2: React.FC<LLMPanelDiscussionV2Props> = ({
         </div>
       )}
 
-      {/* Panel de Discusión Expandible */}
-      {showFullPanel && discussion.length > 0 && (
+      {/* Panel de Discusión - Siempre visible cuando hay datos */}
+      {discussion.length > 0 && (
         <div className="space-y-3 animate-fadeIn">
           {/* Estadísticas del panel */}
           {metrics && (
