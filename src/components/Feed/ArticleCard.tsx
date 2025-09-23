@@ -182,7 +182,7 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
 
         {/* Tickers */}
         {article.tickers && article.tickers.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
+          <div className="flex flex-wrap gap-1.5 mb-3">
             {article.tickers.slice(0, 3).map(ticker => (
               <span
                 key={ticker}
@@ -194,6 +194,28 @@ const ArticleCard: React.FC<ArticleCardProps> = React.memo(({
             {article.tickers.length > 3 && (
               <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs transition-colors duration-300">
                 +{article.tickers.length - 3}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Sectors */}
+        {article.sectors && article.sectors.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {article.sectors.slice(0, 2).map((sector, index) => {
+              const sectorName = typeof sector === 'string' ? sector : sector.sector;
+              return (
+                <span
+                  key={index}
+                  className="px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-xs font-medium transition-colors duration-300"
+                >
+                  {sectorName}
+                </span>
+              );
+            })}
+            {article.sectors.length > 2 && (
+              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded text-xs transition-colors duration-300">
+                +{article.sectors.length - 2}
               </span>
             )}
           </div>

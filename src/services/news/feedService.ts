@@ -3,6 +3,71 @@ import { FeedResponse, Article, UserProfile, Interaction } from '../../types';
 import { usageTracker } from '../tracking';
 
 export const feedService = {
+  // Obtener feed simple con 3 modos: trending, my-interests, all
+  getSimpleFeed: async (params: {
+    mode?: 'trending' | 'my-interests' | 'all';
+    sortBy?: 'time' | 'importance' | 'quality';
+    limit?: number;
+    offset?: number;
+    timeRange?: number;
+    userId?: string;
+  } = {}): Promise<FeedResponse> => {
+    try {
+      console.log('📡 FeedService: Fetching simple feed with params:', params);
+      console.log('📡 FeedService: API Base URL:', apiClient.defaults.baseURL);
+
+      // OPTIMIZACIÓN: Usar el endpoint simple-feed que tiene el algoritmo de importancia
+      const response = await apiClient.get('/api/news/simple-feed', { params });
+      console.log('📦 FeedService: Simple feed response status:', response.status);
+      console.log('📦 FeedService: Simple feed response data:', response.data);
+
+      // Handle standardized API response format
+      const data = response.data.success ? response.data.data : response.data;
+
+      console.log('✅ Processed simple feed data:', {
+        articlesCount: data?.articles?.length || 0,
+        total: data?.total || 0,
+        hasMore: data?.hasMore || false,
+        mode: data?.mode,
+        sortBy: data?.sortBy
+      });
+
+      // Add importance_score to articles interface - ahora viene del backend
+      const articlesWithImportance = data?.articles?.map((article: any) => ({
+        ...article,
+        importance_score: article.importance_score || 0
+      })) || [];
+
+      // Ensure we always return a valid FeedResponse
+      if (!data) {
+        return {
+          articles: [],
+          total: 0,
+          hasMore: false
+        };
+      }
+
+      return {
+        articles: articlesWithImportance,
+        total: data.total || 0,
+        hasMore: data.hasMore || false,
+        metadata: {
+          mode: data.mode,
+          sortBy: data.sortBy,
+          userInterests: data.userInterests
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching simple feed:', error);
+      // Return empty feed on error
+      return {
+        articles: [],
+        total: 0,
+        hasMore: false
+      };
+    }
+  },
+
   // Obtener feed personalizado - USANDO RUTA CORRECTA
   getFeed: async (params: {
     limit?: number;
@@ -52,45 +117,98 @@ export const feedService = {
 
   // Obtener perfil del usuario - USANDO TRACKING
   getProfile: async (): Promise<UserProfile> => {
-    const { data } = await apiClient.get('/api/tracking/preferences');
-    
-    // Crear un perfil completo con valores por defecto
-    const profile: UserProfile = {
-      userId: data.preferences.userId || '',
-      interests: data.preferences.interests || {
-        tickers: [],
-        sectors: [],
-        topics: [],
-        marketTypes: []
-      },
-      preferences: {
-        sentimentBias: 'balanced',
-        riskTolerance: 'medium',
-        timeHorizon: 'medium_term',
-        newsFrequency: 'moderate',
-        languagePreference: data.preferences.language || 'en',
-        notificationSettings: data.preferences.notifications
-      },
-      behavior: {
-        viewedArticles: [],
-        likedArticles: [],
-        savedArticles: [],
-        searchHistory: [],
-        tickerClicks: {},
-        categoryViews: {},
-        avgReadTime: 0,
-        lastActive: new Date().toISOString()
-      },
-      scoring: {
-        engagementScore: 0,
-        expertiseLevel: 'beginner',
-        preferredComplexity: 'medium'
-      },
-      createdAt: data.preferences.createdAt || new Date().toISOString(),
-      updatedAt: data.preferences.updatedAt || new Date().toISOString()
-    };
-    
-    return profile;
+    try {
+      const response = await apiClient.get('/api/tracking/preferences');
+
+      // Extract the actual preferences data from the API response
+      const prefsData = response.data?.data || {};
+
+      // Crear un perfil completo con valores por defecto
+      const profile: UserProfile = {
+        userId: prefsData.userId || 'anonymous',
+        interests: prefsData.interests || {
+          tickers: prefsData.watched_tickers || [],
+          sectors: [],
+          topics: [],
+          marketTypes: []
+        },
+        preferences: {
+          sentimentBias: 'balanced',
+          riskTolerance: 'medium',
+          timeHorizon: 'medium_term',
+          newsFrequency: 'moderate',
+          languagePreference: prefsData.language || 'en',
+          notificationSettings: {
+            breakingNews: prefsData.enable_notifications !== undefined ? prefsData.enable_notifications : true,
+            priceAlerts: true,
+            earningsAlerts: true,
+            portfolioUpdates: true
+          }
+        },
+        behavior: {
+          viewedArticles: [],
+          likedArticles: [],
+          savedArticles: [],
+          searchHistory: [],
+          tickerClicks: {},
+          categoryViews: {},
+          avgReadTime: 0,
+          lastActive: new Date().toISOString()
+        },
+        scoring: {
+          engagementScore: 0,
+          expertiseLevel: 'beginner',
+          preferredComplexity: 'medium'
+        },
+        createdAt: prefsData.createdAt || new Date().toISOString(),
+        updatedAt: prefsData.updatedAt || new Date().toISOString()
+      };
+
+      return profile;
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+
+      // Return default profile if there's an error
+      return {
+        userId: 'anonymous',
+        interests: {
+          tickers: [],
+          sectors: [],
+          topics: [],
+          marketTypes: []
+        },
+        preferences: {
+          sentimentBias: 'balanced',
+          riskTolerance: 'medium',
+          timeHorizon: 'medium_term',
+          newsFrequency: 'moderate',
+          languagePreference: 'en',
+          notificationSettings: {
+            breakingNews: true,
+            priceAlerts: true,
+            earningsAlerts: true,
+            portfolioUpdates: true
+          }
+        },
+        behavior: {
+          viewedArticles: [],
+          likedArticles: [],
+          savedArticles: [],
+          searchHistory: [],
+          tickerClicks: {},
+          categoryViews: {},
+          avgReadTime: 0,
+          lastActive: new Date().toISOString()
+        },
+        scoring: {
+          engagementScore: 0,
+          expertiseLevel: 'beginner',
+          preferredComplexity: 'medium'
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    }
   },
 
   // Actualizar intereses - USANDO TRACKING

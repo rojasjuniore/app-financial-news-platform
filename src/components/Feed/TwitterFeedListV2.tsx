@@ -529,13 +529,19 @@ const TwitterFeedListV2: React.FC = () => {
                         })()}
                       </div>
                       
-                      {/* Sentiment */}
+                      {/* Sentiment with FinBERT Score */}
                       {article.sentiment && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           {getSentimentIcon(article.sentiment)}
-                          <span className="capitalize">
+                          <span className="capitalize font-medium">
                             {formatSentiment(article.sentiment).toLowerCase()}
                           </span>
+                          {/* FinBERT Score if available */}
+                          {typeof article.sentiment === 'object' && article.sentiment.score && (
+                            <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs font-semibold">
+                              {(article.sentiment.score * 100).toFixed(0)}%
+                            </span>
+                          )}
                         </div>
                       )}
                       
@@ -544,45 +550,77 @@ const TwitterFeedListV2: React.FC = () => {
                         <QualityBadge classification={article.quality_classification} size="sm" />
                       )}
 
-                      {/* Tickers */}
+                      {/* Enhanced Tickers Display */}
                       {article.tickers && article.tickers.length > 0 && (
-                        <div className="flex items-center gap-1">
-                          <Hash className="w-3 h-3" />
-                          <span>{article.tickers.slice(0, 2).join(', ')}</span>
-                          {article.tickers.length > 2 && (
-                            <span>+{article.tickers.length - 2}</span>
-                          )}
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded-full">
+                            <Hash className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            <span className="text-blue-700 dark:text-blue-300 font-medium">
+                              ${article.tickers.slice(0, 2).join(', $')}
+                            </span>
+                            {article.tickers.length > 2 && (
+                              <span className="text-blue-600 dark:text-blue-400">+{article.tickers.length - 2}</span>
+                            )}
+                          </div>
                         </div>
                       )}
                       
-                      {/* NUEVO: Empresas detectadas */}
+                      {/* Enhanced Companies Display */}
                       {article.companies && article.companies.length > 0 && (
-                        <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                          <span className="font-medium">📊</span>
-                          <span className="text-xs">{article.companies.slice(0, 2).join(', ')}</span>
-                          {article.companies.length > 2 && (
-                            <span>+{article.companies.length - 2}</span>
-                          )}
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-green-50 dark:bg-green-900/30 rounded-full">
+                            <span className="text-green-600 dark:text-green-400">🏭</span>
+                            <span className="text-xs text-green-700 dark:text-green-300 font-medium">
+                              {article.companies.slice(0, 2).join(', ')}
+                            </span>
+                            {article.companies.length > 2 && (
+                              <span className="text-green-600 dark:text-green-400 text-xs">+{article.companies.length - 2}</span>
+                            )}
+                          </div>
                         </div>
                       )}
                       
-                      {/* NUEVO: Sectores detectados */}
+                      {/* Enhanced Sectors Display */}
                       {article.sectors && article.sectors.length > 0 && (
-                        <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
-                          <span className="font-medium">🏢</span>
-                          <span className="text-xs">
-                            {article.sectors.slice(0, 2).map((s: string | { sector: string }) => 
-                              typeof s === 'string' ? s : s.sector
-                            ).join(', ')}
-                          </span>
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-purple-50 dark:bg-purple-900/30 rounded-full">
+                            <span className="text-purple-600 dark:text-purple-400">💼</span>
+                            <span className="text-xs text-purple-700 dark:text-purple-300 font-medium">
+                              {article.sectors.slice(0, 2).map((s: string | { sector: string }) =>
+                                typeof s === 'string' ? s : s.sector
+                              ).join(', ')}
+                            </span>
+                            {article.sectors.length > 2 && (
+                              <span className="text-purple-600 dark:text-purple-400 text-xs">+{article.sectors.length - 2}</span>
+                            )}
+                          </div>
                         </div>
                       )}
                       
-                      {/* NUEVO: Método de extracción (solo en modo debug) */}
-                      {article.extraction_metadata?.method && article.extraction_metadata.method.includes('huggingface') && (
-                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                          <span className="font-medium">🤖</span>
-                          <span className="text-xs">AI Enhanced</span>
+                      {/* Quality Score Display */}
+                      {article.quality_score && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 rounded-full">
+                            <span className="text-amber-600 dark:text-amber-400">⭐</span>
+                            <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
+                              Q: {article.quality_score}/100
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Topics if available */}
+                      {article.extracted_entities?.topics && article.extracted_entities.topics.length > 0 && (
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-teal-50 dark:bg-teal-900/30 rounded-full">
+                            <span className="text-teal-600 dark:text-teal-400">📌</span>
+                            <span className="text-xs text-teal-700 dark:text-teal-300 font-medium">
+                              {article.extracted_entities.topics.slice(0, 2).join(', ')}
+                            </span>
+                            {article.extracted_entities.topics.length > 2 && (
+                              <span className="text-teal-600 dark:text-teal-400 text-xs">+{article.extracted_entities.topics.length - 2}</span>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
