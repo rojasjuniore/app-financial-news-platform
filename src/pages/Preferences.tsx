@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Bot,
   Hash,
@@ -31,6 +32,7 @@ interface UserInterests {
 const Preferences: React.FC = () => {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   
   // Estados para configuraciones funcionales con la API
   const [interests, setInterests] = useState<UserInterests>({
@@ -93,6 +95,15 @@ const Preferences: React.FC = () => {
           marketTypes: profile.interests.marketTypes || [],
           keywords: profile.interests.keywords || []
         });
+
+        // Mark if user has interests configured
+        const hasInterests = (profile.interests.tickers?.length > 0 ||
+                            profile.interests.sectors?.length > 0 ||
+                            profile.interests.marketTypes?.length > 0 ||
+                            profile.interests.keywords?.length > 0);
+        if (hasInterests) {
+          localStorage.setItem('userHasInterests', 'true');
+        }
       }
       
       if (profile && profile.preferences) {
@@ -127,6 +138,16 @@ const Preferences: React.FC = () => {
       console.log('💾 Guardando intereses:', interests);
       const result = await feedService.updateInterests(interests);
       console.log('✅ Resultado guardar intereses:', result);
+
+      // Mark that user has interests if they have at least one configured
+      if (interests.tickers.length > 0 || interests.sectors.length > 0 ||
+          interests.marketTypes.length > 0 || interests.keywords.length > 0) {
+        localStorage.setItem('userHasInterests', 'true');
+      }
+
+      // Invalidate profile cache to force reload
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
+
       toast.success(t('settings.changesSaved'));
     } catch (error: any) {
       console.error('❌ Error actualizando intereses:', error);

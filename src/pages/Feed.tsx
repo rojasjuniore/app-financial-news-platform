@@ -14,17 +14,20 @@ const Feed: React.FC = () => {
   const [feedMode, setFeedMode] = useState<'enhanced' | 'optimized' | 'simple'>('enhanced'); // Default to enhanced
 
   useEffect(() => {
-    // Check if onboarding was already completed
+    // Check if user has configured interests
+    const userHasInterests = localStorage.getItem('userHasInterests') === 'true';
     const onboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
 
     // Only redirect to onboarding if:
-    // 1. User is truly new (no interests)
-    // 2. Haven't just completed onboarding
-    if (!isLoading && isNewUser && !onboardingCompleted) {
+    // 1. User is truly new (no interests configured)
+    // 2. Haven't marked as having interests
+    // 3. Not coming from onboarding completion
+    if (!isLoading && isNewUser && !userHasInterests && !onboardingCompleted) {
+      console.log('Redirecting to onboarding - User has no interests');
       navigate('/onboarding');
     }
 
-    // Clear the onboarding flag after checking
+    // Clear the temporary onboarding flag after checking
     if (onboardingCompleted) {
       localStorage.removeItem('onboardingCompleted');
     }

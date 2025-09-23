@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -79,6 +80,7 @@ const getSectors = (t: any) => [
 const InterestsSetup: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
@@ -134,6 +136,10 @@ const InterestsSetup: React.FC = () => {
       // Save preferences for later use
       localStorage.setItem('feedMode', 'my-interests');
       localStorage.setItem('onboardingCompleted', 'true');
+      localStorage.setItem('userHasInterests', 'true'); // Mark that user has configured interests
+
+      // Invalidate profile cache to force reload with new interests
+      await queryClient.invalidateQueries({ queryKey: ['profile'] });
 
       toast.success(t('onboarding.perfectFeedReady'));
 
