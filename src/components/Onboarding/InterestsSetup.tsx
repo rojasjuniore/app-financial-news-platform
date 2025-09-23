@@ -126,12 +126,30 @@ const InterestsSetup: React.FC = () => {
   const handleComplete = async () => {
     setIsLoading(true);
     try {
-      await feedService.updateInterests({
+      // Save interests with the same structure as Preferences
+      const interestsData = {
         marketTypes: selectedMarkets,
         tickers: selectedTickers,
         sectors: selectedSectors,
-        topics: []
-      });
+        topics: [],
+        keywords: [] // Include keywords field like in Preferences
+      };
+
+      console.log('💾 Guardando intereses desde onboarding:', interestsData);
+      await feedService.updateInterests(interestsData);
+
+      // Also save default preferences like in Preferences.tsx
+      const defaultPreferences = {
+        sentimentBias: 'balanced',
+        riskTolerance: 'medium',
+        timeHorizon: 'medium_term',
+        newsFrequency: 'moderate',
+        defaultLLMModel: 'openai',
+        minRelevanceScore: 30
+      };
+
+      console.log('💾 Guardando preferencias por defecto:', defaultPreferences);
+      await feedService.updatePreferences(defaultPreferences);
 
       // Save preferences for later use
       localStorage.setItem('feedMode', 'my-interests');
