@@ -130,9 +130,15 @@ const InterestsSetup: React.FC = () => {
         sectors: selectedSectors,
         topics: []
       });
-      
+
+      // Clear any cached feed data to force refresh
+      localStorage.setItem('feedMode', 'my-interests');
+      localStorage.setItem('onboardingCompleted', 'true');
+
       toast.success(t('onboarding.perfectFeedReady'));
-      navigate('/feed');
+
+      // Navigate to feed with my-interests mode
+      navigate('/feed?mode=my-interests');
     } catch (error) {
       toast.error(t('errors.savingPreferences'));
       console.error('Error:', error);

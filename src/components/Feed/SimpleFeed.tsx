@@ -24,7 +24,32 @@ type SortBy = 'time' | 'importance' | 'quality';
 
 const SimpleFeed: React.FC = () => {
   const { user } = useAuth();
-  const [mode, setMode] = useState<FeedMode>('trending');
+
+  // Check for mode from URL params or localStorage
+  const getInitialMode = (): FeedMode => {
+    // Check URL params first
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlMode = urlParams.get('mode');
+    if (urlMode && ['trending', 'my-interests', 'all'].includes(urlMode)) {
+      return urlMode as FeedMode;
+    }
+
+    // Check localStorage for saved mode
+    const savedMode = localStorage.getItem('feedMode');
+    if (savedMode && ['trending', 'my-interests', 'all'].includes(savedMode)) {
+      return savedMode as FeedMode;
+    }
+
+    // Check if coming from onboarding
+    if (localStorage.getItem('onboardingCompleted') === 'true') {
+      localStorage.removeItem('onboardingCompleted');
+      return 'my-interests';
+    }
+
+    return 'trending';
+  };
+
+  const [mode, setMode] = useState<FeedMode>(getInitialMode());
   const [sortBy, setSortBy] = useState<SortBy>('time');
   const [page, setPage] = useState(0);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
@@ -68,6 +93,11 @@ const SimpleFeed: React.FC = () => {
       }
     }
   }, [data, page]);
+
+  // Save mode to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('feedMode', mode);
+  }, [mode]);
 
   // Reset page when mode or sort changes
   useEffect(() => {
