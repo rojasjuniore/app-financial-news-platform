@@ -131,14 +131,14 @@ const InterestsSetup: React.FC = () => {
         topics: []
       });
 
-      // Clear any cached feed data to force refresh
+      // Save preferences for later use
       localStorage.setItem('feedMode', 'my-interests');
       localStorage.setItem('onboardingCompleted', 'true');
 
       toast.success(t('onboarding.perfectFeedReady'));
 
-      // Navigate to feed with my-interests mode
-      navigate('/feed?mode=my-interests');
+      // Navigate to dashboard after onboarding
+      navigate('/dashboard');
     } catch (error) {
       toast.error(t('errors.savingPreferences'));
       console.error('Error:', error);
@@ -334,7 +334,7 @@ const InterestsSetup: React.FC = () => {
         {/* Actions */}
         <div className="flex items-center justify-between">
           <button
-            onClick={() => step > 1 ? setStep(step - 1) : navigate('/feed')}
+            onClick={() => step > 1 ? setStep(step - 1) : navigate('/dashboard')}
             className="px-6 py-3 text-gray-600 hover:text-gray-900 font-medium transition-colors flex items-center"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />

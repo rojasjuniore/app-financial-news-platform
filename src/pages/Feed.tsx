@@ -14,9 +14,19 @@ const Feed: React.FC = () => {
   const [feedMode, setFeedMode] = useState<'enhanced' | 'optimized' | 'simple'>('enhanced'); // Default to enhanced
 
   useEffect(() => {
-    // Redirigir a onboarding si es usuario nuevo
-    if (!isLoading && isNewUser) {
+    // Check if onboarding was already completed
+    const onboardingCompleted = localStorage.getItem('onboardingCompleted') === 'true';
+
+    // Only redirect to onboarding if:
+    // 1. User is truly new (no interests)
+    // 2. Haven't just completed onboarding
+    if (!isLoading && isNewUser && !onboardingCompleted) {
       navigate('/onboarding');
+    }
+
+    // Clear the onboarding flag after checking
+    if (onboardingCompleted) {
+      localStorage.removeItem('onboardingCompleted');
     }
   }, [isLoading, isNewUser, navigate]);
 
