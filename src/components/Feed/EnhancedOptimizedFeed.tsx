@@ -64,21 +64,21 @@ const getSentimentColor = (sentiment?: string) => {
 const getSentimentBadge = (sentiment?: string) => {
   switch (sentiment) {
     case 'very_bullish':
-      return { emoji: '🚀', text: 'MUY BULLISH', color: 'bg-green-500 text-white' };
+      return { emoji: '🚀', text: 'VERY BULLISH', color: 'bg-green-500 text-white' };
     case 'bullish':
       return { emoji: '📈', text: 'BULLISH', color: 'bg-green-400 text-white' };
     case 'positive':
-      return { emoji: '👍', text: 'POSITIVO', color: 'bg-emerald-400 text-white' };
+      return { emoji: '👍', text: 'POSITIVE', color: 'bg-emerald-400 text-white' };
     case 'neutral':
       return { emoji: '➖', text: 'NEUTRAL', color: 'bg-gray-400 text-white' };
     case 'negative':
-      return { emoji: '👎', text: 'NEGATIVO', color: 'bg-orange-400 text-white' };
+      return { emoji: '👎', text: 'NEGATIVE', color: 'bg-orange-400 text-white' };
     case 'bearish':
       return { emoji: '📉', text: 'BEARISH', color: 'bg-red-400 text-white' };
     case 'very_bearish':
-      return { emoji: '🔻', text: 'MUY BEARISH', color: 'bg-red-500 text-white' };
+      return { emoji: '🔻', text: 'VERY BEARISH', color: 'bg-red-500 text-white' };
     default:
-      return { emoji: '❓', text: 'DESCONOCIDO', color: 'bg-gray-300 text-gray-700' };
+      return { emoji: '❓', text: 'UNKNOWN', color: 'bg-gray-300 text-gray-700' };
   }
 };
 
@@ -87,15 +87,15 @@ const getMarketSignal = (sentiment?: string, score?: number) => {
   const strength = Math.abs(score || 0);
 
   if (sentiment === 'very_bullish' || (sentiment === 'bullish' && strength > 0.7)) {
-    return { icon: '🟢🟢', text: 'COMPRA FUERTE', color: 'text-green-600' };
+    return { icon: '🟢🟢', text: 'STRONG BUY', color: 'text-green-600' };
   } else if (sentiment === 'bullish' || sentiment === 'positive') {
-    return { icon: '🟢', text: 'COMPRA', color: 'text-green-500' };
+    return { icon: '🟢', text: 'BUY', color: 'text-green-500' };
   } else if (sentiment === 'very_bearish' || (sentiment === 'bearish' && strength > 0.7)) {
-    return { icon: '🔴🔴', text: 'VENTA FUERTE', color: 'text-red-600' };
+    return { icon: '🔴🔴', text: 'STRONG SELL', color: 'text-red-600' };
   } else if (sentiment === 'bearish' || sentiment === 'negative') {
-    return { icon: '🔴', text: 'VENTA', color: 'text-red-500' };
+    return { icon: '🔴', text: 'SELL', color: 'text-red-500' };
   } else {
-    return { icon: '⚪', text: 'MANTENER', color: 'text-gray-500' };
+    return { icon: '⚪', text: 'HOLD', color: 'text-gray-500' };
   }
 };
 
@@ -303,28 +303,28 @@ const EnhancedOptimizedFeed: React.FC = () => {
       mode: 'bearish' as FeedMode,
       icon: TrendingDown,
       label: 'Bearish',
-      description: 'Señales negativas',
+      description: 'Negative signals',
       color: 'from-red-500 to-red-600'
     },
     {
       mode: 'high-impact' as FeedMode,
       icon: Zap,
-      label: 'Alto Impacto',
-      description: 'Mayor volatilidad',
+      label: 'High Impact',
+      description: 'Higher volatility',
       color: 'from-purple-500 to-indigo-500'
     },
     {
       mode: 'my-interests' as FeedMode,
       icon: Star,
-      label: 'Mis Intereses',
-      description: 'Personalizado',
+      label: 'My Interests',
+      description: 'Personalized',
       color: 'from-yellow-400 to-orange-400'
     },
     {
       mode: 'all' as FeedMode,
       icon: Globe,
-      label: 'Todo',
-      description: 'Sin filtros',
+      label: 'All',
+      description: 'No filters',
       color: 'from-blue-500 to-cyan-500'
     }
   ];
@@ -334,7 +334,7 @@ const EnhancedOptimizedFeed: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center p-8">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-300">Error al cargar el feed</p>
+          <p className="text-gray-600 dark:text-gray-300">Error loading feed</p>
         </div>
       </div>
     );
@@ -358,10 +358,10 @@ const EnhancedOptimizedFeed: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Sentimiento del Mercado
+                    Market Sentiment
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Análisis de {marketSummary.totalArticles} noticias
+                    Analysis of {marketSummary.totalArticles} news
                   </p>
                 </div>
               </div>
@@ -493,17 +493,17 @@ const EnhancedOptimizedFeed: React.FC = () => {
             className="px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
           >
             <Filter className="w-4 h-4" />
-            <span className="text-sm font-medium">Filtros</span>
+            <span className="text-sm font-medium">Filters</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Quick Sort Options */}
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">Ordenar:</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Sort:</span>
             {[
-              { value: 'time' as SortBy, label: 'Reciente', icon: Clock },
-              { value: 'impact' as SortBy, label: 'Impacto', icon: Zap },
-              { value: 'sentiment' as SortBy, label: 'Sentimiento', icon: Activity }
+              { value: 'time' as SortBy, label: 'Recent', icon: Clock },
+              { value: 'impact' as SortBy, label: 'Impact', icon: Zap },
+              { value: 'sentiment' as SortBy, label: 'Sentiment', icon: Activity }
             ].map((option) => (
               <button
                 key={option.value}
@@ -528,7 +528,7 @@ const EnhancedOptimizedFeed: React.FC = () => {
             className="ml-auto px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center gap-2 hover:bg-blue-600 transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            <span className="text-sm font-medium">Actualizar</span>
+            <span className="text-sm font-medium">Update</span>
           </button>
         </div>
 
@@ -543,16 +543,16 @@ const EnhancedOptimizedFeed: React.FC = () => {
             >
               <div className="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-md">
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                  Filtrar por Sentimiento
+                  Filter by Sentiment
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { value: 'all' as SentimentFilter, label: 'Todos', color: 'bg-gray-100 dark:bg-gray-700' },
-                    { value: 'very_bullish' as SentimentFilter, label: '🚀 Muy Bullish', color: 'bg-green-100 dark:bg-green-900' },
+                    { value: 'all' as SentimentFilter, label: 'All', color: 'bg-gray-100 dark:bg-gray-700' },
+                    { value: 'very_bullish' as SentimentFilter, label: '🚀 Very Bullish', color: 'bg-green-100 dark:bg-green-900' },
                     { value: 'bullish' as SentimentFilter, label: '📈 Bullish', color: 'bg-green-50 dark:bg-green-800' },
                     { value: 'neutral' as SentimentFilter, label: '➖ Neutral', color: 'bg-gray-50 dark:bg-gray-700' },
                     { value: 'bearish' as SentimentFilter, label: '📉 Bearish', color: 'bg-red-50 dark:bg-red-900' },
-                    { value: 'very_bearish' as SentimentFilter, label: '🔻 Muy Bearish', color: 'bg-red-100 dark:bg-red-800' }
+                    { value: 'very_bearish' as SentimentFilter, label: '🔻 Very Bearish', color: 'bg-red-100 dark:bg-red-800' }
                   ].map((filter) => (
                     <button
                       key={filter.value}
@@ -617,7 +617,7 @@ const EnhancedOptimizedFeed: React.FC = () => {
                           {/* Impact Score Badge */}
                           {article.impact_score && article.impact_score > 70 && (
                             <div className="px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 text-xs font-semibold">
-                              ⚡ Alto Impacto
+                              ⚡ High Impact
                             </div>
                           )}
 
