@@ -97,10 +97,10 @@ const Preferences: React.FC = () => {
         });
 
         // Mark if user has interests configured
-        const hasInterests = (profile.interests.tickers?.length > 0 ||
-                            profile.interests.sectors?.length > 0 ||
-                            profile.interests.marketTypes?.length > 0 ||
-                            profile.interests.keywords?.length > 0);
+        const hasInterests = ((profile.interests.tickers?.length || 0) > 0 ||
+                            (profile.interests.sectors?.length || 0) > 0 ||
+                            (profile.interests.marketTypes?.length || 0) > 0 ||
+                            (profile.interests.keywords?.length || 0) > 0);
         if (hasInterests) {
           localStorage.setItem('userHasInterests', 'true');
         }
