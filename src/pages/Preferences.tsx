@@ -76,18 +76,18 @@ const Preferences: React.FC = () => {
       setIsLoading(true);
       
       if (!user) {
-        console.log('⚠️ Usuario no autenticado');
+        console.log('⚠️ User not authenticated');
         return;
       }
       
-      console.log('🔄 Cargando configuraciones del usuario...');
-      console.log('👤 Usuario actual:', user.email);
+      console.log('🔄 Loading user settings...');
+      console.log('👤 Current user:', user.email);
       
       const profile = await feedService.getProfile();
-      console.log('📋 Perfil cargado:', profile);
+      console.log('📋 Profile loaded:', profile);
       
       if (profile && profile.interests) {
-        console.log('✅ Cargando intereses:', profile.interests);
+        console.log('✅ Loading interests:', profile.interests);
         setInterests({
           tickers: profile.interests.tickers || [],
           sectors: profile.interests.sectors || [],
@@ -107,7 +107,7 @@ const Preferences: React.FC = () => {
       }
       
       if (profile && profile.preferences) {
-        console.log('✅ Cargando preferencias:', profile.preferences);
+        console.log('✅ Loading preferences:', profile.preferences);
         setPreferences({
           ...profile.preferences,
           defaultLLMModel: profile.preferences.defaultLLMModel || 'openai'
@@ -115,11 +115,11 @@ const Preferences: React.FC = () => {
       }
       
     } catch (error: any) {
-      console.error('❌ Error cargando configuraciones:', error);
+      console.error('❌ Error loading settings:', error);
       if (error.response?.status === 401) {
         toast.error(t('errors.unauthorized'));
       } else {
-        toast.error(`Error cargando configuraciones: ${error.response?.data?.error || error.message}`);
+        toast.error(`Error loading settings: ${error.response?.data?.error || error.message}`);
       }
     } finally {
       setIsLoading(false);
@@ -135,9 +135,9 @@ const Preferences: React.FC = () => {
         return;
       }
       
-      console.log('💾 Guardando intereses:', interests);
+      console.log('💾 Saving interests:', interests);
       const result = await feedService.updateInterests(interests);
-      console.log('✅ Resultado guardar intereses:', result);
+      console.log('✅ Interests save result:', result);
 
       // Mark that user has interests if they have at least one configured
       if (interests.tickers.length > 0 || interests.sectors.length > 0 ||
@@ -150,7 +150,7 @@ const Preferences: React.FC = () => {
 
       toast.success(t('settings.changesSaved'));
     } catch (error: any) {
-      console.error('❌ Error actualizando intereses:', error);
+      console.error('❌ Error updating interests:', error);
       if (error.response?.status === 401) {
         toast.error(t('errors.unauthorized'));
       } else {
@@ -170,12 +170,12 @@ const Preferences: React.FC = () => {
         return;
       }
       
-      console.log('💾 Guardando preferencias:', preferences);
+      console.log('💾 Saving preferences:', preferences);
       const result = await feedService.updatePreferences(preferences);
-      console.log('✅ Resultado guardar preferencias:', result);
+      console.log('✅ Preferences save result:', result);
       toast.success(t('settings.changesSaved'));
     } catch (error: any) {
-      console.error('❌ Error actualizando preferencias:', error);
+      console.error('❌ Error updating preferences:', error);
       if (error.response?.status === 401) {
         toast.error(t('errors.unauthorized'));
       } else {

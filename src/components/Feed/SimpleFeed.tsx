@@ -109,7 +109,7 @@ const SimpleFeed: React.FC = () => {
     setPage(0);
     setAllArticles([]);
     refetch();
-    toast.success('Feed actualizado');
+    toast.success('Feed updated');
   }, [refetch]);
 
   const loadMore = useCallback(() => {
@@ -125,21 +125,21 @@ const SimpleFeed: React.FC = () => {
         return {
           icon: TrendingUp,
           title: 'Trending',
-          description: 'Los 20 artículos más recientes e importantes',
+          description: 'The 20 most recent and important articles',
           color: 'text-red-500'
         };
       case 'my-interests':
         return {
           icon: Star,
-          title: 'Mis Intereses',
-          description: 'Los 20 artículos más recientes de tus intereses',
+          title: 'My Interests',
+          description: 'The 20 most recent articles from your interests',
           color: 'text-yellow-500'
         };
       case 'all':
         return {
           icon: Globe,
-          title: 'Todos',
-          description: 'Los 20 artículos más recientes de todas las fuentes',
+          title: 'All',
+          description: 'The 20 most recent articles from all sources',
           color: 'text-blue-500'
         };
     }
@@ -170,7 +170,7 @@ const SimpleFeed: React.FC = () => {
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
-            Actualizar
+            Update
           </button>
         </div>
 
@@ -196,7 +196,7 @@ const SimpleFeed: React.FC = () => {
             }`}
           >
             <Star className="w-4 h-4" />
-            Mis Intereses
+            My Interests
           </button>
           <button
             onClick={() => setMode('all')}
@@ -207,22 +207,22 @@ const SimpleFeed: React.FC = () => {
             }`}
           >
             <Globe className="w-4 h-4" />
-            Todos
+            All
           </button>
         </div>
 
         {/* Sort Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 dark:text-gray-400">Ordenar por:</span>
+          <span className="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
           <div className="relative">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
               className="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="time">📅 Más Recientes (últimos 20)</option>
-              <option value="importance">⚡ Importancia</option>
-              <option value="quality">⭐ Calidad</option>
+              <option value="time">📅 Most Recent (last 20)</option>
+              <option value="importance">⚡ Importance</option>
+              <option value="quality">⭐ Quality</option>
             </select>
             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -232,7 +232,7 @@ const SimpleFeed: React.FC = () => {
             <div className="ml-auto flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <Activity className="w-4 h-4" />
-                <span>{data.total} artículos</span>
+                <span>{data.total} articles</span>
               </div>
               {mode === 'my-interests' && data.metadata?.userInterests && (
                 <div className="flex items-center gap-1">
@@ -240,7 +240,7 @@ const SimpleFeed: React.FC = () => {
                   <span>
                     {(data.metadata.userInterests.tickers?.length || 0) +
                      (data.metadata.userInterests.sectors?.length || 0) +
-                     (data.metadata.userInterests.keywords?.length || 0)} intereses
+                     (data.metadata.userInterests.keywords?.length || 0)} interests
                   </span>
                 </div>
               )}
@@ -253,7 +253,7 @@ const SimpleFeed: React.FC = () => {
       {isLoading && (
         <div className="flex flex-col items-center justify-center py-20">
           <Activity className="w-12 h-12 text-blue-500 animate-pulse mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Cargando noticias...</p>
+          <p className="text-gray-600 dark:text-gray-400">Loading news...</p>
         </div>
       )}
 
@@ -263,7 +263,7 @@ const SimpleFeed: React.FC = () => {
           <AlertCircle className="w-6 h-6 text-red-500" />
           <div>
             <h3 className="text-lg font-semibold text-red-900 dark:text-red-100">
-              Error cargando noticias
+              Error loading news
             </h3>
             <p className="text-red-700 dark:text-red-300 text-sm mt-1">
               {(error as Error).message}
@@ -277,16 +277,16 @@ const SimpleFeed: React.FC = () => {
         <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-8 text-center">
           <Star className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
-            No hay artículos para tus intereses
+            No articles for your interests
           </h3>
           <p className="text-yellow-700 dark:text-yellow-300 mb-4">
-            Configura tus tickers, sectores y keywords en Preferencias para ver contenido personalizado
+            Configure your tickers, sectors and keywords in Preferences to see personalized content
           </p>
           <button
             onClick={() => window.location.href = '/preferences'}
             className="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
           >
-            Ir a Preferencias
+            Go to Preferences
           </button>
         </div>
       )}
@@ -296,10 +296,10 @@ const SimpleFeed: React.FC = () => {
         <div className="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-8 text-center">
           <Globe className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            No hay artículos disponibles
+            No articles available
           </h3>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Intenta actualizar o cambiar el modo de visualización
+            Try refreshing or changing the display mode
           </p>
         </div>
       )}
@@ -334,10 +334,10 @@ const SimpleFeed: React.FC = () => {
                 {isFetching ? (
                   <>
                     <Activity className="w-4 h-4 animate-spin" />
-                    Cargando...
+                    Loading...
                   </>
                 ) : (
-                  'Cargar Más Artículos'
+                  'Load More Articles'
                 )}
               </button>
             </div>

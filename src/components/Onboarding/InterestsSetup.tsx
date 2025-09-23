@@ -135,7 +135,7 @@ const InterestsSetup: React.FC = () => {
         keywords: [] // Include keywords field like in Preferences
       };
 
-      console.log('💾 Guardando intereses desde onboarding:', interestsData);
+      console.log('💾 Saving interests from onboarding:', interestsData);
       await feedService.updateInterests(interestsData);
 
       // Also save default preferences like in Preferences.tsx
@@ -148,7 +148,7 @@ const InterestsSetup: React.FC = () => {
         minRelevanceScore: 30
       };
 
-      console.log('💾 Guardando preferencias por defecto:', defaultPreferences);
+      console.log('💾 Saving default preferences:', defaultPreferences);
       await feedService.updatePreferences(defaultPreferences);
 
       // Save preferences for later use

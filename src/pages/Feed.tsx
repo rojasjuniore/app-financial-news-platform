@@ -69,7 +69,7 @@ const Feed: React.FC = () => {
             }`}
           >
             <Zap className="w-4 h-4" />
-            Optimizado
+            Optimized
           </button>
           <button
             onClick={() => setFeedMode('enhanced')}
