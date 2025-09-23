@@ -100,18 +100,77 @@ const Metrics: React.FC = () => {
     try {
       setLoading(true);
       const [personalRes, globalRes] = await Promise.all([
-        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/dashboard/metrics/personal?range=${selectedDateRange}&model=${selectedModel}`),
-        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3001'}/api/dashboard/metrics/global?range=${selectedDateRange}&model=${selectedModel}`)
+        fetch(`${process.env.REACT_APP_API_URL}/api/dashboard/metrics/personal?range=${selectedDateRange}&model=${selectedModel}`),
+        fetch(`${process.env.REACT_APP_API_URL}/api/dashboard/metrics/global?range=${selectedDateRange}&model=${selectedModel}`)
       ]);
 
       if (personalRes.ok) {
         const personalData = await personalRes.json();
-        setMetrics(personalData);
+        // Map new API structure to expected format
+        const mappedMetrics = {
+          llmUsage: {
+            totalRequests: personalData.data?.metrics?.user?.totalInteractions || 0,
+            totalTokens: 0, // Not available in new API
+            totalCost: 0, // Not available in new API
+            byModel: {},
+            byDate: []
+          },
+          newsMetrics: {
+            articlesRead: personalData.data?.metrics?.user?.readArticles || 0,
+            analysisGenerated: personalData.data?.metrics?.user?.savedArticles || 0,
+            feedInteractions: personalData.data?.metrics?.user?.totalInteractions || 0,
+            searchQueries: personalData.data?.metrics?.activity?.dailyAverage || 0
+          },
+          newsApiUsage: {
+            totalRequests: personalData.data?.metrics?.user?.totalInteractions || 0,
+            totalArticlesRetrieved: personalData.data?.metrics?.user?.readArticles || 0,
+            totalCost: 0, // Not available in new API
+            byProvider: {}
+          },
+          userActivity: {
+            chatMessages: personalData.data?.metrics?.user?.totalInteractions || 0,
+            sessionDuration: personalData.data?.metrics?.user?.avgReadTime || 0,
+            lastActivity: new Date().toISOString(),
+            favoriteModels: personalData.data?.metrics?.activity?.favoriteCategories || []
+          }
+        };
+        setMetrics(mappedMetrics);
       }
 
       if (globalRes.ok) {
         const globalData = await globalRes.json();
-        setUserMetrics(globalData.users || []);
+        // Map global metrics to user metrics format
+        const mappedUserMetrics = globalData.data?.metrics ? [{
+          userId: 'global',
+          userName: 'System Global',
+          joinDate: new Date().toISOString(),
+          llmUsage: {
+            totalRequests: globalData.data.metrics.system?.totalArticles || 0,
+            totalTokens: 0,
+            totalCost: 0,
+            byModel: {},
+            byDate: []
+          },
+          newsMetrics: {
+            articlesRead: globalData.data.metrics.system?.totalArticles || 0,
+            analysisGenerated: globalData.data.metrics.system?.analyzedArticles || 0,
+            feedInteractions: globalData.data.metrics.engagement?.totalViews || 0,
+            searchQueries: globalData.data.metrics.system?.activeUsers || 0
+          },
+          newsApiUsage: {
+            totalRequests: globalData.data.metrics.system?.totalArticles || 0,
+            totalArticlesRetrieved: globalData.data.metrics.system?.analyzedArticles || 0,
+            totalCost: 0,
+            byProvider: {}
+          },
+          userActivity: {
+            chatMessages: globalData.data.metrics.engagement?.totalViews || 0,
+            sessionDuration: globalData.data.metrics.performance?.uptime || 0,
+            lastActivity: new Date().toISOString(),
+            favoriteModels: ['PostgreSQL']
+          }
+        }] : [];
+        setUserMetrics(mappedUserMetrics);
       }
     } catch (error) {
       console.error('Error fetching metrics:', error);
