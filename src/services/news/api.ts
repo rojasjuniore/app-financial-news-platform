@@ -1,7 +1,21 @@
 import axios from 'axios';
 import { auth } from '../firebase';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+// Determinar la URL de la API basándose en el entorno
+const getApiBaseUrl = () => {
+  // Si estamos en producción (Railway/Vercel), usar la URL de producción
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://app-financial-news-platform-production.up.railway.app';
+  }
+  // En desarrollo, usar la variable de entorno o localhost
+  return process.env.REACT_APP_API_URL || 'http://localhost:3000';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Log the API URL for debugging
+console.log('🌐 API Base URL:', API_BASE_URL);
+console.log('🌐 Current hostname:', window.location.hostname);
 
 // Crear instancia de axios
 const apiClient = axios.create({
