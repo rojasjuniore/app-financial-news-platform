@@ -131,7 +131,13 @@ const FuturisticVoice: React.FC = () => {
       return;
     }
     
-    const userId = user?.uid || 'anonymous';
+    const userId = user?.uid;
+
+    if (!userId) {
+      setError('Please login to use voice assistant');
+      setIsConnecting(false);
+      return;
+    }
     
     // Detectar si estamos en producción y construir WebSocket URL apropiada
     const getWebSocketUrl = () => {

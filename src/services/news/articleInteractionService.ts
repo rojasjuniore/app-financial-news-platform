@@ -17,7 +17,7 @@ class ArticleInteractionService {
   async toggleLike(articleId: string, userId?: string): Promise<InteractionResponse> {
     try {
       const response = await apiClient.post(`/api/articles/${articleId}/like`, {
-        userId: userId || 'anonymous',
+        userId: userId,
       });
 
       if (response.status === 200) {
@@ -43,7 +43,7 @@ class ArticleInteractionService {
   async toggleSave(articleId: string, userId?: string): Promise<InteractionResponse> {
     try {
       const response = await apiClient.post(`/api/articles/${articleId}/save`, {
-        userId: userId || 'anonymous',
+        userId: userId,
       });
 
       if (response.status === 200) {
@@ -73,7 +73,7 @@ class ArticleInteractionService {
   }> {
     try {
       const response = await apiClient.get(
-        `/api/articles/${articleId}/interactions?userId=${userId || 'anonymous'}`
+        `/api/articles/${articleId}/interactions${userId ? `?userId=${userId}` : ''}`
       );
 
       if (response.status === 200) {
@@ -114,7 +114,7 @@ class ArticleInteractionService {
       await apiClient.post(
         `/api/articles/${articleId}/view`,
         {
-          userId: userId || 'anonymous',
+          userId: userId,
           timestamp: new Date().toISOString()
         }
       );
@@ -129,7 +129,7 @@ class ArticleInteractionService {
   async trackShare(articleId: string, platform: string, userId?: string): Promise<void> {
     try {
       await apiClient.post(`/api/articles/${articleId}/share`, {
-        userId: userId || 'anonymous',
+        userId: userId,
         platform,
         timestamp: new Date().toISOString()
       });

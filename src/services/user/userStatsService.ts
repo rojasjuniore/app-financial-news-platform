@@ -21,7 +21,10 @@ class UserStatsService {
   async getUserStats(userId?: string): Promise<UserStats> {
     try {
       // apiClient already handles auth token automatically
-      const response = await apiClient.get(`/api/users/${userId || 'anonymous'}/stats`);
+      if (!userId) {
+        throw new Error('Authentication required');
+      }
+      const response = await apiClient.get(`/api/users/${userId}/stats`);
       const data = response.data;
       return data;
     } catch (error) {
@@ -86,7 +89,10 @@ class UserStatsService {
    */
   async getRecommendations(userId?: string): Promise<any[]> {
     try {
-      const response = await apiClient.get(`/api/users/${userId || 'anonymous'}/recommendations`);
+      if (!userId) {
+        return [];
+      }
+      const response = await apiClient.get(`/api/users/${userId}/recommendations`);
       return response.data;
     } catch (error) {
       console.error('Error getting recommendations:', error);

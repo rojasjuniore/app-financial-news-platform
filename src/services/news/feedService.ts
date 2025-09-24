@@ -125,7 +125,7 @@ export const feedService = {
 
       // Crear un perfil completo con valores por defecto
       const profile: UserProfile = {
-        userId: prefsData.userId || 'anonymous',
+        userId: prefsData.userId || null,
         interests: prefsData.interests || {
           tickers: prefsData.watched_tickers || [],
           sectors: [],
@@ -170,7 +170,7 @@ export const feedService = {
 
       // Return default profile if there's an error
       return {
-        userId: 'anonymous',
+        userId: null,
         interests: {
           tickers: [],
           sectors: [],

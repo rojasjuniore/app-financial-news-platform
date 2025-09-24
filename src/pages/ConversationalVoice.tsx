@@ -95,7 +95,14 @@ const ConversationalVoice: React.FC = () => {
   
   // Connect to WebSocket
   const connectWebSocket = useCallback(() => {
-    const userId = user?.uid || 'anonymous';
+    const userId = user?.uid;
+
+    if (!userId) {
+      console.error('User not authenticated');
+      setIsConnected(false);
+      return;
+    }
+
     const wsUrl = `ws://localhost:3005/api/voice/chat?userId=${userId}`;
     
     try {

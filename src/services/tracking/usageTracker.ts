@@ -41,13 +41,13 @@ export class UsageTracker {
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
-        this.userId = user.uid || user.id || 'anonymous';
+        this.userId = user.uid || user.id || null;
       } else {
-        this.userId = 'anonymous';
+        this.userId = null;
       }
     } catch (error) {
       console.warn('Could not initialize user ID for tracking:', error);
-      this.userId = 'anonymous';
+      this.userId = null;
     }
   }
 
