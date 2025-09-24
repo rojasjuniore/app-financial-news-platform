@@ -5,7 +5,7 @@ import { auth } from '../firebase';
 const getApiBaseUrl = () => {
   // Si estamos en producción (Railway/Vercel), usar la URL de producción
   if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://app-financial-news-platform-production.up.railway.app';
+    return 'https://api-financial-news-platform-production.up.railway.app';
   }
   // En desarrollo, usar la variable de entorno o localhost
   return process.env.REACT_APP_API_URL || 'http://localhost:3000';
