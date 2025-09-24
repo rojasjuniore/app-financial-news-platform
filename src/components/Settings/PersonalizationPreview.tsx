@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Article, UserInterests, UserPreferences, SettingsPreview } from '../../types';
 import { feedService } from '../../services/news/feedService';
-import ArticleCard from '../Feed/ArticleCard';
+// import ArticleCard from '../Feed/old/ArticleCard'; // Component removed
 
 interface PersonalizationPreviewProps {
   interests: UserInterests;
@@ -320,9 +320,19 @@ const PersonalizationPreview: React.FC<PersonalizationPreviewProps> = ({
                         transition={{ delay: index * 0.1 }}
                         className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
                       >
-                        <ArticleCard
-                          article={article}
-                        />
+                        {/* ArticleCard component removed - showing simple preview */}
+                        <div>
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                            {article.title}
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
+                            {article.description}
+                          </p>
+                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                            <span>{article.source}</span>
+                            <span>{article.sentiment || 'neutral'}</span>
+                          </div>
+                        </div>
                       </motion.div>
                     ))}
                   </div>

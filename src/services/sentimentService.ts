@@ -38,21 +38,29 @@ export interface BatchSentimentResult {
 
 export interface NewsSentimentResult {
   articleCount: number;
-  sentimentAnalysis: BatchSentimentResult;
-  marketSummary: {
+  aggregatedSentiment: {
+    bullish: number;
+    bearish: number;
+    neutral: number;
+    averageScore: number;
+  };
+  marketTrend: 'bullish' | 'bearish' | 'neutral';
+  confidence: number;
+  sentimentAnalysis?: BatchSentimentResult;
+  marketSummary?: {
     bullishPercentage: string;
     bearishPercentage: string;
     neutralPercentage: string;
     marketTrend: 'bullish' | 'bearish' | 'neutral';
     averageConfidence: string;
   };
-  topBullish: Array<{
+  topBullish?: Array<{
     title: string;
     sentiment: SentimentType;
     score: number;
     confidence: number;
   }>;
-  topBearish: Array<{
+  topBearish?: Array<{
     title: string;
     sentiment: SentimentType;
     score: number;
@@ -68,6 +76,59 @@ class SentimentService {
   constructor() {
     this.baseUrl = `${API_BASE_URL}/api/sentiment`;
     this.cache = new Map();
+  }
+
+  /**
+   * Helper method to calculate aggregated sentiment from articles
+   */
+  private calculateAggregatedSentiment(articles: any[]): NewsSentimentResult {
+    const sentimentCounts = {
+      bullish: 0,
+      bearish: 0,
+      neutral: 0
+    };
+
+    let totalScore = 0;
+    let validCount = 0;
+
+    articles.forEach((article: any) => {
+      if (article.sentiment) {
+        if (['very_bullish', 'bullish', 'positive'].includes(article.sentiment)) {
+          sentimentCounts.bullish++;
+        } else if (['very_bearish', 'bearish', 'negative'].includes(article.sentiment)) {
+          sentimentCounts.bearish++;
+        } else {
+          sentimentCounts.neutral++;
+        }
+      }
+
+      if (article.sentiment_score !== undefined && article.sentiment_score !== null) {
+        totalScore += article.sentiment_score;
+        validCount++;
+      }
+    });
+
+    const averageScore = validCount > 0 ? totalScore / validCount : 0;
+
+    // Determine market trend
+    let marketTrend: 'bullish' | 'bearish' | 'neutral' = 'neutral';
+    if (averageScore > 0.2) {
+      marketTrend = 'bullish';
+    } else if (averageScore < -0.2) {
+      marketTrend = 'bearish';
+    }
+
+    return {
+      articleCount: articles.length,
+      aggregatedSentiment: {
+        bullish: sentimentCounts.bullish,
+        bearish: sentimentCounts.bearish,
+        neutral: sentimentCounts.neutral,
+        averageScore
+      },
+      marketTrend,
+      confidence: validCount > 0 ? Math.min(validCount / 10, 1) : 0.5
+    };
   }
 
   /**
@@ -138,21 +199,71 @@ class SentimentService {
     }
 
     try {
-      const params = limit ? { limit } : {};
-      const response = await axios.get(`${this.baseUrl}/news`, { params });
+      // Get real sentiment data from the database endpoint
+      const params = {
+        limit: limit || 100,
+        timeRange: '24h',
+        mode: 'all'
+      };
+
+      // Use the real sentiment analysis endpoint that queries MySQL/PostgreSQL
+      const response = await axios.get(`${this.baseUrl.replace('/sentiment', '/sentiment-analysis')}/aggregate`, { params });
+
+      if (response.data?.success && response.data?.data) {
+        const data = response.data.data;
+
+        const result: NewsSentimentResult = {
+          articleCount: data.articleCount,
+          aggregatedSentiment: {
+            bullish: data.aggregatedSentiment.bullish,
+            bearish: data.aggregatedSentiment.bearish,
+            neutral: data.aggregatedSentiment.neutral,
+            averageScore: data.aggregatedSentiment.averageScore
+          },
+          marketTrend: data.marketTrend as 'bullish' | 'bearish' | 'neutral',
+          confidence: data.confidence
+        };
+
+        // Cache the result
+        this.cache.set(cacheKey, {
+          data: result,
+          timestamp: Date.now()
+        });
+
+        return result;
+      }
+
+      // Fallback to direct feed query if sentiment-analysis endpoint fails
+      const feedResponse = await axios.get(`${this.baseUrl.replace('/sentiment', '/news')}/simple-feed`, {
+        params: { limit: limit || 50 }
+      });
+
+      const articles = feedResponse.data?.data?.articles || [];
+
+      // Calculate from articles if needed
+      const aggregated = this.calculateAggregatedSentiment(articles);
+      const result: NewsSentimentResult = aggregated;
 
       // Cache the result
       this.cache.set(cacheKey, {
-        data: response.data.data,
+        data: result,
         timestamp: Date.now()
       });
 
-      return response.data.data;
+      return result;
     } catch (error) {
       console.error('Error getting news sentiment:', error);
       // Return default structure as fallback
       return {
         articleCount: 0,
+        aggregatedSentiment: {
+          bullish: 0,
+          bearish: 0,
+          neutral: 0,
+          averageScore: 0
+        },
+        marketTrend: 'neutral' as const,
+        confidence: 0,
         sentimentAnalysis: {
           results: [],
           aggregates: {

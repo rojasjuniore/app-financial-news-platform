@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 
 // Performance components
-import ArticleCard from '../components/Feed/ArticleCard';
+// import ArticleCard from '../components/Feed/old/ArticleCard'; // Component removed
 import { FeedLoadingSkeleton, InitialLoadingState } from '../components/Loading/LoadingStates';
 import LazyImage from '../components/UI/LazyImage';
 import { usePerformance, useIntersectionObserver } from '../hooks/usePerformance';

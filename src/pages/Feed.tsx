@@ -1,17 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import SimpleFeed from '../components/Feed/SimpleFeed';
-import OptimizedFeed from '../components/Feed/OptimizedFeed';
-import EnhancedOptimizedFeed from '../components/Feed/EnhancedOptimizedFeed';
+import TwitterStyleFeed from '../components/Feed/TwitterStyleFeed';
 import { useProfile } from '../hooks/useProfile';
-import { Loader, Zap, Layout, Sparkles } from 'lucide-react';
+import { Loader } from 'lucide-react';
 
 const Feed: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { isLoading, isNewUser } = useProfile();
-  const [feedMode, setFeedMode] = useState<'enhanced' | 'optimized' | 'simple'>('enhanced'); // Default to enhanced
 
   useEffect(() => {
     // Check if user has configured interests
@@ -45,50 +42,9 @@ const Feed: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Toggle Switch */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => setFeedMode('simple')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-              feedMode === 'simple'
-                ? 'bg-gray-600 text-white hover:bg-gray-700'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            <Layout className="w-4 h-4" />
-            Simple
-          </button>
-          <button
-            onClick={() => setFeedMode('optimized')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-              feedMode === 'optimized'
-                ? 'bg-purple-600 text-white hover:bg-purple-700'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            <Zap className="w-4 h-4" />
-            Optimized
-          </button>
-          <button
-            onClick={() => setFeedMode('enhanced')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-              feedMode === 'enhanced'
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg'
-                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-            }`}
-          >
-            <Sparkles className="w-4 h-4" />
-            Premium FinBERT
-          </button>
-        </div>
-      </div>
-
-      {/* Render Selected Feed */}
-      {feedMode === 'enhanced' && <EnhancedOptimizedFeed />}
-      {feedMode === 'optimized' && <OptimizedFeed />}
-      {feedMode === 'simple' && <SimpleFeed />}
+    <div className="min-h-screen">
+      {/* Twitter/X Style Infinite Scroll Feed */}
+      <TwitterStyleFeed />
     </div>
   );
 };

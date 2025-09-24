@@ -5,7 +5,8 @@ import { InitialLoadingState, FeedLoadingSkeleton } from './Loading/LoadingState
 const LazyFeed = React.lazy(() => import('../pages/Feed'));
 const LazyArticleDetail = React.lazy(() => import('../pages/ArticleDetailClean'));
 const LazyLogin = React.lazy(() => import('../pages/Login'));
-const LazyVirtualizedFeedList = React.lazy(() => import('./Feed/VirtualizedFeedList'));
+// const LazyVirtualizedFeedList = React.lazy(() => import('./Feed/VirtualizedFeedList'));
+const LazyTwitterStyleFeed = React.lazy(() => import('./Feed/TwitterStyleFeed'));
 
 // Higher-order component for lazy loading with error boundary
 const withLazyLoading = <P extends object>(
@@ -17,7 +18,7 @@ const withLazyLoading = <P extends object>(
       <Component {...props} />
     </Suspense>
   );
-  
+
   LazyComponent.displayName = `LazyLoading(${Component.displayName || Component.name})`;
   return LazyComponent;
 };
@@ -26,7 +27,8 @@ const withLazyLoading = <P extends object>(
 export const LazyFeedPage = withLazyLoading(LazyFeed, <InitialLoadingState />);
 export const LazyArticleDetailPage = withLazyLoading(LazyArticleDetail, <InitialLoadingState />);
 export const LazyLoginPage = withLazyLoading(LazyLogin, <InitialLoadingState />);
-export const LazyVirtualizedFeed = withLazyLoading(LazyVirtualizedFeedList, <FeedLoadingSkeleton />);
+// export const LazyVirtualizedFeed = withLazyLoading(LazyVirtualizedFeedList, <FeedLoadingSkeleton />);
+export const LazyTwitterFeed = withLazyLoading(LazyTwitterStyleFeed, <FeedLoadingSkeleton />);
 
 // Dynamic import utilities
 export const loadComponentAsync = async <T extends React.ComponentType<any>>(
@@ -47,13 +49,15 @@ export const preloadComponents = () => {
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(() => {
       import('../pages/ArticleDetailClean');
-      import('./Feed/VirtualizedFeedList');
+      // import('./Feed/VirtualizedFeedList');
+      import('./Feed/TwitterStyleFeed');
     });
   } else {
     // Fallback for browsers without requestIdleCallback
     setTimeout(() => {
       import('../pages/ArticleDetailClean');
-      import('./Feed/VirtualizedFeedList');
+      // import('./Feed/VirtualizedFeedList');
+      import('./Feed/TwitterStyleFeed');
     }, 2000);
   }
 };
@@ -64,18 +68,18 @@ export const LazyErrorBoundary: React.FC<{
   fallback?: React.ReactNode;
 }> = ({ children, fallback }) => {
   const [hasError, setHasError] = React.useState(false);
-  
+
   React.useEffect(() => {
     const handleError = (error: ErrorEvent) => {
       if (error.message.includes('Loading chunk')) {
         setHasError(true);
       }
     };
-    
+
     window.addEventListener('error', handleError);
     return () => window.removeEventListener('error', handleError);
   }, []);
-  
+
   if (hasError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-64 p-8">
@@ -95,6 +99,6 @@ export const LazyErrorBoundary: React.FC<{
       </div>
     );
   }
-  
+
   return <>{children}</>;
 };
