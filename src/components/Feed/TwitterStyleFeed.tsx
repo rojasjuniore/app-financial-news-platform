@@ -31,30 +31,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { feedService } from '../../services/news/feedService';
 import { articleInteractionService } from '../../services/news/articleInteractionService';
 import { useAuth } from '../../contexts/AuthContext';
+import { calculateInterestMatch, getMatchBadge, formatMatchDetails } from '../../utils/interestMatching';
+import { UserInterests, Article as GlobalArticle } from '../../types';
 import toast from 'react-hot-toast';
 
 // Types
 type FeedMode = 'trending' | 'my-interests' | 'bullish' | 'bearish' | 'high-impact' | 'all';
-type SortBy = 'time' | 'importance' | 'quality' | 'sentiment' | 'impact';
+type SortBy = 'time' | 'importance' | 'quality' | 'sentiment' | 'impact' | 'interest-match';
 
-// Enhanced types
-interface Article {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
-  urlToImage?: string;
-  source: string;
-  author?: string;
-  publishedAt?: string;
-  published_at?: string; // Backend sends with underscore
-  sentiment?: string;
-  sentiment_score?: number;
-  sentiment_confidence?: number;
-  quality_score?: number;
-  impact_score?: number;
-  tickers?: string[];
-}
+// Use the global Article type
+type Article = GlobalArticle;
 
 // Skeleton loader component
 const ArticleSkeleton: React.FC = () => (
@@ -132,13 +118,65 @@ const formatTimeAgo = (date: string | undefined) => {
   return publishedDate.toLocaleDateString('en', { month: 'short', day: 'numeric' });
 };
 
+// Helper function to normalize sectors to string array
+const normalizeSectors = (sectors?: Array<string | { sector: string; confidence?: number }>): string[] => {
+  if (!sectors) return [];
+  return sectors.map(sector =>
+    typeof sector === 'string' ? sector : sector.sector
+  );
+};
+
+// Helper function to get source name as string
+const getSourceName = (source?: string | { name: string; id?: string }): string => {
+  if (!source) return 'Unknown';
+  return typeof source === 'string' ? source : source.name;
+};
+
+// Helper function to get sentiment string
+const getSentimentString = (sentiment?: string | { score?: number; label?: string }): string => {
+  if (!sentiment) return 'neutral';
+  return typeof sentiment === 'string' ? sentiment : (sentiment.label || 'neutral');
+};
+
+// Helper function to format timestamp
+const formatTimestamp = (timestamp?: string | any): string => {
+  if (!timestamp) return '';
+
+  // Handle FirestoreTimestamp
+  if (timestamp && typeof timestamp === 'object' && timestamp.toDate) {
+    return timestamp.toDate().toISOString();
+  }
+
+  // Handle string timestamp
+  return typeof timestamp === 'string' ? timestamp : new Date().toISOString();
+};
+
 // Article Card Component
-const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, index }) => {
+const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: UserInterests | null }> = ({ article, index, userInterests }) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Calculate interest match if user has interests
+  const interestMatch = useMemo(() => {
+    if (!userInterests) return null;
+    return calculateInterestMatch({
+      id: article.id,
+      title: article.title,
+      description: article.description || '',
+      content: '',
+      tickers: article.tickers,
+      sectors: normalizeSectors(article.sectors),
+      sentiment: article.sentiment as string,
+      quality_score: article.quality_score,
+      impact_score: article.importance_score || 0
+    }, userInterests);
+  }, [article, userInterests]);
+
+  // Get match badge configuration
+  const matchBadge = interestMatch ? getMatchBadge(interestMatch) : null;
 
   // Load initial interaction state
   useEffect(() => {
@@ -260,7 +298,7 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
           {/* Avatar/Source Icon */}
           <div className="flex-shrink-0">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {article.source?.charAt(0) || 'N'}
+              {getSourceName(article.source)?.charAt(0) || 'N'}
             </div>
           </div>
 
@@ -269,20 +307,34 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
             {/* Source & Time */}
             <div className="flex items-center space-x-1 text-sm">
               <span className="font-bold text-gray-900 dark:text-white hover:underline">
-                {article.source}
+                {getSourceName(article.source)}
               </span>
               <span className="text-gray-500">·</span>
               <span className="text-gray-500 hover:underline">
-                {formatTimeAgo(article.published_at || article.publishedAt)}
+                {formatTimeAgo(formatTimestamp(article.published_at || article.publishedAt))}
               </span>
 
               {/* Sentiment Badge */}
               {article.sentiment && (
                 <>
                   <span className="text-gray-500">·</span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getSentimentColor(article.sentiment)}`}>
-                    <span className="mr-1">{getSentimentEmoji(article.sentiment)}</span>
-                    {article.sentiment.replace('_', ' ').toUpperCase()}
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getSentimentColor(getSentimentString(article.sentiment))}`}>
+                    <span className="mr-1">{getSentimentEmoji(getSentimentString(article.sentiment))}</span>
+                    {getSentimentString(article.sentiment).replace('_', ' ').toUpperCase()}
+                  </span>
+                </>
+              )}
+
+              {/* Interest Match Badge */}
+              {matchBadge && (
+                <>
+                  <span className="text-gray-500">·</span>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${matchBadge.color} animate-pulse cursor-help`}
+                    title={`${formatMatchDetails(interestMatch!)} - Score: ${interestMatch!.score}/100`}
+                  >
+                    <span className="mr-1">{matchBadge.icon}</span>
+                    {matchBadge.text}
                   </span>
                 </>
               )}
@@ -314,14 +366,18 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
               </div>
             )}
 
-            {/* Tickers - Twitter style cashtags with sentiment indicator */}
+            {/* Tickers - Twitter style cashtags with sentiment indicator and interest highlighting */}
             {article.tickers && article.tickers.length > 0 && (
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <DollarSign className="w-3 h-3 text-gray-500 dark:text-gray-400" />
                 {article.tickers.slice(0, 5).map((ticker, idx) => {
                   // Determine ticker sentiment based on article sentiment
-                  const isPositive = article.sentiment && ['very_bullish', 'bullish', 'positive'].includes(article.sentiment);
-                  const isNegative = article.sentiment && ['very_bearish', 'bearish', 'negative'].includes(article.sentiment);
+                  const sentimentStr = getSentimentString(article.sentiment);
+                  const isPositive = sentimentStr && ['very_bullish', 'bullish', 'positive'].includes(sentimentStr);
+                  const isNegative = sentimentStr && ['very_bearish', 'bearish', 'negative'].includes(sentimentStr);
+
+                  // Check if this ticker matches user interests
+                  const isInterestMatch = interestMatch?.matches.tickers.includes(ticker) || false;
 
                   return (
                     <a
@@ -333,15 +389,19 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
                         toast.success(`Viewing ${ticker} details`, { duration: 1500 });
                       }}
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-sm font-semibold transition-all hover:scale-105 ${
-                        isPositive
+                        isInterestMatch
+                          ? 'bg-yellow-50 text-yellow-800 border border-yellow-300 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-700 dark:hover:bg-yellow-900/30 animate-pulse'
+                          : isPositive
                           ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30'
                           : isNegative
                           ? 'bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30'
                           : 'bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30'
                       }`}
+                      title={isInterestMatch ? 'This ticker matches your interests!' : undefined}
                     >
-                      {isPositive && <TrendingUp className="w-3 h-3" />}
-                      {isNegative && <TrendingDown className="w-3 h-3" />}
+                      {isInterestMatch && <Star className="w-3 h-3" />}
+                      {!isInterestMatch && isPositive && <TrendingUp className="w-3 h-3" />}
+                      {!isInterestMatch && isNegative && <TrendingDown className="w-3 h-3" />}
                       ${ticker}
                     </a>
                   );
@@ -355,7 +415,7 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
             )}
 
             {/* Quality & Impact Scores */}
-            {(article.quality_score || article.impact_score) && (
+            {(article.quality_score || article.importance_score) && (
               <div className="mt-3 flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                 {article.quality_score && (
                   <div className="flex items-center gap-1">
@@ -363,12 +423,64 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
                     <span>Quality: {article.quality_score}%</span>
                   </div>
                 )}
-                {article.impact_score && (
+                {article.importance_score && (
                   <div className="flex items-center gap-1">
                     <BarChart2 className="w-3 h-3" />
-                    <span>Impact: {article.impact_score}%</span>
+                    <span>Importance: {article.importance_score}%</span>
                   </div>
                 )}
+                {interestMatch && interestMatch.score > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Target className="w-3 h-3 text-blue-500" />
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">
+                      Interest Match: {interestMatch.score}%
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Detailed Interest Match Information */}
+            {interestMatch && interestMatch.totalMatches > 0 && (
+              <div className="mt-3 p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs font-medium text-blue-800 dark:text-blue-300">
+                    Why this matches your interests:
+                  </span>
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {interestMatch.matchTypes.join(', ')}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  {interestMatch.matches.tickers.length > 0 && (
+                    <div className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                      <DollarSign className="w-3 h-3" />
+                      <span>{interestMatch.matches.tickers.slice(0, 3).join(', ')}</span>
+                      {interestMatch.matches.tickers.length > 3 && <span>+{interestMatch.matches.tickers.length - 3}</span>}
+                    </div>
+                  )}
+                  {interestMatch.matches.sectors.length > 0 && (
+                    <div className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                      <Activity className="w-3 h-3" />
+                      <span>{interestMatch.matches.sectors.slice(0, 2).join(', ')}</span>
+                      {interestMatch.matches.sectors.length > 2 && <span>+{interestMatch.matches.sectors.length - 2}</span>}
+                    </div>
+                  )}
+                  {interestMatch.matches.topics.length > 0 && (
+                    <div className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                      <Brain className="w-3 h-3" />
+                      <span>{interestMatch.matches.topics.slice(0, 2).join(', ')}</span>
+                      {interestMatch.matches.topics.length > 2 && <span>+{interestMatch.matches.topics.length - 2}</span>}
+                    </div>
+                  )}
+                  {interestMatch.matches.keywords.length > 0 && (
+                    <div className="flex items-center gap-1 text-blue-700 dark:text-blue-300">
+                      <Target className="w-3 h-3" />
+                      <span>{interestMatch.matches.keywords.slice(0, 2).join(', ')}</span>
+                      {interestMatch.matches.keywords.length > 2 && <span>+{interestMatch.matches.keywords.length - 2}</span>}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -427,11 +539,40 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
 // Main Twitter Style Feed Component
 const TwitterStyleFeed: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [mode, setMode] = useState<FeedMode>('trending');
   const [sortBy, setSortBy] = useState<SortBy>('time');
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [userInterests, setUserInterests] = useState<UserInterests | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
+
+  // Load user interests from localStorage or API
+  useEffect(() => {
+    const loadUserInterests = async () => {
+      try {
+        // First try localStorage for quick access
+        const savedInterests = localStorage.getItem('userInterests');
+        if (savedInterests) {
+          setUserInterests(JSON.parse(savedInterests));
+        }
+
+        // Then try to load from backend if user is authenticated
+        if (user?.uid) {
+          const { feedService } = await import('../../services/news/feedService');
+          const profile = await feedService.getProfile();
+          if (profile?.interests) {
+            setUserInterests(profile.interests);
+            localStorage.setItem('userInterests', JSON.stringify(profile.interests));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user interests:', error);
+      }
+    };
+
+    loadUserInterests();
+  }, [user?.uid]);
 
   // Mode configurations
   const modeConfigs = [
@@ -443,13 +584,14 @@ const TwitterStyleFeed: React.FC = () => {
     { mode: 'all' as FeedMode, icon: Globe, label: 'All News', color: 'from-gray-500 to-gray-600' }
   ];
 
-  // Sort options
+  // Sort options - conditionally include interest match if user has interests
   const sortOptions = [
     { value: 'impact' as SortBy, label: 'Impact', icon: Target },
     { value: 'sentiment' as SortBy, label: 'Sentiment', icon: Brain },
     { value: 'time' as SortBy, label: 'Latest', icon: Clock },
     { value: 'importance' as SortBy, label: 'Important', icon: Star },
-    { value: 'quality' as SortBy, label: 'Quality', icon: Award }
+    { value: 'quality' as SortBy, label: 'Quality', icon: Award },
+    ...(userInterests ? [{ value: 'interest-match' as SortBy, label: 'Interest Match', icon: Target }] : [])
   ];
 
   // Infinite query for pagination
@@ -476,9 +618,53 @@ const TwitterStyleFeed: React.FC = () => {
       let filtered = response.articles || [];
 
       // Filter by user interests if in my-interests mode
-      if (mode === 'my-interests' && user?.uid) {
-        // This will use the user's personalized feed from the backend
-        // The backend already filters by user interests
+      if (mode === 'my-interests' && user?.uid && userInterests) {
+        // Client-side filtering to ensure only articles with interest matches are shown
+        filtered = filtered.filter((a: any) => {
+          const interestMatch = calculateInterestMatch({
+            id: a.id,
+            title: a.title,
+            description: a.description || '',
+            content: '',
+            tickers: a.tickers,
+            sectors: normalizeSectors(a.sectors),
+            sentiment: a.sentiment,
+            quality_score: a.quality_score,
+            impact_score: a.impact_score || 0
+          }, userInterests);
+
+          // Only show articles with a minimum interest score of 15 or at least one match
+          return interestMatch.score >= 15 || interestMatch.totalMatches > 0;
+        });
+
+        // Sort by interest match score by default
+        filtered.sort((a: any, b: any) => {
+          const aMatch = calculateInterestMatch({
+            id: a.id,
+            title: a.title,
+            description: a.description || '',
+            content: '',
+            tickers: a.tickers,
+            sectors: normalizeSectors(a.sectors),
+            sentiment: a.sentiment,
+            quality_score: a.quality_score,
+            impact_score: a.impact_score || 0
+          }, userInterests);
+
+          const bMatch = calculateInterestMatch({
+            id: b.id,
+            title: b.title,
+            description: b.description || '',
+            content: '',
+            tickers: b.tickers,
+            sectors: normalizeSectors(b.sectors),
+            sentiment: b.sentiment,
+            quality_score: b.quality_score,
+            impact_score: b.impact_score || 0
+          }, userInterests);
+
+          return bMatch.score - aMatch.score;
+        });
       } else if (mode === 'bullish') {
         filtered = filtered.filter((a: any) =>
           a.sentiment === 'very_bullish' || a.sentiment === 'bullish' || a.sentiment === 'positive'
@@ -489,11 +675,11 @@ const TwitterStyleFeed: React.FC = () => {
         );
       } else if (mode === 'high-impact') {
         filtered = filtered.filter((a: any) =>
-          Math.abs(a.sentiment_score || 0) > 0.5 || (a.impact_score && a.impact_score > 70)
+          Math.abs(a.sentiment_score || 0) > 0.5 || (a.importance_score && a.importance_score > 70)
         );
       }
 
-      // Sort by impact or sentiment if requested
+      // Sort by impact, sentiment, or interest match if requested
       if (sortBy === 'impact') {
         filtered.sort((a: any, b: any) => {
           const aImpact = (Math.abs(a.sentiment_score || 0) * (a.quality_score || 50)) / 100;
@@ -504,6 +690,34 @@ const TwitterStyleFeed: React.FC = () => {
         filtered.sort((a: any, b: any) =>
           Math.abs(b.sentiment_score || 0) - Math.abs(a.sentiment_score || 0)
         );
+      } else if (sortBy === 'interest-match' && userInterests) {
+        filtered.sort((a: any, b: any) => {
+          const aMatch = calculateInterestMatch({
+            id: a.id,
+            title: a.title,
+            description: a.description || '',
+            content: '',
+            tickers: a.tickers,
+            sectors: normalizeSectors(a.sectors),
+            sentiment: a.sentiment,
+            quality_score: a.quality_score,
+            impact_score: a.impact_score || 0
+          }, userInterests);
+
+          const bMatch = calculateInterestMatch({
+            id: b.id,
+            title: b.title,
+            description: b.description || '',
+            content: '',
+            tickers: b.tickers,
+            sectors: normalizeSectors(b.sectors),
+            sentiment: b.sentiment,
+            quality_score: b.quality_score,
+            impact_score: b.impact_score || 0
+          }, userInterests);
+
+          return bMatch.score - aMatch.score;
+        });
       }
 
       return {
@@ -742,6 +956,60 @@ const TwitterStyleFeed: React.FC = () => {
               </div>
             </div>
           )}
+
+          {/* Interest Match Summary for My Interests mode */}
+          {mode === 'my-interests' && userInterests && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Your Interests</span>
+                </div>
+                <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-2 py-1 rounded-full">
+                  {allArticles.filter(article => {
+                    const match = calculateInterestMatch({
+                      id: article.id,
+                      title: article.title,
+                      description: article.description || '',
+                      content: '',
+                      tickers: article.tickers,
+                      sectors: normalizeSectors(article.sectors),
+                      sentiment: article.sentiment as string,
+                      quality_score: article.quality_score,
+                      impact_score: article.importance_score || 0
+                    }, userInterests);
+                    return match.score > 20;
+                  }).length} matches
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                <div className="flex items-center gap-1">
+                  <DollarSign className="w-3 h-3 text-blue-500" />
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {userInterests.tickers.length} tickers
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Activity className="w-3 h-3 text-blue-500" />
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {userInterests.sectors.length} sectors
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Brain className="w-3 h-3 text-blue-500" />
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {userInterests.topics.length} topics
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Star className="w-3 h-3 text-blue-500" />
+                  <span className="text-xs text-blue-600 dark:text-blue-400">
+                    {(userInterests.keywords?.length || 0)} keywords
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -763,6 +1031,7 @@ const TwitterStyleFeed: React.FC = () => {
                 key={`${article.id}-${index}`}
                 article={article as Article}
                 index={index}
+                userInterests={userInterests}
               />
             ))}
           </AnimatePresence>
@@ -798,19 +1067,48 @@ const TwitterStyleFeed: React.FC = () => {
         {/* Empty state */}
         {!isLoading && allArticles.length === 0 && (
           <div className="p-12 text-center">
-            <Clock className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              No articles yet
-            </h3>
-            <p className="text-gray-500 dark:text-gray-400">
-              Check back later for the latest financial news
-            </p>
-            <button
-              onClick={() => refetch()}
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
-            >
-              Refresh Feed
-            </button>
+            {mode === 'my-interests' ? (
+              <div>
+                <Target className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  No articles match your interests
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400 mb-4">
+                  No articles found that match your tickers, sectors, topics, or keywords.
+                  Try expanding your interests or check back later.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <button
+                    onClick={() => navigate('/preferences')}
+                    className="px-6 py-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
+                  >
+                    Manage Interests
+                  </button>
+                  <button
+                    onClick={() => refetch()}
+                    className="px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                  >
+                    Refresh Feed
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <Clock className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  No articles yet
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Check back later for the latest financial news
+                </p>
+                <button
+                  onClick={() => refetch()}
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                >
+                  Refresh Feed
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
