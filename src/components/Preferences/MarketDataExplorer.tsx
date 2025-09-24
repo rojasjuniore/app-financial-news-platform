@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, TrendingUp, Star, Filter, Grid, List, X, ChevronRight,
   Globe, DollarSign, BarChart3, Coins, LineChart, Building,
-  Briefcase, PieChart, Settings, RefreshCw, Download, Heart
+  Briefcase, PieChart, Settings, RefreshCw, Download, Heart, Check
 } from 'lucide-react';
 import marketDataService, { MarketDataItem, MarketStats } from '../../services/marketDataServiceExpanded';
 import debounce from 'lodash/debounce';

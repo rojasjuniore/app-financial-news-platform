@@ -53,7 +53,10 @@ const Profile: React.FC = () => {
   // Get liked articles
   const { data: likedArticles, isLoading: likedLoading } = useQuery({
     queryKey: ['likedArticles', user?.uid],
-    queryFn: () => userStatsService.getLikedArticles(user?.uid),
+    queryFn: async () => {
+      const stats = await userStatsService.getUserStats(user?.uid);
+      return stats.likedArticles;
+    },
     enabled: !!user?.uid && activeTab === 'liked',
     staleTime: 5 * 60 * 1000,
   });
@@ -61,7 +64,10 @@ const Profile: React.FC = () => {
   // Get saved articles
   const { data: savedArticles, isLoading: savedLoading } = useQuery({
     queryKey: ['savedArticles', user?.uid],
-    queryFn: () => userStatsService.getSavedArticles(user?.uid),
+    queryFn: async () => {
+      const stats = await userStatsService.getUserStats(user?.uid);
+      return stats.savedArticles;
+    },
     enabled: !!user?.uid && activeTab === 'saved',
     staleTime: 5 * 60 * 1000,
   });
@@ -69,7 +75,10 @@ const Profile: React.FC = () => {
   // Get reading history
   const { data: readingHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['readingHistory', user?.uid],
-    queryFn: () => userStatsService.getReadingHistory(user?.uid),
+    queryFn: async () => {
+      const stats = await userStatsService.getUserStats(user?.uid);
+      return stats.recentActivity;
+    },
     enabled: !!user?.uid && activeTab === 'history',
     staleTime: 5 * 60 * 1000,
   });

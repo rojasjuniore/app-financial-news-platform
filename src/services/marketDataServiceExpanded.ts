@@ -189,10 +189,11 @@ class MarketDataServiceExpanded {
     );
 
     // Generate suggestions
-    const suggestions = [...new Set([
+    const allSuggestions = [
       ...results.map(item => item.value),
       ...results.map(item => item.label)
-    ])].slice(0, 5);
+    ];
+    const suggestions = Array.from(new Set(allSuggestions)).slice(0, 5);
 
     return { exact, partial, suggestions };
   }

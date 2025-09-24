@@ -259,7 +259,7 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
     e.stopPropagation();
 
     // Track share event
-    articleInteractionService.trackShare(article.id, user?.uid, 'web');
+    articleInteractionService.trackShare(article.id, user?.uid || '', 'web');
 
     // Web Share API (if available)
     if (navigator.share) {

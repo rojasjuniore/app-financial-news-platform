@@ -99,7 +99,7 @@ const ConversationalVoice: React.FC = () => {
 
     if (!userId) {
       console.error('User not authenticated');
-      setIsConnected(false);
+      setConnectionStatus('error');
       return;
     }
 

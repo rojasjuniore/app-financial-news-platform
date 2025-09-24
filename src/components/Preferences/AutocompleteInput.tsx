@@ -67,14 +67,17 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                value.includes(searchTerm) ||
                description.includes(searchTerm) ||
                // Check if all characters of search term are in the label in order
-               searchTerm.split('').every(char => {
-                 const index = label.indexOf(char);
-                 if (index !== -1) {
-                   label = label.slice(index + 1);
-                   return true;
-                 }
-                 return false;
-               });
+               (() => {
+                 let remainingLabel = label;
+                 return searchTerm.split('').every(char => {
+                   const index = remainingLabel.indexOf(char);
+                   if (index !== -1) {
+                     remainingLabel = remainingLabel.slice(index + 1);
+                     return true;
+                   }
+                   return false;
+                 });
+               })();
       });
 
       setFilteredSuggestions(filtered.slice(0, maxItems));

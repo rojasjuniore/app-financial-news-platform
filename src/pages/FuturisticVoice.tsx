@@ -134,8 +134,8 @@ const FuturisticVoice: React.FC = () => {
     const userId = user?.uid;
 
     if (!userId) {
-      setError('Please login to use voice assistant');
-      setIsConnecting(false);
+      toast.error('Please login to use voice assistant');
+      setConnectionStatus('error');
       return;
     }
     

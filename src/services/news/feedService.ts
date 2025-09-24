@@ -170,7 +170,7 @@ export const feedService = {
 
       // Return default profile if there's an error
       return {
-        userId: null,
+        userId: '',
         interests: {
           tickers: [],
           sectors: [],
