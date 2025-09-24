@@ -24,7 +24,15 @@ class UserStatsService {
    */
   async getUserStats(userId?: string): Promise<UserStats> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/users/${userId || 'anonymous'}/stats`);
+      // Get the auth token from Firebase
+      const token = localStorage.getItem('authToken');
+
+      const response = await fetch(`${this.baseUrl}/api/users/${userId || 'anonymous'}/stats`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
+        }
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to get user stats: ${response.statusText}`);
@@ -53,8 +61,15 @@ class UserStatsService {
    */
   async getLikedArticles(userId?: string): Promise<any[]> {
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/liked-articles`
+        `${this.baseUrl}/api/users/${userId || 'anonymous'}/liked-articles`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        }
       );
 
       if (!response.ok) {
@@ -81,8 +96,15 @@ class UserStatsService {
    */
   async getReadingHistory(userId?: string): Promise<any[]> {
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/reading-history`
+        `${this.baseUrl}/api/users/${userId || 'anonymous'}/reading-history`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        }
       );
 
       if (!response.ok) {
@@ -102,10 +124,12 @@ class UserStatsService {
    */
   async updateReadingTime(articleId: string, timeInSeconds: number, userId?: string): Promise<void> {
     try {
+      const token = localStorage.getItem('authToken');
       await fetch(`${this.baseUrl}/api/articles/${articleId}/reading-time`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
         body: JSON.stringify({
           userId: userId || 'anonymous',
@@ -122,8 +146,15 @@ class UserStatsService {
    */
   async getActivitySummary(userId?: string, days: number = 30): Promise<any> {
     try {
+      const token = localStorage.getItem('authToken');
       const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/activity-summary?days=${days}`
+        `${this.baseUrl}/api/users/${userId || 'anonymous'}/activity-summary?days=${days}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token && { 'Authorization': `Bearer ${token}` })
+          }
+        }
       );
 
       if (!response.ok) {
