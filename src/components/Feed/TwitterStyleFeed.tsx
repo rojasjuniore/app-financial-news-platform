@@ -46,20 +46,20 @@ type Article = GlobalArticle;
 
 // Skeleton loader component
 const ArticleSkeleton: React.FC = () => (
-  <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 animate-pulse">
-    <div className="flex space-x-3">
-      <div className="flex-shrink-0 w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-full" />
+  <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-3 sm:p-4 animate-pulse">
+    <div className="flex space-x-2 sm:space-x-3">
+      <div className="flex-shrink-0 w-10 h-10 sm:w-12 sm:h-12 bg-gray-300 dark:bg-gray-600 rounded-full" />
       <div className="flex-1">
         <div className="flex items-center space-x-2 mb-2">
-          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24" />
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+          <div className="h-3 sm:h-4 bg-gray-300 dark:bg-gray-600 rounded w-20 sm:w-24" />
+          <div className="h-2 sm:h-3 bg-gray-200 dark:bg-gray-700 rounded w-12 sm:w-16" />
         </div>
         <div className="space-y-2">
-          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-full" />
-          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6" />
-          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-4/6" />
+          <div className="h-3 sm:h-4 bg-gray-300 dark:bg-gray-600 rounded w-full" />
+          <div className="h-3 sm:h-4 bg-gray-300 dark:bg-gray-600 rounded w-5/6" />
+          <div className="h-3 sm:h-4 bg-gray-300 dark:bg-gray-600 rounded w-4/6" />
         </div>
-        <div className="mt-4 flex items-center space-x-6">
+        <div className="mt-3 sm:mt-4 flex items-center space-x-4 sm:space-x-6">
           <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full" />
           <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full" />
           <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full" />
@@ -294,12 +294,12 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
       className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors cursor-pointer"
       onClick={handleArticleClick}
     >
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {/* Header */}
-        <div className="flex items-start space-x-3">
+        <div className="flex items-start space-x-2 sm:space-x-3">
           {/* Avatar/Source Icon */}
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm">
               {getSourceName(article.source)?.charAt(0) || 'N'}
             </div>
           </div>
@@ -307,11 +307,11 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
           {/* Content */}
           <div className="flex-1 min-w-0">
             {/* Source & Time */}
-            <div className="flex items-center space-x-1 text-sm">
-              <span className="font-bold text-gray-900 dark:text-white hover:underline">
+            <div className="flex items-center flex-wrap gap-1 text-xs sm:text-sm">
+              <span className="font-bold text-gray-900 dark:text-white hover:underline truncate">
                 {getSourceName(article.source)}
               </span>
-              <span className="text-gray-500">·</span>
+              <span className="text-gray-500 hidden xs:inline">·</span>
               <span className="text-gray-500 hover:underline">
                 {formatTimeAgo(formatTimestamp(article.published_at || article.publishedAt))}
               </span>
@@ -319,10 +319,10 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
               {/* Sentiment Badge */}
               {article.sentiment && (
                 <>
-                  <span className="text-gray-500">·</span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getSentimentColor(getSentimentString(article.sentiment))}`}>
+                  <span className="text-gray-500 hidden xs:inline">·</span>
+                  <span className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-medium ${getSentimentColor(getSentimentString(article.sentiment))}`}>
                     <span className="mr-1">{getSentimentEmoji(getSentimentString(article.sentiment))}</span>
-                    {getSentimentString(article.sentiment).replace('_', ' ').toUpperCase()}
+                    <span className="hidden sm:inline">{getSentimentString(article.sentiment).replace('_', ' ').toUpperCase()}</span>
                   </span>
                 </>
               )}
@@ -330,37 +330,37 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
               {/* Interest Match Badge */}
               {matchBadge && (
                 <>
-                  <span className="text-gray-500">·</span>
+                  <span className="text-gray-500 hidden xs:inline">·</span>
                   <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${matchBadge.color} animate-pulse cursor-help`}
+                    className={`inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-xs font-bold ${matchBadge.color} animate-pulse cursor-help`}
                     title={`${formatMatchDetails(interestMatch!)} - Score: ${interestMatch!.score}/100`}
                   >
                     <span className="mr-1">{matchBadge.icon}</span>
-                    {matchBadge.text}
+                    <span className="hidden sm:inline">{matchBadge.text}</span>
                   </span>
                 </>
               )}
             </div>
 
             {/* Title */}
-            <h2 className="mt-1 text-gray-900 dark:text-white font-medium leading-snug">
+            <h2 className="mt-1 text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white font-medium leading-snug">
               {article.title}
             </h2>
 
             {/* Description */}
             {article.description && (
-              <p className="mt-2 text-gray-700 dark:text-gray-300 leading-relaxed">
+              <p className="mt-2 text-sm sm:text-base text-gray-700 dark:text-gray-300 leading-relaxed">
                 {article.description}
               </p>
             )}
 
             {/* Image */}
             {article.urlToImage && (
-              <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+              <div className="mt-3 rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
                 <img
                   src={article.urlToImage}
                   alt={article.title}
-                  className="w-full h-64 object-cover"
+                  className="w-full h-48 sm:h-56 md:h-64 object-cover"
                   onError={(e) => {
                     (e.target as HTMLImageElement).style.display = 'none';
                   }}
@@ -370,8 +370,8 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
 
             {/* Tickers - Twitter style cashtags with sentiment indicator and interest highlighting */}
             {article.tickers && article.tickers.length > 0 && (
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <DollarSign className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+              <div className="mt-3 flex flex-wrap items-center gap-1 sm:gap-2">
+                <DollarSign className="w-3 h-3 text-gray-500 dark:text-gray-400 flex-shrink-0" />
                 {article.tickers.slice(0, 5).map((ticker, idx) => {
                   // Determine ticker sentiment based on article sentiment
                   const sentimentStr = getSentimentString(article.sentiment);
@@ -390,7 +390,7 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
                         e.stopPropagation();
                         toast.success(`Viewing ${ticker} details`, { duration: 1500 });
                       }}
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-sm font-semibold transition-all hover:scale-105 ${
+                      className={`inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md text-xs sm:text-sm font-semibold transition-all hover:scale-105 min-h-[28px] ${
                         isInterestMatch
                           ? 'bg-yellow-50 text-yellow-800 border border-yellow-300 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-700 dark:hover:bg-yellow-900/30 animate-pulse'
                           : isPositive
@@ -409,8 +409,8 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
                   );
                 })}
                 {article.tickers.length > 5 && (
-                  <span className="text-gray-500 dark:text-gray-400 text-xs font-medium">
-                    +{article.tickers.length - 5} more
+                  <span className="text-gray-500 dark:text-gray-400 text-xs font-medium px-1.5 py-0.5">
+                    +{article.tickers.length - 5}
                   </span>
                 )}
               </div>
@@ -488,19 +488,19 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
 
             {/* Actions */}
             <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1 sm:space-x-3">
                 {/* Like */}
                 <button
                   onClick={handleLike}
                   disabled={isProcessing}
-                  className={`group flex items-center space-x-2 transition-all p-2 rounded-full ${
+                  className={`group flex items-center space-x-1 sm:space-x-2 transition-all p-2 rounded-full min-h-[44px] ${
                     liked
                       ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                       : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                   } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''} ${isProcessing ? 'animate-pulse' : ''}`} />
-                  <span className={`text-sm ${liked ? 'text-red-500' : 'group-hover:text-red-500'}`}>
+                  <span className={`text-xs sm:text-sm ${liked ? 'text-red-500' : 'group-hover:text-red-500'} hidden sm:inline`}>
                     {liked ? 'Liked' : 'Like'}
                   </span>
                 </button>
@@ -508,24 +508,24 @@ const ArticleCard: React.FC<{ article: Article; index: number; userInterests?: U
                 {/* Share */}
                 <button
                   onClick={handleShare}
-                  className="group flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                  className="group flex items-center space-x-1 sm:space-x-2 text-gray-500 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 min-h-[44px]"
                 >
                   <Share2 className="w-5 h-5" />
-                  <span className="text-sm group-hover:text-blue-500">Share</span>
+                  <span className="text-xs sm:text-sm group-hover:text-blue-500 hidden sm:inline">Share</span>
                 </button>
 
                 {/* Save */}
                 <button
                   onClick={handleSave}
                   disabled={isProcessing}
-                  className={`group flex items-center space-x-2 transition-all p-2 rounded-full ${
+                  className={`group flex items-center space-x-1 sm:space-x-2 transition-all p-2 rounded-full min-h-[44px] ${
                     saved
                       ? 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                       : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                   } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <Bookmark className={`w-5 h-5 ${saved ? 'fill-current' : ''} ${isProcessing ? 'animate-pulse' : ''}`} />
-                  <span className={`text-sm ${saved ? 'text-blue-500' : 'group-hover:text-blue-500'}`}>
+                  <span className={`text-xs sm:text-sm ${saved ? 'text-blue-500' : 'group-hover:text-blue-500'} hidden sm:inline`}>
                     {saved ? 'Saved' : 'Save'}
                   </span>
                 </button>
@@ -881,24 +881,26 @@ const TwitterStyleFeed: React.FC = () => {
     <div className="min-h-screen bg-white dark:bg-gray-900">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
-        <div className="px-4 py-3">
+        <div className="px-3 sm:px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Financial News Feed
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                <span className="hidden sm:inline">Financial News Feed</span>
+                <span className="sm:hidden">News Feed</span>
               </h1>
-              <div className="flex items-center px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white text-xs font-medium">
+              <div className="flex items-center px-1.5 sm:px-2 py-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full text-white text-xs font-medium">
                 <Brain className="w-3 h-3 mr-1" />
-                FinBERT AI
+                <span className="hidden xs:inline">FinBERT AI</span>
+                <span className="xs:hidden">AI</span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Search Button */}
               <button
                 onClick={() => setShowSearch(!showSearch)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <Search className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
@@ -906,10 +908,10 @@ const TwitterStyleFeed: React.FC = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors flex items-center gap-1"
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors flex items-center gap-1 min-h-[44px] min-w-[44px] justify-center"
                 >
                   <Filter className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                  <ChevronDown className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                  <ChevronDown className="w-3 h-3 text-gray-600 dark:text-gray-400 hidden sm:inline" />
                 </button>
 
                 {showSortMenu && (
@@ -940,7 +942,7 @@ const TwitterStyleFeed: React.FC = () => {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
                 <RefreshCw className={`w-5 h-5 text-gray-600 dark:text-gray-400 ${isRefreshing ? 'animate-spin' : ''}`} />
               </button>
@@ -948,21 +950,21 @@ const TwitterStyleFeed: React.FC = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          <div className="mt-3 flex gap-1 sm:gap-2 overflow-x-auto pb-2 scrollbar-hide px-1 -mx-1 sm:px-0 sm:mx-0">
             {modeConfigs.map((config) => {
               const Icon = config.icon;
               return (
                 <button
                   key={config.mode}
                   onClick={() => setMode(config.mode)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-all min-h-[36px] ${
                     mode === config.mode
                       ? `bg-gradient-to-r ${config.color} text-white shadow-lg scale-105`
                       : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span>{config.label}</span>
+                  <Icon className="w-3 sm:w-4 h-3 sm:h-4 flex-shrink-0" />
+                  <span className="hidden xs:inline">{config.label}</span>
                 </button>
               );
             })}

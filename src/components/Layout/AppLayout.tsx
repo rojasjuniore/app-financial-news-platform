@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
-import { Menu } from 'lucide-react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -9,6 +8,10 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const toggleMobileMenu = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex">
@@ -33,19 +36,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Navbar */}
-        <Navbar />
-
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="md:hidden fixed bottom-4 left-4 z-40 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors duration-200"
-          aria-label="Toggle menu"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+        <Navbar
+          onToggleMobileMenu={toggleMobileMenu}
+          isMobileMenuOpen={isSidebarOpen}
+        />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-950">
           {children}
         </main>
       </div>

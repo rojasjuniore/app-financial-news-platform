@@ -1060,19 +1060,22 @@ const FuturisticVoice: React.FC = () => {
       {/* Main content */}
       <div className="relative z-10 h-screen flex flex-col">
         {/* Futuristic Header */}
-        <header className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <header className="p-3 sm:p-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-4">
               <div className="relative">
                 <div className="absolute inset-0 bg-cyan-500 blur-xl opacity-50" />
-                <div className="relative flex items-center gap-3 px-4 py-2 bg-black/50 backdrop-blur-xl border border-cyan-500/30 rounded-full">
-                  <Cpu className="w-5 h-5 text-cyan-400 animate-pulse" />
-                  <span className="text-sm font-mono text-cyan-300">NEURAL VOICE INTERFACE v2.0</span>
+                <div className="relative flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-1.5 sm:py-2 bg-black/50 backdrop-blur-xl border border-cyan-500/30 rounded-full">
+                  <Cpu className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400 animate-pulse" />
+                  <span className="text-xs sm:text-sm font-mono text-cyan-300">
+                    <span className="hidden sm:inline">NEURAL VOICE INTERFACE v2.0</span>
+                    <span className="sm:hidden">VOICE AI v2.0</span>
+                  </span>
                 </div>
               </div>
               
               {/* Connection status */}
-              <div className={`flex items-center gap-2 px-3 py-1 rounded-full border backdrop-blur-xl ${
+              <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-full border backdrop-blur-xl ${
                 connectionStatus === 'connected' ? 'bg-green-500/10 border-green-500/30' :
                 connectionStatus === 'error' ? 'bg-red-500/10 border-red-500/30' :
                 'bg-yellow-500/10 border-yellow-500/30'
@@ -1082,18 +1085,18 @@ const FuturisticVoice: React.FC = () => {
                   connectionStatus === 'error' ? 'text-red-400' :
                   'text-yellow-400 animate-pulse'
                 }`} />
-                <span className="text-xs font-mono uppercase">
+                <span className="text-xs font-mono uppercase hidden xs:inline">
                   {connectionStatus === 'connected' ? 'ONLINE' :
                    connectionStatus === 'error' ? 'ERROR' : 'SYNCING'}
                 </span>
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 sm:gap-3 flex-wrap">
               {/* Language Selector */}
               <div className="relative group">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-purple-400" />
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
                   <select
                     value={selectedLanguage}
                     onChange={(e) => {
@@ -1115,14 +1118,14 @@ const FuturisticVoice: React.FC = () => {
                         }));
                       }
                     }}
-                    className="px-3 py-1.5 bg-black/50 backdrop-blur-xl border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all text-xs font-mono text-purple-400 appearance-none pr-8 cursor-pointer"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-black/50 backdrop-blur-xl border border-purple-500/30 rounded-lg hover:border-purple-500/50 transition-all text-xs font-mono text-purple-400 appearance-none pr-6 sm:pr-8 cursor-pointer"
                     title="Selecciona el idioma"
                   >
                     <option value="es">🇪🇸 Español</option>
                     <option value="en">🇺🇸 English</option>
                   </select>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
@@ -1131,12 +1134,12 @@ const FuturisticVoice: React.FC = () => {
               
               {/* Voice Selector */}
               <div className="relative group">
-                <div className="flex items-center gap-2">
-                  <Volume2 className="w-4 h-4 text-cyan-400" />
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <Volume2 className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-400" />
                   <select
                     value={selectedVoice}
                     onChange={(e) => setSelectedVoice(e.target.value as any)}
-                    className="px-3 py-1.5 bg-black/50 backdrop-blur-xl border border-cyan-500/30 rounded-lg hover:border-cyan-500/50 transition-all text-xs font-mono text-cyan-400 appearance-none pr-8 cursor-pointer"
+                    className="px-2 sm:px-3 py-1 sm:py-1.5 bg-black/50 backdrop-blur-xl border border-cyan-500/30 rounded-lg hover:border-cyan-500/50 transition-all text-xs font-mono text-cyan-400 appearance-none pr-6 sm:pr-8 cursor-pointer"
                     title="Selecciona la voz del asistente"
                   >
                     <option value="shimmer">✨ {selectedLanguage === 'es' ? 'Shimmer - Clara' : 'Shimmer - Clear'}</option>
@@ -1146,15 +1149,15 @@ const FuturisticVoice: React.FC = () => {
                     <option value="fable">🎭 {selectedLanguage === 'es' ? 'Fable - Expresiva' : 'Fable - Expressive'}</option>
                     <option value="onyx">🎸 {selectedLanguage === 'es' ? 'Onyx - Profunda' : 'Onyx - Deep'}</option>
                   </select>
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
                 </div>
                 
                 {/* Voice indicator tooltip */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 px-2 py-1 rounded text-xs text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black/90 px-2 py-1 rounded text-xs text-cyan-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap hidden sm:block">
                   {selectedLanguage === 'es' ? 'Voz' : 'Voice'}: {selectedVoice.charAt(0).toUpperCase() + selectedVoice.slice(1)}
                 </div>
               </div>
@@ -1164,14 +1167,14 @@ const FuturisticVoice: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setCompactMode(!compactMode)}
-                className={`p-2 backdrop-blur-xl border rounded-lg transition-all ${
-                  compactMode 
-                    ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400' 
+                className={`p-1.5 sm:p-2 backdrop-blur-xl border rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                  compactMode
+                    ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-400'
                     : 'bg-black/50 border-gray-700/50 hover:border-yellow-500/50 text-gray-400'
                 }`}
                 title={compactMode ? 'Salir modo compacto' : 'Modo compacto sin scroll'}
               >
-                {compactMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                {compactMode ? <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />}
               </motion.button>
 
               {/* Alpha Info Button */}
@@ -1179,10 +1182,10 @@ const FuturisticVoice: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowAlphaModal(true)}
-                className="p-2 bg-black/50 backdrop-blur-xl border border-purple-500/50 hover:border-purple-400/70 rounded-lg transition-all text-purple-400"
+                className="p-1.5 sm:p-2 bg-black/50 backdrop-blur-xl border border-purple-500/50 hover:border-purple-400/70 rounded-lg transition-all text-purple-400 min-h-[44px] min-w-[44px] flex items-center justify-center"
                 title="Alpha Version Information"
               >
-                <Info className="w-5 h-5" />
+                <Info className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
 
               {/* Article Panel Toggle */}
@@ -1190,39 +1193,39 @@ const FuturisticVoice: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowArticlePanel(!showArticlePanel)}
-                className={`p-2 backdrop-blur-xl border rounded-lg transition-all ${
-                  showArticlePanel 
-                    ? 'bg-green-500/20 border-green-500/50 text-green-400' 
+                className={`p-1.5 sm:p-2 backdrop-blur-xl border rounded-lg transition-all min-h-[44px] min-w-[44px] flex items-center justify-center ${
+                  showArticlePanel
+                    ? 'bg-green-500/20 border-green-500/50 text-green-400'
                     : 'bg-black/50 border-gray-700/50 hover:border-green-500/50 text-gray-400'
                 }`}
                 title={showArticlePanel ? 'Ocultar artículos' : 'Mostrar artículos para resumir'}
               >
-                {showArticlePanel ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showArticlePanel ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
               </motion.button>
 
               {/* Audio Toggle */}
               <button
                 onClick={() => setAudioEnabled(!audioEnabled)}
-                className="p-2 bg-black/50 backdrop-blur-xl border border-gray-700/50 rounded-lg hover:border-cyan-500/50 transition-all"
+                className="p-1.5 sm:p-2 bg-black/50 backdrop-blur-xl border border-gray-700/50 rounded-lg hover:border-cyan-500/50 transition-all min-h-[44px] min-w-[44px] flex items-center justify-center"
               >
-                {audioEnabled ? <Volume2 className="w-5 h-5 text-cyan-400" /> : <VolumeX className="w-5 h-5 text-gray-400" />}
+                {audioEnabled ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />}
               </button>
             </div>
           </div>
         </header>
         
         {/* Main Content Area */}
-        <div className={`flex-1 px-6 pb-6 ${compactMode ? 'overflow-hidden' : 'overflow-y-auto'} ${compactMode ? 'grid grid-cols-12 gap-4' : ''}`}>
+        <div className={`flex-1 px-3 sm:px-6 pb-3 sm:pb-6 ${compactMode ? 'overflow-hidden' : 'overflow-y-auto'} ${compactMode ? 'grid grid-cols-12 gap-2 sm:gap-4' : ''}`}>
           {compactMode ? (
             <>
               {/* Articles Panel - Compact Mode */}
               {showArticlePanel && (
-                <div className="col-span-4 h-full">
-                  <div className="bg-black/40 backdrop-blur-xl border border-green-500/30 rounded-xl p-4 h-full overflow-y-auto">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Search className="w-5 h-5 text-green-400" />
-                      <h3 className="text-lg font-semibold text-white">Artículos</h3>
-                      <span className="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-full">
+                <div className="col-span-12 md:col-span-4 h-full">
+                  <div className="bg-black/40 backdrop-blur-xl border border-green-500/30 rounded-xl p-3 sm:p-4 h-full overflow-y-auto">
+                    <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                      <Search className="w-4 h-4 sm:w-5 sm:h-5 text-green-400" />
+                      <h3 className="text-base sm:text-lg font-semibold text-white">Artículos</h3>
+                      <span className="text-xs text-green-400 bg-green-500/20 px-2 py-1 rounded-full hidden sm:inline">
                         Click para resumir
                       </span>
                     </div>
@@ -1284,25 +1287,25 @@ const FuturisticVoice: React.FC = () => {
               )}
 
               {/* Main Voice Interface - Compact Mode */}
-              <div className={`${showArticlePanel ? 'col-span-8' : 'col-span-12'} h-full flex flex-col`}>
-                <div className="bg-black/40 backdrop-blur-xl border border-blue-500/30 rounded-xl p-6 h-full flex flex-col">
+              <div className={`${showArticlePanel ? 'col-span-12 md:col-span-8' : 'col-span-12'} h-full flex flex-col`}>
+                <div className="bg-black/40 backdrop-blur-xl border border-blue-500/30 rounded-xl p-3 sm:p-6 h-full flex flex-col">
                   {/* Compact Voice Controls */}
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-4">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-4 sm:mb-6 gap-3 lg:gap-0">
+                    <div className="flex items-center gap-2 sm:gap-4">
                       <div className="relative">
                         <div className="absolute inset-0 bg-blue-500 blur-xl opacity-30" />
-                        <Radio className="w-12 h-12 text-blue-400 relative animate-pulse" />
+                        <Radio className="w-8 h-8 sm:w-12 sm:h-12 text-blue-400 relative animate-pulse" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-white">Control por Voz</h3>
-                        <p className="text-sm text-gray-400">
+                        <h3 className="text-lg sm:text-xl font-bold text-white">Control por Voz</h3>
+                        <p className="text-xs sm:text-sm text-gray-400">
                           {isListening ? '🎤 Escuchando...' : 'Presiona para hablar'}
                         </p>
                       </div>
                     </div>
                     
                     {/* Quick Commands */}
-                    <div className="flex gap-2">
+                    <div className="flex gap-1 sm:gap-2 flex-wrap">
                       <button
                         onClick={() => {
                           setTranscript('¿Cuáles son las últimas noticias?');
@@ -1314,9 +1317,9 @@ const FuturisticVoice: React.FC = () => {
                             }));
                           }
                         }}
-                        className="px-3 py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-300 hover:bg-purple-500/30 transition-all"
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-purple-500/20 border border-purple-500/30 rounded-lg text-xs text-purple-300 hover:bg-purple-500/30 transition-all whitespace-nowrap"
                       >
-                        📰 Noticias
+                        📰 <span className="hidden xs:inline">Noticias</span>
                       </button>
                       <button
                         onClick={() => {
@@ -1329,9 +1332,9 @@ const FuturisticVoice: React.FC = () => {
                             }));
                           }
                         }}
-                        className="px-3 py-1.5 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-300 hover:bg-yellow-500/30 transition-all"
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-yellow-500/20 border border-yellow-500/30 rounded-lg text-xs text-yellow-300 hover:bg-yellow-500/30 transition-all whitespace-nowrap"
                       >
-                        🥇 Oro
+                        🥇 <span className="hidden xs:inline">Oro</span>
                       </button>
                       <button
                         onClick={() => {
@@ -1344,9 +1347,9 @@ const FuturisticVoice: React.FC = () => {
                             }));
                           }
                         }}
-                        className="px-3 py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs text-blue-300 hover:bg-blue-500/30 transition-all"
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-500/20 border border-blue-500/30 rounded-lg text-xs text-blue-300 hover:bg-blue-500/30 transition-all whitespace-nowrap"
                       >
-                        📊 Análisis
+                        📊 <span className="hidden xs:inline">Análisis</span>
                       </button>
                       <button
                         onClick={() => {
@@ -1359,17 +1362,17 @@ const FuturisticVoice: React.FC = () => {
                             }));
                           }
                         }}
-                        className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-lg text-xs text-green-300 hover:bg-green-500/30 transition-all"
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-green-500/20 border border-green-500/30 rounded-lg text-xs text-green-300 hover:bg-green-500/30 transition-all whitespace-nowrap"
                       >
-                        📈 Gráfico
+                        📈 <span className="hidden xs:inline">Gráfico</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Transcript Display */}
                   {transcript && (
-                    <div className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                      <div className="text-sm text-blue-300">
+                    <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <div className="text-xs sm:text-sm text-blue-300">
                         <strong>Tu consulta:</strong> {transcript}
                       </div>
                     </div>
@@ -1378,19 +1381,19 @@ const FuturisticVoice: React.FC = () => {
                   {/* Response Display */}
                   <div className="flex-1 overflow-y-auto">
                     {response ? (
-                      <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                        <div className="text-white whitespace-pre-wrap text-sm">
+                      <div className="p-3 sm:p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                        <div className="text-white whitespace-pre-wrap text-xs sm:text-sm">
                           {response}
                         </div>
                       </div>
                     ) : (
                       <div className="h-full flex items-center justify-center text-gray-400 text-center">
                         <div>
-                          <Brain className="w-16 h-16 mx-auto mb-4 text-purple-400 animate-pulse" />
-                          <p className="text-sm">
+                          <Brain className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 text-purple-400 animate-pulse" />
+                          <p className="text-xs sm:text-sm">
                             Sistema listo para consultas financieras
                           </p>
-                          <p className="text-xs mt-2">
+                          <p className="text-xs mt-2 hidden sm:block">
                             Di "resume este artículo" o haz click en un artículo
                           </p>
                         </div>
@@ -1399,7 +1402,7 @@ const FuturisticVoice: React.FC = () => {
                   </div>
 
                   {/* Voice Button - Bottom */}
-                  <div className="mt-4 text-center">
+                  <div className="mt-3 sm:mt-4 text-center">
                     <motion.button
                       whileTap={{ scale: 0.95 }}
                       onMouseDown={startListening}
@@ -1407,20 +1410,20 @@ const FuturisticVoice: React.FC = () => {
                       onMouseLeave={stopListening}
                       onTouchStart={startListening}
                       onTouchEnd={stopListening}
-                      className={`w-16 h-16 rounded-full border-2 flex items-center justify-center transition-all ${
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 flex items-center justify-center transition-all ${
                         isListening
                           ? 'bg-red-500/20 border-red-500 shadow-red-500/50 shadow-lg'
                           : 'bg-blue-500/20 border-blue-500 hover:bg-blue-500/30'
                       }`}
                     >
-                      <Mic className={`w-8 h-8 ${isListening ? 'text-red-400' : 'text-blue-400'}`} />
+                      <Mic className={`w-6 h-6 sm:w-8 sm:h-8 ${isListening ? 'text-red-400' : 'text-blue-400'}`} />
                     </motion.button>
                   </div>
                 </div>
               </div>
             </>
           ) : (
-            <div className="max-w-6xl mx-auto space-y-6">
+            <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
             {/* Display Area */}
             <AnimatePresence mode="wait">
               {displayMode === 'market' && renderMarketData()}
@@ -1433,14 +1436,15 @@ const FuturisticVoice: React.FC = () => {
                   className="relative"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 blur-3xl" />
-                  <div className="relative bg-black/40 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-12 min-h-[400px] flex items-center justify-center">
+                  <div className="relative bg-black/40 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-6 sm:p-12 min-h-[300px] sm:min-h-[400px] flex items-center justify-center">
                     <div className="text-center">
-                      <div className="relative inline-block mb-6">
+                      <div className="relative inline-block mb-4 sm:mb-6">
                         <div className="absolute inset-0 bg-blue-500 blur-3xl opacity-30" />
-                        <Radio className="w-20 h-20 text-blue-400 relative animate-pulse" />
+                        <Radio className="w-16 h-16 sm:w-20 sm:h-20 text-blue-400 relative animate-pulse" />
                       </div>
-                      <p className="text-gray-400 font-mono text-sm uppercase tracking-wider">
-                        Neural System Ready • Ask About Markets • Get Real-Time Data
+                      <p className="text-gray-400 font-mono text-xs sm:text-sm uppercase tracking-wider">
+                        <span className="hidden sm:inline">Neural System Ready • Ask About Markets • Get Real-Time Data</span>
+                        <span className="sm:hidden">Sistema Neural Listo</span>
                       </p>
                     </div>
                   </div>
@@ -1451,7 +1455,7 @@ const FuturisticVoice: React.FC = () => {
             {/* Voice Control Center */}
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-purple-500/10 blur-3xl" />
-              <div className="relative bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8">
+              <div className="relative bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-4 sm:p-8">
                 <div className="flex flex-col items-center">
                   {!isConversationActive ? (
                     <motion.button
@@ -1476,7 +1480,7 @@ const FuturisticVoice: React.FC = () => {
                   ) : (
                     <div className="text-center w-full">
                       {/* Central orb with waveform */}
-                      <div className="relative w-48 h-48 mx-auto mb-6">
+                      <div className="relative w-32 h-32 sm:w-48 sm:h-48 mx-auto mb-4 sm:mb-6">
                         {/* Outer rings */}
                         <motion.div
                           className="absolute inset-0 rounded-full border border-cyan-500/20"
@@ -1505,19 +1509,19 @@ const FuturisticVoice: React.FC = () => {
                         />
                         
                         {/* Central orb */}
-                        <div className={`absolute inset-4 rounded-full transition-all duration-300 ${
-                          isListening ? 'bg-gradient-to-br from-red-500 to-orange-500 shadow-[0_0_60px_rgba(239,68,68,0.6)]' :
-                          isProcessing ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_0_60px_rgba(168,85,247,0.6)]' :
-                          'bg-gradient-to-br from-cyan-500 to-blue-500 shadow-[0_0_40px_rgba(6,182,212,0.4)]'
+                        <div className={`absolute inset-2 sm:inset-4 rounded-full transition-all duration-300 ${
+                          isListening ? 'bg-gradient-to-br from-red-500 to-orange-500 shadow-[0_0_40px_rgba(239,68,68,0.6)] sm:shadow-[0_0_60px_rgba(239,68,68,0.6)]' :
+                          isProcessing ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-[0_0_40px_rgba(168,85,247,0.6)] sm:shadow-[0_0_60px_rgba(168,85,247,0.6)]' :
+                          'bg-gradient-to-br from-cyan-500 to-blue-500 shadow-[0_0_30px_rgba(6,182,212,0.4)] sm:shadow-[0_0_40px_rgba(6,182,212,0.4)]'
                         }`}>
                           {/* Waveform visualization */}
                           <div className="absolute inset-0 flex items-center justify-center gap-1">
                             {voiceWaveform.map((value, index) => (
                               <motion.div
                                 key={index}
-                                className="w-1 bg-white/80 rounded-full"
+                                className="w-0.5 sm:w-1 bg-white/80 rounded-full"
                                 animate={{
-                                  height: `${Math.max(8, value * 60)}px`
+                                  height: `${Math.max(6, value * (window.innerWidth < 640 ? 40 : 60))}px`
                                 }}
                                 transition={{
                                   duration: 0.1,
@@ -1530,11 +1534,11 @@ const FuturisticVoice: React.FC = () => {
                           {/* Center icon */}
                           <div className="absolute inset-0 flex items-center justify-center">
                             {isListening ? (
-                              <Waves className="w-12 h-12 text-white/20" />
+                              <Waves className="w-8 h-8 sm:w-12 sm:h-12 text-white/20" />
                             ) : isProcessing ? (
-                              <Brain className="w-12 h-12 text-white/20 animate-pulse" />
+                              <Brain className="w-8 h-8 sm:w-12 sm:h-12 text-white/20 animate-pulse" />
                             ) : (
-                              <Mic className="w-12 h-12 text-white/20" />
+                              <Mic className="w-8 h-8 sm:w-12 sm:h-12 text-white/20" />
                             )}
                           </div>
                         </div>
@@ -1553,37 +1557,47 @@ const FuturisticVoice: React.FC = () => {
                 </div>
                 
                 {/* Status display */}
-                <div className="mt-6 text-center">
+                <div className="mt-4 sm:mt-6 text-center">
                   {isConversationActive && (
-                    <div className="font-mono text-sm">
+                    <div className="font-mono text-xs sm:text-sm">
                       {isListening && (
-                        <span className="text-red-400 animate-pulse">● RECORDING AUDIO STREAM</span>
+                        <span className="text-red-400 animate-pulse">
+                          <span className="hidden sm:inline">● RECORDING AUDIO STREAM</span>
+                          <span className="sm:hidden">● GRABANDO</span>
+                        </span>
                       )}
                       {isProcessing && (
-                        <span className="text-purple-400">◆ PROCESSING NEURAL DATA</span>
+                        <span className="text-purple-400">
+                          <span className="hidden sm:inline">◆ PROCESSING NEURAL DATA</span>
+                          <span className="sm:hidden">◆ PROCESANDO</span>
+                        </span>
                       )}
                       {!isListening && !isProcessing && (
-                        <span className="text-cyan-400">▶ SYSTEM ACTIVE - SPEAK NOW</span>
+                        <span className="text-cyan-400">
+                          <span className="hidden sm:inline">▶ SYSTEM ACTIVE - SPEAK NOW</span>
+                          <span className="sm:hidden">▶ SISTEMA ACTIVO</span>
+                        </span>
                       )}
                     </div>
                   )}
                   {!isConversationActive && (
                     <p className="text-gray-500 font-mono text-xs uppercase tracking-wider">
-                      Press to initialize neural voice system
+                      <span className="hidden sm:inline">Press to initialize neural voice system</span>
+                      <span className="sm:hidden">Presiona para activar</span>
                     </p>
                   )}
                 </div>
                 
                 {/* Transcript display */}
                 {transcript && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-6 p-4 bg-black/50 backdrop-blur border border-cyan-500/20 rounded-lg"
+                    className="mt-4 sm:mt-6 p-3 sm:p-4 bg-black/50 backdrop-blur border border-cyan-500/20 rounded-lg"
                   >
                     <div className="flex items-start gap-2">
-                      <Activity className="w-4 h-4 text-cyan-400 mt-1" />
-                      <p className="text-sm text-cyan-300 font-mono">{transcript}</p>
+                      <Activity className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                      <p className="text-xs sm:text-sm text-cyan-300 font-mono">{transcript}</p>
                     </div>
                   </motion.div>
                 )}
@@ -1598,12 +1612,12 @@ const FuturisticVoice: React.FC = () => {
                 className="relative"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 blur-3xl" />
-                <div className="relative bg-black/40 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-6">
-                  <div className="flex items-start gap-3">
-                    <Brain className="w-5 h-5 text-purple-400 mt-1" />
+                <div className="relative bg-black/40 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-4 sm:p-6">
+                  <div className="flex items-start gap-2 sm:gap-3">
+                    <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 mt-1 flex-shrink-0" />
                     <div>
-                      <h3 className="text-sm font-mono text-purple-400 mb-2 uppercase tracking-wider">Neural Response</h3>
-                      <p className="text-gray-300 whitespace-pre-line">{response}</p>
+                      <h3 className="text-xs sm:text-sm font-mono text-purple-400 mb-2 uppercase tracking-wider">Neural Response</h3>
+                      <p className="text-sm sm:text-base text-gray-300 whitespace-pre-line">{response}</p>
                     </div>
                   </div>
                 </div>
@@ -1611,7 +1625,7 @@ const FuturisticVoice: React.FC = () => {
             )}
             
             {/* Quick Actions Grid */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
               {[
                 { mode: 'market' as DisplayMode, icon: BarChart3, label: 'MARKET', color: 'cyan' },
                 { mode: 'news' as DisplayMode, icon: Globe, label: 'NEWS', color: 'purple' },
@@ -1621,16 +1635,16 @@ const FuturisticVoice: React.FC = () => {
                 <motion.button
                   key={action.mode}
                   onClick={() => setDisplayMode(action.mode)}
-                  className={`relative group p-4 bg-black/40 backdrop-blur-xl border rounded-xl transition-all ${
-                    displayMode === action.mode 
-                      ? `border-${action.color}-500/50 bg-${action.color}-500/10` 
+                  className={`relative group p-3 sm:p-4 bg-black/40 backdrop-blur-xl border rounded-xl transition-all min-h-[80px] sm:min-h-[100px] ${
+                    displayMode === action.mode
+                      ? `border-${action.color}-500/50 bg-${action.color}-500/10`
                       : 'border-gray-700/50 hover:border-gray-600/50'
                   }`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
                   <div className={`absolute inset-0 bg-gradient-to-r from-${action.color}-500/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity`} />
-                  <action.icon className={`w-6 h-6 mx-auto mb-2 ${
+                  <action.icon className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 ${
                     displayMode === action.mode ? `text-${action.color}-400` : 'text-gray-400'
                   }`} />
                   <span className={`text-xs font-mono uppercase tracking-wider ${
@@ -1654,14 +1668,14 @@ const FuturisticVoice: React.FC = () => {
                 onMouseLeave={stopListening}
                 onTouchStart={startListening}
                 onTouchEnd={stopListening}
-                className={`relative w-20 h-20 rounded-full border-4 flex items-center justify-center transition-all ${
+                className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 flex items-center justify-center transition-all ${
                   isListening
                     ? 'bg-red-500/20 border-red-500 shadow-red-500/50 shadow-2xl animate-pulse'
                     : 'bg-blue-500/20 border-blue-500 hover:bg-blue-500/30 shadow-blue-500/30 shadow-lg'
                 }`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-md" />
-                <Mic className={`w-10 h-10 relative z-10 ${isListening ? 'text-red-400' : 'text-blue-400'}`} />
+                <Mic className={`w-8 h-8 sm:w-10 sm:h-10 relative z-10 ${isListening ? 'text-red-400' : 'text-blue-400'}`} />
               </motion.button>
             </div>
           )}
@@ -1687,47 +1701,47 @@ const FuturisticVoice: React.FC = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4"
             >
-              <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto mx-auto">
                 {/* Modal Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-cyan-500/20 blur-3xl rounded-3xl" />
 
                 {/* Modal Content */}
-                <div className="relative bg-black/90 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-8 shadow-2xl">
+                <div className="relative bg-black/90 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-4 sm:p-8 shadow-2xl">
                   {/* Close Button */}
                   <motion.button
                     whileHover={{ scale: 1.1, rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleCloseAlphaModal}
-                    className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white transition-colors"
+                    className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 text-gray-400 hover:text-white transition-colors"
                   >
-                    <X className="w-6 h-6" />
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
                   </motion.button>
 
                   {/* Header */}
-                  <div className="flex items-center gap-4 mb-8">
+                  <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
                     <div className="relative">
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full blur-md opacity-60" />
-                      <div className="relative bg-gradient-to-r from-purple-500 to-cyan-500 p-3 rounded-full">
-                        <Sparkles className="w-8 h-8 text-white" />
+                      <div className="relative bg-gradient-to-r from-purple-500 to-cyan-500 p-2 sm:p-3 rounded-full">
+                        <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                       </div>
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                      <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
                         Voice Assistant Alpha
                       </h2>
-                      <p className="text-gray-400 text-lg">v2.0.0-alpha | Experimental Version</p>
+                      <p className="text-gray-400 text-sm sm:text-lg">v2.0.0-alpha | Experimental Version</p>
                     </div>
                   </div>
 
                   {/* Alpha Notice */}
-                  <div className="mb-8 p-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl">
+                  <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="w-6 h-6 text-yellow-400 mt-0.5" />
+                      <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <h3 className="text-xl font-semibold text-yellow-400 mb-2">🚀 Alpha Version in Development</h3>
-                        <p className="text-gray-300 leading-relaxed">
+                        <h3 className="text-lg sm:text-xl font-semibold text-yellow-400 mb-2">🚀 Alpha Version in Development</h3>
+                        <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
                           This is an <strong>experimental version</strong> of the AI voice assistant. We are actively working
                           to improve results, optimize the experience, and gather information and analysis to provide
                           clearer and more accurate responses.
