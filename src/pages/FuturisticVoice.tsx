@@ -27,7 +27,10 @@ import {
   Minimize2,
   Eye,
   EyeOff,
-  X
+  X,
+  Info,
+  Sparkles,
+  MessageCircle
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -104,6 +107,7 @@ const FuturisticVoice: React.FC = () => {
   const [showTechnicalAnalysis, setShowTechnicalAnalysis] = useState(false); // Mostrar análisis técnico
   const [analysisSymbol, setAnalysisSymbol] = useState('AAPL'); // Símbolo para análisis
   const [analysisType, setAnalysisType] = useState<'indicators' | 'chart' | 'forex'>('indicators'); // Tipo de análisis
+  const [showAlphaModal, setShowAlphaModal] = useState(false); // Modal de versión alpha
   
   // Refs
   const wsRef = useRef<WebSocket | null>(null);
@@ -679,7 +683,25 @@ const FuturisticVoice: React.FC = () => {
       }
     };
   }, [connectWebSocket]);
-  
+
+  // Show alpha modal on first visit
+  useEffect(() => {
+    const hasSeenAlphaModal = localStorage.getItem('voice-alpha-modal-seen');
+    if (!hasSeenAlphaModal) {
+      const timer = setTimeout(() => {
+        setShowAlphaModal(true);
+      }, 1500); // Show modal after 1.5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Handle alpha modal close
+  const handleCloseAlphaModal = () => {
+    setShowAlphaModal(false);
+    localStorage.setItem('voice-alpha-modal-seen', 'true');
+  };
+
   // Render holographic market data
   const renderMarketData = () => {
     if (!context.marketData || context.marketData.length === 0) return null;
@@ -1151,7 +1173,18 @@ const FuturisticVoice: React.FC = () => {
               >
                 {compactMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
               </motion.button>
-              
+
+              {/* Alpha Info Button */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowAlphaModal(true)}
+                className="p-2 bg-black/50 backdrop-blur-xl border border-purple-500/50 hover:border-purple-400/70 rounded-lg transition-all text-purple-400"
+                title="Alpha Version Information"
+              >
+                <Info className="w-5 h-5" />
+              </motion.button>
+
               {/* Article Panel Toggle */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -1634,6 +1667,188 @@ const FuturisticVoice: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Alpha Version Modal */}
+      <AnimatePresence>
+        {showAlphaModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
+              onClick={handleCloseAlphaModal}
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            >
+              <div className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                {/* Modal Background Effects */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-blue-500/20 to-cyan-500/20 blur-3xl rounded-3xl" />
+
+                {/* Modal Content */}
+                <div className="relative bg-black/90 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-8 shadow-2xl">
+                  {/* Close Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleCloseAlphaModal}
+                    className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </motion.button>
+
+                  {/* Header */}
+                  <div className="flex items-center gap-4 mb-8">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full blur-md opacity-60" />
+                      <div className="relative bg-gradient-to-r from-purple-500 to-cyan-500 p-3 rounded-full">
+                        <Sparkles className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                        Voice Assistant Alpha
+                      </h2>
+                      <p className="text-gray-400 text-lg">v2.0.0-alpha | Experimental Version</p>
+                    </div>
+                  </div>
+
+                  {/* Alpha Notice */}
+                  <div className="mb-8 p-6 bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-2xl">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-6 h-6 text-yellow-400 mt-0.5" />
+                      <div>
+                        <h3 className="text-xl font-semibold text-yellow-400 mb-2">🚀 Alpha Version in Development</h3>
+                        <p className="text-gray-300 leading-relaxed">
+                          This is an <strong>experimental version</strong> of the AI voice assistant. We are actively working
+                          to improve results, optimize the experience, and gather information and analysis to provide
+                          clearer and more accurate responses.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Current Features */}
+                  <div className="mb-8">
+                    <h3 className="text-2xl font-semibold text-purple-400 mb-4 flex items-center gap-2">
+                      <Brain className="w-6 h-6" />
+                      Available Voice Commands
+                    </h3>
+
+                    <div className="grid gap-4">
+                      {/* Market Analysis Commands */}
+                      <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl">
+                        <h4 className="font-semibold text-green-400 mb-2 flex items-center gap-2">
+                          <TrendingUp className="w-4 h-4" />
+                          Market Analysis
+                        </h4>
+                        <ul className="space-y-1 text-gray-300 text-sm">
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"How is Tesla doing?"</code> - Specific stock analysis</li>
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Give me Bitcoin price"</code> - Cryptocurrency prices</li>
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Analyze tech sector"</code> - Sector analysis</li>
+                        </ul>
+                      </div>
+
+                      {/* News Commands */}
+                      <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/30 rounded-xl">
+                        <h4 className="font-semibold text-blue-400 mb-2 flex items-center gap-2">
+                          <Globe className="w-4 h-4" />
+                          News & Analysis
+                        </h4>
+                        <ul className="space-y-1 text-gray-300 text-sm">
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Today's important news"</code> - Daily summary</li>
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"What's happening with Apple?"</code> - Specific news</li>
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Market sentiment analysis"</code> - Sentiment analysis</li>
+                        </ul>
+                      </div>
+
+                      {/* Trading Commands */}
+                      <div className="p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/30 rounded-xl">
+                        <h4 className="font-semibold text-purple-400 mb-2 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Trading & Technical Analysis
+                        </h4>
+                        <ul className="space-y-1 text-gray-300 text-sm">
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Technical analysis for NVIDIA"</code> - Technical indicators</li>
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Buy signals for today"</code> - Trading recommendations</li>
+                          <li>• <code className="bg-black/40 px-2 py-1 rounded">"Support and resistance levels"</code> - Level analysis</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Upcoming Features */}
+                  <div className="mb-8">
+                    <h3 className="text-2xl font-semibold text-cyan-400 mb-4 flex items-center gap-2">
+                      <Zap className="w-6 h-6" />
+                      Upcoming Improvements
+                    </h3>
+
+                    <div className="space-y-4">
+                      <div className="p-4 bg-gradient-to-r from-cyan-500/10 to-teal-500/10 border border-cyan-500/30 rounded-xl">
+                        <h4 className="font-semibold text-cyan-400 mb-2 flex items-center gap-2">
+                          <Network className="w-4 h-4" />
+                          Advanced MCP Integration
+                        </h4>
+                        <p className="text-gray-300 text-sm">
+                          Enhanced connectivity with MCP (Model Context Protocol) services for real-time access
+                          to financial data, deeper analysis, and contextualized responses.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/30 rounded-xl">
+                        <h4 className="font-semibold text-orange-400 mb-2 flex items-center gap-2">
+                          <MessageCircle className="w-4 h-4" />
+                          Clearer Responses
+                        </h4>
+                        <p className="text-gray-300 text-sm">
+                          Natural language processing optimization for more accurate, contextual,
+                          and personalized responses based on your trading history.
+                        </p>
+                      </div>
+
+                      <div className="p-4 bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/30 rounded-xl">
+                        <h4 className="font-semibold text-pink-400 mb-2 flex items-center gap-2">
+                          <Activity className="w-4 h-4" />
+                          Predictive Analysis
+                        </h4>
+                        <p className="text-gray-300 text-sm">
+                          Advanced AI models for market predictions, pattern detection,
+                          and automatic alerts based on technical and fundamental analysis.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="text-center p-6 bg-gradient-to-r from-gray-800/20 to-gray-700/20 rounded-xl">
+                    <p className="text-gray-400 text-sm mb-4">
+                      Your feedback is very important to us. This alpha version allows us to
+                      continuously improve the voice assistant experience.
+                    </p>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleCloseAlphaModal}
+                      className="px-6 py-3 bg-gradient-to-r from-purple-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                    >
+                      Got it, let's try it out!
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
