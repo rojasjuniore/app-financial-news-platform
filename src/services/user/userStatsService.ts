@@ -1,4 +1,4 @@
-import { API_CONFIG } from '../../config/api';
+import apiClient from '../news/api';
 import { articleInteractionService } from '../news/articleInteractionService';
 
 interface UserStats {
@@ -13,36 +13,21 @@ interface UserStats {
 }
 
 class UserStatsService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = API_CONFIG.BASE_URL;
-  }
+  constructor() {}
 
   /**
    * Get comprehensive user statistics
    */
   async getUserStats(userId?: string): Promise<UserStats> {
     try {
-      // Get the auth token from Firebase
-      const token = localStorage.getItem('authToken');
-
-      const response = await fetch(`${this.baseUrl}/api/users/${userId || 'anonymous'}/stats`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get user stats: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      // apiClient already handles auth token automatically
+      const response = await apiClient.get(`/api/users/${userId || 'anonymous'}/stats`);
+      const data = response.data;
       return data;
     } catch (error) {
-      console.error('Error getting user stats:', error);
-      // Return default stats
+      console.error('Error fetching user stats:', error);
+
+      // Return default stats structure on error
       return {
         totalLiked: 0,
         totalSaved: 0,
@@ -57,120 +42,55 @@ class UserStatsService {
   }
 
   /**
-   * Get user's liked articles
+   * Get user activity summary for the current session
    */
-  async getLikedArticles(userId?: string): Promise<any[]> {
+  async getActivitySummary(userId?: string): Promise<any> {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/liked-articles`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          }
-        }
-      );
+      // Use interactions from local service
+      const interactions = articleInteractionService.getAllInteractions();
 
-      if (!response.ok) {
-        throw new Error(`Failed to get liked articles: ${response.statusText}`);
-      }
+      const summary = {
+        sessionDuration: Date.now() - (window as any).sessionStartTime || 0,
+        articlesViewed: interactions.filter(i => i.viewed).length,
+        articlesLiked: interactions.filter(i => i.liked).length,
+        articlesSaved: interactions.filter(i => i.saved).length,
+        totalReadingTime: interactions.reduce((acc, i) => acc + (i.viewDuration || 0), 0)
+      };
 
-      const data = await response.json();
-      return data.articles || [];
-    } catch (error) {
-      console.error('Error getting liked articles:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get user's saved articles (using existing service)
-   */
-  async getSavedArticles(userId?: string): Promise<any[]> {
-    return articleInteractionService.getSavedArticles(userId);
-  }
-
-  /**
-   * Get user's reading history
-   */
-  async getReadingHistory(userId?: string): Promise<any[]> {
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/reading-history`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get reading history: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.articles || [];
-    } catch (error) {
-      console.error('Error getting reading history:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Update reading time for an article
-   */
-  async updateReadingTime(articleId: string, timeInSeconds: number, userId?: string): Promise<void> {
-    try {
-      const token = localStorage.getItem('authToken');
-      await fetch(`${this.baseUrl}/api/articles/${articleId}/reading-time`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({
-          userId: userId || 'anonymous',
-          timeInSeconds,
-        }),
-      });
-    } catch (error) {
-      console.error('Error updating reading time:', error);
-    }
-  }
-
-  /**
-   * Get user activity summary
-   */
-  async getActivitySummary(userId?: string, days: number = 30): Promise<any> {
-    try {
-      const token = localStorage.getItem('authToken');
-      const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/activity-summary?days=${days}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 'Authorization': `Bearer ${token}` })
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get activity summary: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
+      return summary;
     } catch (error) {
       console.error('Error getting activity summary:', error);
       return {
-        dailyActivity: [],
-        mostActiveHours: [],
-        topSources: [],
-        topTickers: [],
+        sessionDuration: 0,
+        articlesViewed: 0,
+        articlesLiked: 0,
+        articlesSaved: 0,
+        totalReadingTime: 0
       };
+    }
+  }
+
+  /**
+   * Update user reading preferences based on behavior
+   */
+  async updateReadingPreferences(userId: string, preferences: any): Promise<void> {
+    try {
+      await apiClient.put(`/api/users/${userId}/preferences`, preferences);
+    } catch (error) {
+      console.error('Error updating reading preferences:', error);
+    }
+  }
+
+  /**
+   * Get reading recommendations based on user history
+   */
+  async getRecommendations(userId?: string): Promise<any[]> {
+    try {
+      const response = await apiClient.get(`/api/users/${userId || 'anonymous'}/recommendations`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+      return [];
     }
   }
 }

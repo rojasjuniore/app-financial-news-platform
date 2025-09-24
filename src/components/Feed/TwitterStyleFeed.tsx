@@ -964,7 +964,7 @@ const TwitterStyleFeed: React.FC = () => {
                   }`}
                 >
                   <Icon className="w-3 sm:w-4 h-3 sm:h-4 flex-shrink-0" />
-                  <span className="hidden xs:inline">{config.label}</span>
+                  <span>{config.label}</span>
                 </button>
               );
             })}

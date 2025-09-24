@@ -3,9 +3,7 @@
  * Connects to backend FinBERT API for financial sentiment analysis
  */
 
-import axios from 'axios';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+import apiClient from './news/api';
 
 export type SentimentType =
   | 'very_bullish'
@@ -69,12 +67,10 @@ export interface NewsSentimentResult {
 }
 
 class SentimentService {
-  private baseUrl: string;
   private cache: Map<string, { data: any; timestamp: number }>;
   private cacheExpiry: number = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
-    this.baseUrl = `${API_BASE_URL}/api/sentiment`;
     this.cache = new Map();
   }
 
@@ -136,7 +132,7 @@ class SentimentService {
    */
   async analyzeSentiment(text: string): Promise<SentimentResult> {
     try {
-      const response = await axios.post(`${this.baseUrl}/analyze`, { text });
+      const response = await apiClient.post('/api/sentiment/analyze', { text });
       return response.data.data;
     } catch (error) {
       console.error('Error analyzing sentiment:', error);
@@ -155,7 +151,7 @@ class SentimentService {
    */
   async analyzeBatch(texts: string[]): Promise<BatchSentimentResult> {
     try {
-      const response = await axios.post(`${this.baseUrl}/batch`, { texts });
+      const response = await apiClient.post('/api/sentiment/batch', { texts });
       return response.data.data;
     } catch (error) {
       console.error('Error analyzing batch sentiment:', error);
@@ -207,7 +203,7 @@ class SentimentService {
       };
 
       // Use the real sentiment analysis endpoint that queries MySQL/PostgreSQL
-      const response = await axios.get(`${this.baseUrl.replace('/sentiment', '/sentiment-analysis')}/aggregate`, { params });
+      const response = await apiClient.get('/api/sentiment-analysis/aggregate', { params });
 
       if (response.data?.success && response.data?.data) {
         const data = response.data.data;
@@ -234,7 +230,7 @@ class SentimentService {
       }
 
       // Fallback to direct feed query if sentiment-analysis endpoint fails
-      const feedResponse = await axios.get(`${this.baseUrl.replace('/sentiment', '/news')}/simple-feed`, {
+      const feedResponse = await apiClient.get('/api/news/simple-feed', {
         params: { limit: limit || 50 }
       });
 
@@ -300,7 +296,7 @@ class SentimentService {
    */
   async getStatistics(): Promise<any> {
     try {
-      const response = await axios.get(`${this.baseUrl}/statistics`);
+      const response = await apiClient.get('/api/sentiment/statistics');
       return response.data.data;
     } catch (error) {
       console.error('Error getting sentiment statistics:', error);
@@ -313,7 +309,7 @@ class SentimentService {
    */
   async clearCache(): Promise<boolean> {
     try {
-      const response = await axios.post(`${this.baseUrl}/cache/clear`);
+      const response = await apiClient.post('/api/sentiment/cache/clear');
       // Also clear local cache
       this.cache.clear();
       return response.data.success;

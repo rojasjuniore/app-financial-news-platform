@@ -19,7 +19,7 @@ import {
   Hash,
   Layers
 } from 'lucide-react';
-import axios from 'axios';
+import apiClient from '../services/news/api';
 import toast from 'react-hot-toast';
 
 interface Notification {
@@ -81,7 +81,7 @@ const Notifications: React.FC = () => {
         params.type = 'cron_execution';
       }
 
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/notifications`, { params });
+      const response = await apiClient.get('/api/notifications', { params });
       
       if (response.data.success) {
         setNotifications(response.data.notifications);
@@ -96,7 +96,7 @@ const Notifications: React.FC = () => {
 
   const fetchCronStats = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/notifications/cron-executions`, {
+      const response = await apiClient.get('/api/notifications/cron-executions', {
         params: { days: timeRange }
       });
       
@@ -110,7 +110,7 @@ const Notifications: React.FC = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/notifications/${notificationId}/mark-read`);
+      await apiClient.put(`/api/notifications/${notificationId}/mark-read`);
       
       setNotifications(prev => 
         prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
@@ -125,7 +125,7 @@ const Notifications: React.FC = () => {
 
   const markAllAsRead = async () => {
     try {
-      await axios.put(`${process.env.REACT_APP_API_URL}/api/notifications/mark-all-read`);
+      await apiClient.put('/api/notifications/mark-all-read');
       
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
       

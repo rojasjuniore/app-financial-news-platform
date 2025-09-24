@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { MarketEventsPage } from '../components/MarketEvents';
 import TradingViewTickerWidget from '../components/TradingWidget/TradingViewTickerWidget';
+import apiClient from '../services/news/api';
 import {
   Activity,
   Globe,
@@ -54,9 +55,8 @@ const Dashboard: React.FC = () => {
   // Fetch real statistics from API
   const fetchStatistics = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000'}/api/dashboard/statistics`);
-      if (response.ok) {
-        const data = await response.json();
+      const response = await apiClient.get('/api/dashboard/statistics');
+      const data = response.data;
         console.log('Dashboard statistics received:', data);
         
         // Calculate today's change (simulate based on current hour for demo)
@@ -74,9 +74,6 @@ const Dashboard: React.FC = () => {
             hour12: false 
           })
         });
-      } else {
-        console.error('Failed to fetch statistics:', response.status);
-      }
     } catch (error) {
       console.error('Error fetching statistics:', error);
       // Don't set fallback values - keep at 0 if API fails

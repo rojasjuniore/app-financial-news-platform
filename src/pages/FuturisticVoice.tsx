@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import apiClient from '../services/news/api';
 import { 
   Mic, 
   MicOff,
@@ -395,17 +396,15 @@ const FuturisticVoice: React.FC = () => {
           // Generate TTS for greeting
           const generateGreetingAudio = async () => {
             try {
-              const response = await fetch('http://localhost:3005/api/voice/test-tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                  text: randomGreeting,
-                  voice: selectedVoice
-                })
+              const response = await apiClient.post('/api/voice/test-tts', {
+                text: randomGreeting,
+                voice: selectedVoice
+              }, {
+                responseType: 'blob'
               });
-              
-              if (response.ok) {
-                const audioBlob = await response.blob();
+
+              if (response.status === 200) {
+                const audioBlob = response.data;
                 const audioUrl = URL.createObjectURL(audioBlob);
                 const audio = new Audio(audioUrl);
                 

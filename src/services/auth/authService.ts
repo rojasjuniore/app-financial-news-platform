@@ -1,4 +1,4 @@
-import { 
+import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
@@ -8,6 +8,7 @@ import {
   User
 } from 'firebase/auth';
 import { auth } from '../firebase';
+import { saveAuthToken, clearAuthToken } from '../news/api';
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -15,34 +16,35 @@ export const authService = {
   // Login con email/password
   login: async (email: string, password: string): Promise<User> => {
     const result = await signInWithEmailAndPassword(auth, email, password);
-    // Store the JWT token in localStorage
-    const token = await result.user.getIdToken();
-    localStorage.setItem('authToken', token);
+    // Use the centralized saveAuthToken function
+    await saveAuthToken();
+    console.log('✅ User logged in:', result.user.email);
     return result.user;
   },
 
   // Registro
   register: async (email: string, password: string): Promise<User> => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    // Store the JWT token in localStorage
-    const token = await result.user.getIdToken();
-    localStorage.setItem('authToken', token);
+    // Use the centralized saveAuthToken function
+    await saveAuthToken();
+    console.log('✅ User registered:', result.user.email);
     return result.user;
   },
 
   // Login con Google
   loginWithGoogle: async (): Promise<User> => {
     const result = await signInWithPopup(auth, googleProvider);
-    // Store the JWT token in localStorage
-    const token = await result.user.getIdToken();
-    localStorage.setItem('authToken', token);
+    // Use the centralized saveAuthToken function
+    await saveAuthToken();
+    console.log('✅ User logged in with Google:', result.user.email);
     return result.user;
   },
 
   // Logout
   logout: async () => {
-    // Clear the token from localStorage
-    localStorage.removeItem('authToken');
+    // Use the centralized clearAuthToken function
+    clearAuthToken();
+    console.log('👋 User logged out');
     return signOut(auth);
   },
 
@@ -50,16 +52,17 @@ export const authService = {
   onAuthChange: (callback: (user: User | null) => void) =>
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Update token in localStorage when auth state changes
+        // Update token using centralized function
         try {
-          const token = await user.getIdToken(true); // Force refresh
-          localStorage.setItem('authToken', token);
+          await saveAuthToken();
+          console.log('🔄 Auth state changed - token refreshed for:', user.email);
         } catch (error) {
           console.error('Error refreshing auth token:', error);
         }
       } else {
         // Clear token when user logs out
-        localStorage.removeItem('authToken');
+        clearAuthToken();
+        console.log('🔄 Auth state changed - user logged out');
       }
       callback(user);
     }),

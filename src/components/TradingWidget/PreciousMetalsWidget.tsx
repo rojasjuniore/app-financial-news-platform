@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Zap, TrendingUp, TrendingDown, Clock, DollarSign } from 'lucide-react';
+import apiClient from '../../services/news/api';
 
 interface PreciousMetalsWidgetProps {
   symbol?: string;
@@ -94,8 +95,8 @@ const PreciousMetalsWidget: React.FC<PreciousMetalsWidgetProps> = ({
     const fetchMetalData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3005/api/tradingview/data/${encodeURIComponent(symbol)}`);
-        const data = await response.json();
+        const response = await apiClient.get(`/api/tradingview/data/${encodeURIComponent(symbol)}`);
+        const data = response.data;
         
         if (data.current_price) {
           setMetalData({

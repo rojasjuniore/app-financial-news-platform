@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import apiClient from '../services/news/api';
 import {
   BarChart3,
   Activity,
@@ -100,12 +101,12 @@ const Metrics: React.FC = () => {
     try {
       setLoading(true);
       const [personalRes, globalRes] = await Promise.all([
-        fetch(`${process.env.REACT_APP_API_URL}/api/dashboard/metrics/personal?range=${selectedDateRange}&model=${selectedModel}`),
-        fetch(`${process.env.REACT_APP_API_URL}/api/dashboard/metrics/global?range=${selectedDateRange}&model=${selectedModel}`)
+        apiClient.get(`/api/dashboard/metrics/personal?range=${selectedDateRange}&model=${selectedModel}`),
+        apiClient.get(`/api/dashboard/metrics/global?range=${selectedDateRange}&model=${selectedModel}`)
       ]);
 
-      if (personalRes.ok) {
-        const personalData = await personalRes.json();
+      if (personalRes.status === 200) {
+        const personalData = personalRes.data;
         // Map new API structure to expected format
         const mappedMetrics = {
           llmUsage: {
@@ -137,8 +138,8 @@ const Metrics: React.FC = () => {
         setMetrics(mappedMetrics);
       }
 
-      if (globalRes.ok) {
-        const globalData = await globalRes.json();
+      if (globalRes.status === 200) {
+        const globalData = globalRes.data;
         // Map global metrics to user metrics format
         const mappedUserMetrics = globalData.data?.metrics ? [{
           userId: 'global',

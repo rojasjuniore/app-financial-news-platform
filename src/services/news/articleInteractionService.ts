@@ -1,4 +1,4 @@
-import { API_CONFIG } from '../../config/api';
+import apiClient from './api';
 
 interface InteractionResponse {
   success: boolean;
@@ -9,156 +9,164 @@ interface InteractionResponse {
 }
 
 class ArticleInteractionService {
-  private baseUrl: string;
-
-  constructor() {
-    this.baseUrl = API_CONFIG.BASE_URL;
-  }
+  constructor() {}
 
   /**
    * Toggle like status for an article
    */
   async toggleLike(articleId: string, userId?: string): Promise<InteractionResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/articles/${articleId}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId || 'anonymous',
-        }),
+      const response = await apiClient.post(`/api/articles/${articleId}/like`, {
+        userId: userId || 'anonymous',
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to toggle like: ${response.statusText}`);
+      if (response.status === 200) {
+        return response.data;
       }
 
-      const data = await response.json();
       return {
-        success: true,
-        liked: data.liked,
-        likesCount: data.likesCount,
+        success: false,
+        message: 'Failed to toggle like'
       };
     } catch (error) {
       console.error('Error toggling like:', error);
-      // Return success with local state for offline functionality
       return {
-        success: true,
-        liked: true,
-        message: 'Offline - will sync when online',
+        success: false,
+        message: 'Error toggling like'
       };
     }
   }
 
   /**
-   * Toggle save status for an article
+   * Save or unsave an article
    */
   async toggleSave(articleId: string, userId?: string): Promise<InteractionResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/articles/${articleId}/save`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId || 'anonymous',
-        }),
+      const response = await apiClient.post(`/api/articles/${articleId}/save`, {
+        userId: userId || 'anonymous',
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to toggle save: ${response.statusText}`);
+      if (response.status === 200) {
+        return response.data;
       }
 
-      const data = await response.json();
       return {
-        success: true,
-        saved: data.saved,
+        success: false,
+        message: 'Failed to save article'
       };
     } catch (error) {
-      console.error('Error toggling save:', error);
-      // Return success with local state for offline functionality
+      console.error('Error saving article:', error);
       return {
-        success: true,
-        saved: true,
-        message: 'Offline - will sync when online',
+        success: false,
+        message: 'Error saving article'
       };
     }
   }
 
   /**
-   * Get user interactions for an article
+   * Get interaction status for an article
+   */
+  async getInteractionStatus(articleId: string, userId?: string): Promise<{
+    liked: boolean;
+    saved: boolean;
+    likesCount: number;
+  }> {
+    try {
+      const response = await apiClient.get(
+        `/api/articles/${articleId}/interactions?userId=${userId || 'anonymous'}`
+      );
+
+      if (response.status === 200) {
+        return response.data;
+      }
+
+      return {
+        liked: false,
+        saved: false,
+        likesCount: 0
+      };
+    } catch (error) {
+      console.error('Error fetching interaction status:', error);
+      return {
+        liked: false,
+        saved: false,
+        likesCount: 0
+      };
+    }
+  }
+
+  /**
+   * Get user interactions for an article (alias for getInteractionStatus for backward compatibility)
    */
   async getUserInteractions(articleId: string, userId?: string): Promise<{
     liked: boolean;
     saved: boolean;
     likesCount: number;
   }> {
+    return this.getInteractionStatus(articleId, userId);
+  }
+
+  /**
+   * Track article view
+   */
+  async trackView(articleId: string, userId?: string): Promise<void> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/api/articles/${articleId}/interactions?userId=${userId || 'anonymous'}`
+      await apiClient.post(
+        `/api/articles/${articleId}/view`,
+        {
+          userId: userId || 'anonymous',
+          timestamp: new Date().toISOString()
+        }
       );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get interactions: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return {
-        liked: data.liked || false,
-        saved: data.saved || false,
-        likesCount: data.likesCount || 0,
-      };
     } catch (error) {
-      console.error('Error getting interactions:', error);
-      // Return default values for offline functionality
-      return {
-        liked: false,
-        saved: false,
-        likesCount: 0,
-      };
+      console.error('Error tracking view:', error);
     }
   }
 
   /**
-   * Get all saved articles for a user
+   * Track article share
    */
-  async getSavedArticles(userId?: string): Promise<any[]> {
+  async trackShare(articleId: string, platform: string, userId?: string): Promise<void> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/api/users/${userId || 'anonymous'}/saved-articles`
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get saved articles: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.articles || [];
+      await apiClient.post(`/api/articles/${articleId}/share`, {
+        userId: userId || 'anonymous',
+        platform,
+        timestamp: new Date().toISOString()
+      });
     } catch (error) {
-      console.error('Error getting saved articles:', error);
+      console.error('Error tracking share:', error);
+    }
+  }
+
+  /**
+   * Get all user interactions (for local state management)
+   */
+  getAllInteractions(): any[] {
+    try {
+      const stored = localStorage.getItem('article_interactions');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
       return [];
     }
   }
 
   /**
-   * Share an article (track share event)
+   * Store interaction locally
    */
-  async trackShare(articleId: string, userId?: string, platform?: string): Promise<void> {
+  storeInteractionLocally(articleId: string, interaction: any): void {
     try {
-      await fetch(`${this.baseUrl}/api/articles/${articleId}/share`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId || 'anonymous',
-          platform: platform || 'unknown',
-        }),
-      });
+      const interactions = this.getAllInteractions();
+      const index = interactions.findIndex(i => i.articleId === articleId);
+
+      if (index >= 0) {
+        interactions[index] = { ...interactions[index], ...interaction };
+      } else {
+        interactions.push({ articleId, ...interaction });
+      }
+
+      localStorage.setItem('article_interactions', JSON.stringify(interactions));
     } catch (error) {
-      console.error('Error tracking share:', error);
-      // Don't throw error for tracking, it's not critical
+      console.error('Error storing interaction locally:', error);
     }
   }
 }
