@@ -1,23 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, 
-  Mail, 
-  Calendar, 
-  Shield, 
-  Settings, 
+import {
+  User,
+  Mail,
+  Calendar,
+  Shield,
+  Settings,
   LogOut,
   Bookmark,
   TrendingUp,
   Hash,
   Target,
   Clock,
-  Award
+  Award,
+  Heart,
+  BookOpen,
+  Activity
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { feedService } from '../services/news/feedService';
+import { userStatsService } from '../services/user/userStatsService';
 import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
@@ -25,12 +29,46 @@ const Profile: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState<'overview' | 'liked' | 'saved' | 'history'>('overview');
+
   // Get user stats
   const { data: profileData } = useQuery({
     queryKey: ['profile', user?.uid],
     queryFn: () => feedService.getProfile(),
     enabled: !!user?.uid,
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Get comprehensive user statistics
+  const { data: userStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['userStats', user?.uid],
+    queryFn: () => userStatsService.getUserStats(user?.uid),
+    enabled: !!user?.uid,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Get liked articles
+  const { data: likedArticles, isLoading: likedLoading } = useQuery({
+    queryKey: ['likedArticles', user?.uid],
+    queryFn: () => userStatsService.getLikedArticles(user?.uid),
+    enabled: !!user?.uid && activeTab === 'liked',
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Get saved articles
+  const { data: savedArticles, isLoading: savedLoading } = useQuery({
+    queryKey: ['savedArticles', user?.uid],
+    queryFn: () => userStatsService.getSavedArticles(user?.uid),
+    enabled: !!user?.uid && activeTab === 'saved',
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Get reading history
+  const { data: readingHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ['readingHistory', user?.uid],
+    queryFn: () => userStatsService.getReadingHistory(user?.uid),
+    enabled: !!user?.uid && activeTab === 'history',
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleSignOut = async () => {
@@ -124,16 +162,29 @@ const Profile: React.FC = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {/* Articles Viewed */}
+          {/* Articles Read */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md transition-colors">
             <div className="flex items-center justify-between mb-3">
-              <TrendingUp className="w-8 h-8 text-blue-500" />
+              <BookOpen className="w-8 h-8 text-blue-500" />
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {profileData?.behavior?.viewedArticles?.length || 0}
+                {userStats?.articlesRead || profileData?.behavior?.viewedArticles?.length || 0}
               </span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('dashboard.statistics.articlesRead')}
+              Articles Read
+            </p>
+          </div>
+
+          {/* Liked Articles */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <Heart className="w-8 h-8 text-red-500" />
+              <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                {userStats?.totalLiked || 0}
+              </span>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Liked Articles
             </p>
           </div>
 
@@ -142,24 +193,11 @@ const Profile: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <Bookmark className="w-8 h-8 text-purple-500" />
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {profileData?.behavior?.savedArticles?.length || 0}
+                {userStats?.totalSaved || profileData?.behavior?.savedArticles?.length || 0}
               </span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('dashboard.statistics.savedArticles')}
-            </p>
-          </div>
-
-          {/* Interests */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-md transition-colors">
-            <div className="flex items-center justify-between mb-3">
-              <Target className="w-8 h-8 text-green-500" />
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {profileData?.interests?.tickers?.length || 0}
-              </span>
-            </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('settings.interests')}
+              Saved Articles
             </p>
           </div>
 
@@ -168,17 +206,208 @@ const Profile: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <Clock className="w-8 h-8 text-orange-500" />
               <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {Math.round(profileData?.behavior?.avgReadTime || 0)} min
+                {Math.round((userStats?.totalReadingTime || 0) / 60)} min
               </span>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('dashboard.statistics.readingTime')}
+              Total Reading Time
             </p>
           </div>
         </div>
 
-        {/* Interests Section */}
-        {profileData?.interests && (
+        {/* Tabs for Articles */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6 transition-colors">
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <div className="flex space-x-8 px-6">
+              <button
+                onClick={() => setActiveTab('overview')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab('liked')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                  activeTab === 'liked'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                <Heart className="w-4 h-4" />
+                Liked ({userStats?.totalLiked || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('saved')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                  activeTab === 'saved'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                <Bookmark className="w-4 h-4" />
+                Saved ({userStats?.totalSaved || 0})
+              </button>
+              <button
+                onClick={() => setActiveTab('history')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${
+                  activeTab === 'history'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                History
+              </button>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+              <div className="text-center py-8">
+                <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400">
+                  Track your reading activity and preferences here
+                </p>
+              </div>
+            )}
+
+            {/* Liked Articles Tab */}
+            {activeTab === 'liked' && (
+              <div>
+                {likedLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto" />
+                  </div>
+                ) : likedArticles && likedArticles.length > 0 ? (
+                  <div className="space-y-4">
+                    {likedArticles.slice(0, 10).map((article: any) => (
+                      <div
+                        key={article.id}
+                        onClick={() => navigate(`/article/${article.id}`)}
+                        className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                      >
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {article.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {article.description || article.content?.substring(0, 150)}
+                        </p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          <span>{article.source}</span>
+                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      No liked articles yet
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Saved Articles Tab */}
+            {activeTab === 'saved' && (
+              <div>
+                {savedLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto" />
+                  </div>
+                ) : savedArticles && savedArticles.length > 0 ? (
+                  <div className="space-y-4">
+                    {savedArticles.slice(0, 10).map((article: any) => (
+                      <div
+                        key={article.id}
+                        onClick={() => navigate(`/article/${article.id}`)}
+                        className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                      >
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {article.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {article.description || article.content?.substring(0, 150)}
+                        </p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          <span>{article.source}</span>
+                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                          {article.folder && (
+                            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">
+                              {article.folder}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Bookmark className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      No saved articles yet
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Reading History Tab */}
+            {activeTab === 'history' && (
+              <div>
+                {historyLoading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto" />
+                  </div>
+                ) : readingHistory && readingHistory.length > 0 ? (
+                  <div className="space-y-4">
+                    {readingHistory.slice(0, 10).map((article: any) => (
+                      <div
+                        key={article.id}
+                        onClick={() => navigate(`/article/${article.id}`)}
+                        className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                      >
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {article.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                          {article.description || article.content?.substring(0, 150)}
+                        </p>
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          <span>{article.source}</span>
+                          <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                          {article.readingTime && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {Math.round(article.readingTime / 60)} min
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 dark:text-gray-400">
+                      No reading history yet
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Interests Section - Only show in overview tab */}
+        {activeTab === 'overview' && profileData?.interests && (
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 sm:p-8 mb-6 transition-colors">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
               {t('settings.interests')}

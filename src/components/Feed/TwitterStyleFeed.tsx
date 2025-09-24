@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
@@ -7,15 +8,11 @@ import {
   AlertCircle,
   Clock,
   Heart,
-  MessageCircle,
   Share2,
   Bookmark,
-  MoreHorizontal,
-  Sparkles,
   Shield,
   Brain,
   ChevronDown,
-  Repeat2,
   BarChart2,
   Globe,
   Flame,
@@ -32,6 +29,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { feedService } from '../../services/news/feedService';
+import { articleInteractionService } from '../../services/news/articleInteractionService';
 import { useAuth } from '../../contexts/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -138,19 +136,114 @@ const formatTimeAgo = (date: string | undefined) => {
 const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, index }) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleLike = () => {
+  // Load initial interaction state
+  useEffect(() => {
+    const loadInteractions = async () => {
+      if (article.id) {
+        const interactions = await articleInteractionService.getUserInteractions(
+          article.id,
+          user?.uid
+        );
+        setLiked(interactions.liked);
+        setSaved(interactions.saved);
+      }
+    };
+    loadInteractions();
+  }, [article.id, user?.uid]);
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    // Optimistic update
+    const previousState = liked;
     setLiked(!liked);
-    if (!liked) {
-      toast.success('Added to favorites', { duration: 1000 });
+
+    try {
+      const response = await articleInteractionService.toggleLike(article.id, user?.uid);
+
+      if (response.success) {
+        setLiked(response.liked || !previousState);
+        if (response.liked) {
+          toast.success('Added to favorites ❤️', { duration: 1000 });
+        } else {
+          toast.success('Removed from favorites', { duration: 1000 });
+        }
+      }
+    } catch (error) {
+      // Revert on error
+      setLiked(previousState);
+      toast.error('Failed to update like status');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (isProcessing) return;
+    setIsProcessing(true);
+
+    // Optimistic update
+    const previousState = saved;
     setSaved(!saved);
-    if (!saved) {
-      toast.success('Article saved', { duration: 1000 });
+
+    try {
+      const response = await articleInteractionService.toggleSave(article.id, user?.uid);
+
+      if (response.success) {
+        setSaved(response.saved || !previousState);
+        if (response.saved) {
+          toast.success('Article saved 📌', { duration: 1000 });
+        } else {
+          toast.success('Article removed from saved', { duration: 1000 });
+        }
+      }
+    } catch (error) {
+      // Revert on error
+      setSaved(previousState);
+      toast.error('Failed to save article');
+    } finally {
+      setIsProcessing(false);
     }
+  };
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    // Track share event
+    articleInteractionService.trackShare(article.id, user?.uid, 'web');
+
+    // Web Share API (if available)
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: article.description,
+          url: window.location.origin + `/article/${article.id}`
+        });
+        toast.success('Shared successfully! 🚀', { duration: 1500 });
+      } catch (error) {
+        // User cancelled or error
+        console.log('Share cancelled or failed');
+      }
+    } else {
+      // Fallback: Copy link to clipboard
+      const articleUrl = `${window.location.origin}/article/${article.id}`;
+      navigator.clipboard.writeText(articleUrl);
+      toast.success('Link copied to clipboard! 📋', { duration: 1500 });
+    }
+  };
+
+  const handleArticleClick = () => {
+    navigate(`/article/${article.id}`);
   };
 
   return (
@@ -159,6 +252,7 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors cursor-pointer"
+      onClick={handleArticleClick}
     >
       <div className="p-4">
         {/* Header */}
@@ -280,59 +374,46 @@ const ArticleCard: React.FC<{ article: Article; index: number }> = ({ article, i
 
             {/* Actions */}
             <div className="mt-4 flex items-center justify-between">
-              <div className="flex items-center space-x-1">
-                {/* Comment */}
-                <button className="group flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                  <MessageCircle className="w-5 h-5" />
-                  <span className="text-sm group-hover:text-blue-500">
-                    {Math.floor(Math.random() * 50)}
-                  </span>
-                </button>
-
-                {/* Retweet */}
-                <button className="group flex items-center space-x-2 text-gray-500 hover:text-green-500 transition-colors p-2 rounded-full hover:bg-green-50 dark:hover:bg-green-900/20">
-                  <Repeat2 className="w-5 h-5" />
-                  <span className="text-sm group-hover:text-green-500">
-                    {Math.floor(Math.random() * 100)}
-                  </span>
-                </button>
-
+              <div className="flex items-center space-x-3">
                 {/* Like */}
                 <button
                   onClick={handleLike}
-                  className={`group flex items-center space-x-2 transition-colors p-2 rounded-full ${
+                  disabled={isProcessing}
+                  className={`group flex items-center space-x-2 transition-all p-2 rounded-full ${
                     liked
                       ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
                       : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
-                  }`}
+                  } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''}`} />
+                  <Heart className={`w-5 h-5 ${liked ? 'fill-current' : ''} ${isProcessing ? 'animate-pulse' : ''}`} />
                   <span className={`text-sm ${liked ? 'text-red-500' : 'group-hover:text-red-500'}`}>
-                    {Math.floor(Math.random() * 200) + (liked ? 1 : 0)}
+                    {liked ? 'Liked' : 'Like'}
                   </span>
                 </button>
 
                 {/* Share */}
-                <button className="group text-gray-500 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                <button
+                  onClick={handleShare}
+                  className="group flex items-center space-x-2 text-gray-500 hover:text-blue-500 transition-colors p-2 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                >
                   <Share2 className="w-5 h-5" />
+                  <span className="text-sm group-hover:text-blue-500">Share</span>
                 </button>
-              </div>
 
-              {/* Save & More */}
-              <div className="flex items-center space-x-1">
+                {/* Save */}
                 <button
                   onClick={handleSave}
-                  className={`transition-colors p-2 rounded-full ${
+                  disabled={isProcessing}
+                  className={`group flex items-center space-x-2 transition-all p-2 rounded-full ${
                     saved
                       ? 'text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                       : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
-                  }`}
+                  } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Bookmark className={`w-5 h-5 ${saved ? 'fill-current' : ''}`} />
-                </button>
-
-                <button className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <MoreHorizontal className="w-5 h-5" />
+                  <Bookmark className={`w-5 h-5 ${saved ? 'fill-current' : ''} ${isProcessing ? 'animate-pulse' : ''}`} />
+                  <span className={`text-sm ${saved ? 'text-blue-500' : 'group-hover:text-blue-500'}`}>
+                    {saved ? 'Saved' : 'Save'}
+                  </span>
                 </button>
               </div>
             </div>
