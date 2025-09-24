@@ -168,6 +168,13 @@ export interface FeedResponse {
   total?: number; // Añadido para compatibilidad
   totalCount?: number;
   hasMore: boolean;
+  // Search-specific properties
+  query?: string;
+  sortBy?: string;
+  source?: string;
+  searchParams?: Record<string, any>;
+  marketStats?: Record<string, any>;
+  userPreferences?: Record<string, any>;
   metadata?: {
     // For simple feed
     mode?: 'trending' | 'my-interests' | 'all';

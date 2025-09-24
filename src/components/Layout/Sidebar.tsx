@@ -55,7 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     // { path: '/technical-analysis', icon: BarChart3, label: 'Análisis Técnico', badge: 'PRO' },
     // { path: '/forex-metals', icon: TrendingUp, label: 'Forex & Metales', badge: 'PRO' },
     { path: '/preferences', icon: Sliders, label: 'Preferences' },
-    { path: '/saved', icon: Bookmark, label: t('nav.saved') },
+    // { path: '/saved', icon: Bookmark, label: t('nav.saved') },
     // { path: '/search', icon: Search, label: t('nav.search') },
     // { path: '/chat', icon: MessageCircle, label: t('nav.chat') || 'Chat' },
     { path: '/voice', icon: Bot, label: 'AI Voice Assistant', badge: 'NEW' },

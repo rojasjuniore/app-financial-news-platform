@@ -306,33 +306,85 @@ export const feedService = {
   },
 
   // Buscar artículos - USANDO ENDPOINT EXISTENTE
+  // Search articles in database using PostgreSQL endpoint
   searchArticles: async (params: {
     q: string;
+    sortBy?: 'relevance' | 'time' | 'importance' | 'quality';
     limit?: number;
     offset?: number;
+    timeRange?: string;
+    sources?: string;
+    tickers?: string;
+    sentimentFilter?: string;
+    minQuality?: number;
+    userId?: string;
   }): Promise<FeedResponse> => {
-    // Usar el endpoint de búsqueda de news
-    const response = await apiClient.get(`/news/search/${params.q}`, { 
-      params: {
-        pageSize: params.limit || 20,
-        offset: params.offset || 0
+    try {
+      console.log('🔍 FeedService: Searching articles with params:', params);
+
+      const response = await apiClient.get('/api/news/search', { params });
+      console.log('📦 FeedService: Search response status:', response.status);
+
+      // Handle standardized API response format
+      const data = response.data.success ? response.data.data : response.data;
+
+      console.log('✅ Processed search results:', {
+        query: params.q,
+        articlesCount: data?.articles?.length || 0,
+        total: data?.total || 0,
+        hasMore: data?.hasMore || false,
+        sortBy: data?.sortBy
+      });
+
+      // Add importance_score to articles interface
+      const articlesWithImportance = data?.articles?.map((article: any) => ({
+        ...article,
+        importance_score: article.importance_score || 0
+      })) || [];
+
+      // Track search usage
+      try {
+        await usageTracker.trackSearch(params.q, articlesWithImportance.length, {
+          limit: params.limit,
+          offset: params.offset,
+          sortBy: params.sortBy
+        });
+      } catch (trackingError) {
+        console.warn('Error tracking search usage:', trackingError);
       }
-    });
-    
-    // Handle standardized API response format
-    const data = response.data.success ? response.data.data : response.data;
-    
-    // Track search usage
-    await usageTracker.trackSearch(params.q, data.articles?.length, { 
-      limit: params.limit,
-      offset: params.offset 
-    });
-    
-    return {
-      articles: data.articles || [],
-      hasMore: data.totalResults > (params.offset || 0) + (params.limit || 20),
-      total: data.totalResults || 0
-    };
+
+      // Ensure we always return a valid FeedResponse
+      if (!data) {
+        return {
+          articles: [],
+          total: 0,
+          hasMore: false
+        };
+      }
+
+      return {
+        articles: articlesWithImportance,
+        total: data?.total || 0,
+        hasMore: data?.hasMore || false,
+        query: data?.query,
+        sortBy: data?.sortBy,
+        source: data?.source || 'postgresql_search',
+        searchParams: data?.searchParams,
+        marketStats: data?.marketStats,
+        userPreferences: data?.userPreferences
+      };
+
+    } catch (error) {
+      console.error('❌ FeedService: Error searching articles:', error);
+
+      // Return empty search results on error
+      return {
+        articles: [],
+        total: 0,
+        hasMore: false,
+        query: params.q
+      };
+    }
   },
 
   // Generar análisis con IA - USANDO ENDPOINT DE ANALYSIS

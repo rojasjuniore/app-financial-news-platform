@@ -25,7 +25,9 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   Circle,
-  DollarSign
+  DollarSign,
+  Search,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { feedService } from '../../services/news/feedService';
@@ -36,8 +38,8 @@ import { UserInterests, Article as GlobalArticle } from '../../types';
 import toast from 'react-hot-toast';
 
 // Types
-type FeedMode = 'trending' | 'my-interests' | 'bullish' | 'bearish' | 'high-impact' | 'all';
-type SortBy = 'time' | 'importance' | 'quality' | 'sentiment' | 'impact' | 'interest-match';
+type FeedMode = 'trending' | 'my-interests' | 'bullish' | 'bearish' | 'high-impact' | 'all' | 'search';
+type SortBy = 'time' | 'importance' | 'quality' | 'sentiment' | 'impact' | 'interest-match' | 'relevance';
 
 // Use the global Article type
 type Article = GlobalArticle;
@@ -545,6 +547,9 @@ const TwitterStyleFeed: React.FC = () => {
   const [sortBy, setSortBy] = useState<SortBy>('time');
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [userInterests, setUserInterests] = useState<UserInterests | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showSearch, setShowSearch] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
 
   // Load user interests from localStorage or API
@@ -581,7 +586,8 @@ const TwitterStyleFeed: React.FC = () => {
     { mode: 'bullish' as FeedMode, icon: TrendingUp, label: 'Bullish', color: 'from-green-500 to-emerald-500' },
     { mode: 'bearish' as FeedMode, icon: TrendingDown, label: 'Bearish', color: 'from-red-500 to-orange-500' },
     { mode: 'high-impact' as FeedMode, icon: Zap, label: 'High Impact', color: 'from-purple-500 to-indigo-500' },
-    { mode: 'all' as FeedMode, icon: Globe, label: 'All News', color: 'from-gray-500 to-gray-600' }
+    { mode: 'all' as FeedMode, icon: Globe, label: 'All News', color: 'from-gray-500 to-gray-600' },
+    { mode: 'search' as FeedMode, icon: Search, label: 'Search Results', color: 'from-indigo-500 to-purple-500' }
   ];
 
   // Sort options - conditionally include interest match if user has interests
@@ -591,6 +597,7 @@ const TwitterStyleFeed: React.FC = () => {
     { value: 'time' as SortBy, label: 'Latest', icon: Clock },
     { value: 'importance' as SortBy, label: 'Important', icon: Star },
     { value: 'quality' as SortBy, label: 'Quality', icon: Award },
+    { value: 'relevance' as SortBy, label: 'Relevance', icon: Search },
     ...(userInterests ? [{ value: 'interest-match' as SortBy, label: 'Interest Match', icon: Target }] : [])
   ];
 
@@ -604,15 +611,29 @@ const TwitterStyleFeed: React.FC = () => {
     error,
     refetch
   } = useInfiniteQuery({
-    queryKey: ['twitter-feed', user?.uid, mode, sortBy],
+    queryKey: ['twitter-feed', user?.uid, mode, sortBy, searchQuery],
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await feedService.getSimpleFeed({
-        mode: mode === 'bullish' || mode === 'bearish' || mode === 'high-impact' ? 'all' : mode as any,
-        sortBy: sortBy === 'impact' || sortBy === 'sentiment' ? 'importance' : sortBy as any,
-        limit: 20,
-        offset: pageParam * 20,
-        userId: user?.uid
-      });
+      let response;
+
+      // If in search mode, use search endpoint
+      if (mode === 'search' && searchQuery.trim()) {
+        response = await feedService.searchArticles({
+          q: searchQuery.trim(),
+          sortBy: sortBy === 'impact' ? 'importance' : sortBy === 'interest-match' ? 'relevance' : sortBy as any,
+          limit: 20,
+          offset: pageParam * 20,
+          userId: user?.uid
+        });
+      } else {
+        // Regular feed mode
+        response = await feedService.getSimpleFeed({
+          mode: mode === 'bullish' || mode === 'bearish' || mode === 'high-impact' ? 'all' : mode as any,
+          sortBy: sortBy === 'impact' || sortBy === 'sentiment' ? 'importance' : sortBy as any,
+          limit: 20,
+          offset: pageParam * 20,
+          userId: user?.uid
+        });
+      }
 
       // Apply client-side filters for sentiment-based modes
       let filtered = response.articles || [];
@@ -762,6 +783,25 @@ const TwitterStyleFeed: React.FC = () => {
     toast.success('Feed updated! 🚀', { duration: 2000 });
   }, [refetch]);
 
+  // Search functions
+  const handleSearch = useCallback((query: string) => {
+    if (query.trim()) {
+      setSearchQuery(query);
+      setMode('search');
+      setSortBy('relevance');
+      setIsSearching(false);
+      toast.success(`Searching for: "${query}"`, { duration: 2000 });
+    }
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setShowSearch(false);
+    setIsSearching(false);
+    setMode('trending');
+    setSortBy('time');
+  }, []);
+
   // Flatten all pages of articles
   const allArticles = data?.pages.flatMap(page => page.articles) || [];
 
@@ -855,6 +895,13 @@ const TwitterStyleFeed: React.FC = () => {
 
             {/* Actions */}
             <div className="flex items-center space-x-2">
+              {/* Search Button */}
+              <button
+                onClick={() => setShowSearch(!showSearch)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+              >
+                <Search className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              </button>
               {/* Sort Menu */}
               <div className="relative">
                 <button
@@ -920,6 +967,63 @@ const TwitterStyleFeed: React.FC = () => {
               );
             })}
           </div>
+
+          {/* Search Bar */}
+          <AnimatePresence>
+            {showSearch && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3"
+              >
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Search news by ticker, company, topic, or keyword..."
+                    value={isSearching ? searchQuery : ''}
+                    onChange={(e) => {
+                      setIsSearching(true);
+                      setSearchQuery(e.target.value);
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && searchQuery.trim()) {
+                        handleSearch(searchQuery);
+                      }
+                    }}
+                    className="block w-full pl-10 pr-12 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:focus:ring-blue-400 dark:focus:border-blue-400"
+                  />
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    {mode === 'search' ? (
+                      <button
+                        onClick={handleClearSearch}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                      >
+                        <X className="h-4 w-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
+                      </button>
+                    ) : searchQuery.trim() && isSearching ? (
+                      <button
+                        onClick={() => handleSearch(searchQuery)}
+                        className="p-1 bg-blue-500 hover:bg-blue-600 rounded-full transition-colors"
+                      >
+                        <Search className="h-4 w-4 text-white" />
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+                {/* Search Results Info */}
+                {mode === 'search' && searchQuery && (
+                  <div className="mt-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
+                    <span>Search results for: <strong>"{searchQuery}"</strong></span>
+                    <span>{allArticles.length} results found</span>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Market Summary */}
           {marketSummary && (
