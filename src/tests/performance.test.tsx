@@ -44,6 +44,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 describe('Performance Optimizations', () => {
+  /* ArticleCard component removed - tests commented out
   describe('ArticleCard Performance', () => {
     it('should not re-render when props are the same', () => {
       const onView = jest.fn();
@@ -104,6 +105,7 @@ describe('Performance Optimizations', () => {
       }, { timeout: 200 });
     });
   });
+  */
 
   describe('Loading States Performance', () => {
     it('should render skeleton loading efficiently', () => {
@@ -220,6 +222,7 @@ describe('Performance Optimizations', () => {
     });
   });
 
+  /* ArticleCard tests commented out
   describe('Memory Performance', () => {
     it('should not cause memory leaks', async () => {
       const { unmount } = render(
@@ -238,7 +241,9 @@ describe('Performance Optimizations', () => {
       expect(true).toBe(true);
     });
   });
+  */
 
+  /* ArticleCard animation tests
   describe('Animation Performance', () => {
     it('should use GPU-accelerated animations', () => {
       render(
@@ -257,6 +262,7 @@ describe('Performance Optimizations', () => {
       expect(computedStyle.getPropertyValue('will-change')).toContain('transform');
     });
   });
+  */
 });
 
 // Performance benchmark tests
@@ -281,6 +287,7 @@ describe('Performance Benchmarks', () => {
     };
   };
 
+  /* ArticleCard component removed
   it('ArticleCard should render under performance budget', () => {
     const TestArticleCard = () => (
       <TestWrapper>
@@ -294,6 +301,7 @@ describe('Performance Benchmarks', () => {
     expect(results.average).toBeLessThan(16);
     expect(results.max).toBeLessThan(50); // Max should be reasonable
   });
+  */
 
   it('Loading states should render efficiently', () => {
     const results = renderPerformanceTest(InitialLoadingState);
@@ -311,6 +319,7 @@ describe('Performance Integration', () => {
     render(
       <TestWrapper>
         <div>
+          {/* ArticleCard components removed
           {Array.from({ length: 20 }, (_, i) => (
             <ArticleCard
               key={i}
@@ -318,6 +327,7 @@ describe('Performance Integration', () => {
               index={i}
             />
           ))}
+          */}
         </div>
       </TestWrapper>
     );

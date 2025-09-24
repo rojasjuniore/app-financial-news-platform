@@ -329,8 +329,8 @@ const PersonalizationPreview: React.FC<PersonalizationPreviewProps> = ({
                             {article.description}
                           </p>
                           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                            <span>{article.source}</span>
-                            <span>{article.sentiment || 'neutral'}</span>
+                            <span>{typeof article.source === 'string' ? article.source : article.source?.name || 'Unknown'}</span>
+                            <span>{typeof article.sentiment === 'string' ? article.sentiment : 'neutral'}</span>
                           </div>
                         </div>
                       </motion.div>
