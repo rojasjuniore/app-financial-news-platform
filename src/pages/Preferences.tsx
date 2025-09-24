@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Building2,
   Newspaper,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { feedService } from '../services/news/feedService';
@@ -387,21 +388,60 @@ const Preferences: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               {t('preferences.tickersDescription')}
             </p>
-            
+
             <AutocompleteInputAPI
               dataType="tickers"
               selectedItems={interests.tickers}
               onAdd={addTicker}
               onRemove={removeTicker}
-              placeholder="Search for stocks (e.g., AAPL, TSLA, MSFT)"
+              placeholder="Search by ticker or company name (e.g., Apple, AAPL, Tesla)"
               color="green"
               allowCustom={true}
+              label="Add stocks, crypto, forex, commodities, ETFs, and more"
+              icon={<Building2 className="w-4 h-4 text-green-600 dark:text-green-400" />}
             />
-            
+
+            {/* Quick Add Popular Tickers */}
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Quick add popular:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { ticker: 'AAPL', name: 'Apple', type: '📱' },
+                  { ticker: 'NVDA', name: 'NVIDIA', type: '🎮' },
+                  { ticker: 'TSLA', name: 'Tesla', type: '🚗' },
+                  { ticker: 'BTC-USD', name: 'Bitcoin', type: '₿' },
+                  { ticker: 'ETH-USD', name: 'Ethereum', type: '💎' },
+                  { ticker: 'EUR/USD', name: 'Euro/Dollar', type: '💱' },
+                  { ticker: 'GOLD', name: 'Gold', type: '🥇' },
+                  { ticker: 'SPY', name: 'S&P 500 ETF', type: '📊' }
+                ].map((item) => {
+                  const isSelected = interests.tickers.includes(item.ticker);
+                  return (
+                    <button
+                      key={item.ticker}
+                      onClick={() => !isSelected && addTicker(item.ticker)}
+                      disabled={isSelected}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-800/30'
+                      }`}
+                    >
+                      <span>{item.type}</span>
+                      <span className="font-medium">{item.ticker}</span>
+                      <span className="text-xs opacity-75">({item.name})</span>
+                      {!isSelected && <Plus className="w-3 h-3 ml-1" />}
+                      {isSelected && <Check className="w-3 h-3 ml-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={handleSaveInterests}
               disabled={isSaving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isSaving ? t('common.saving') : t('common.saveChanges')}
@@ -434,11 +474,47 @@ const Preferences: React.FC = () => {
               color="purple"
               allowCustom={false}
             />
-            
+
+            {/* Quick Add Popular Sectors */}
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Quick add popular:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'technology', name: 'Technology', icon: '💻' },
+                  { id: 'healthcare', name: 'Healthcare', icon: '🏥' },
+                  { id: 'financials', name: 'Financials', icon: '🏦' },
+                  { id: 'energy', name: 'Energy', icon: '⚡' },
+                  { id: 'consumer-discretionary', name: 'Consumer', icon: '🛒' },
+                  { id: 'industrials', name: 'Industrials', icon: '🏭' },
+                  { id: 'real-estate', name: 'Real Estate', icon: '🏠' },
+                  { id: 'materials', name: 'Materials', icon: '🪨' }
+                ].map((sector) => {
+                  const isSelected = interests.sectors.includes(sector.id);
+                  return (
+                    <button
+                      key={sector.id}
+                      onClick={() => !isSelected && addSector(sector.id)}
+                      disabled={isSelected}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : 'bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800/30'
+                      }`}
+                    >
+                      <span>{sector.icon}</span>
+                      <span className="font-medium">{sector.name}</span>
+                      {!isSelected && <Plus className="w-3 h-3 ml-1" />}
+                      {isSelected && <Check className="w-3 h-3 ml-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={handleSaveInterests}
               disabled={isSaving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isSaving ? t('common.saving') : t('common.saveChanges')}
@@ -471,11 +547,47 @@ const Preferences: React.FC = () => {
               color="blue"
               allowCustom={true}
             />
-            
+
+            {/* Quick Add Popular Topics */}
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Quick add popular:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'artificial-intelligence', name: 'AI', icon: '🤖' },
+                  { id: 'earnings', name: 'Earnings', icon: '📊' },
+                  { id: 'mergers-acquisitions', name: 'M&A', icon: '🤝' },
+                  { id: 'ipo', name: 'IPO', icon: '🎯' },
+                  { id: 'regulation', name: 'Regulation', icon: '⚖️' },
+                  { id: 'climate-change', name: 'Climate', icon: '🌍' },
+                  { id: 'inflation', name: 'Inflation', icon: '📈' },
+                  { id: 'federal-reserve', name: 'Fed', icon: '🏛️' }
+                ].map((topic) => {
+                  const isSelected = interests.topics.includes(topic.id);
+                  return (
+                    <button
+                      key={topic.id}
+                      onClick={() => !isSelected && addTopic(topic.id)}
+                      disabled={isSelected}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800/30'
+                      }`}
+                    >
+                      <span>{topic.icon}</span>
+                      <span className="font-medium">{topic.name}</span>
+                      {!isSelected && <Plus className="w-3 h-3 ml-1" />}
+                      {isSelected && <Check className="w-3 h-3 ml-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={handleSaveInterests}
               disabled={isSaving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isSaving ? t('common.saving') : t('common.saveChanges')}
@@ -508,11 +620,47 @@ const Preferences: React.FC = () => {
               color="indigo"
               allowCustom={true}
             />
-            
+
+            {/* Quick Add Popular Keywords */}
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Quick add popular:</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { id: 'breaking', name: 'Breaking', icon: '⚡' },
+                  { id: 'analysis', name: 'Analysis', icon: '🔍' },
+                  { id: 'forecast', name: 'Forecast', icon: '🔮' },
+                  { id: 'exclusive', name: 'Exclusive', icon: '🎯' },
+                  { id: 'profit', name: 'Profit', icon: '💰' },
+                  { id: 'loss', name: 'Loss', icon: '📉' },
+                  { id: 'growth', name: 'Growth', icon: '🚀' },
+                  { id: 'recession', name: 'Recession', icon: '⚠️' }
+                ].map((keyword) => {
+                  const isSelected = interests.keywords.includes(keyword.id);
+                  return (
+                    <button
+                      key={keyword.id}
+                      onClick={() => !isSelected && addKeyword(keyword.id)}
+                      disabled={isSelected}
+                      className={`px-3 py-1 text-sm rounded-full transition-colors flex items-center gap-1 ${
+                        isSelected
+                          ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
+                          : 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800/30'
+                      }`}
+                    >
+                      <span>{keyword.icon}</span>
+                      <span className="font-medium">{keyword.name}</span>
+                      {!isSelected && <Plus className="w-3 h-3 ml-1" />}
+                      {isSelected && <Check className="w-3 h-3 ml-1" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={handleSaveInterests}
               disabled={isSaving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isSaving ? t('common.saving') : t('common.saveChanges')}
@@ -535,27 +683,79 @@ const Preferences: React.FC = () => {
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               {t('preferences.marketTypesDescription')}
             </p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
-              {['stocks', 'crypto', 'forex'].map((marketType) => (
-                <label key={marketType} className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={interests.marketTypes.includes(marketType)}
-                    onChange={() => toggleMarketType(marketType)}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                  />
-                  <span className="text-gray-900 dark:text-gray-100 capitalize">
-                    {marketType === 'stocks' ? t('preferences.stocks') : marketType === 'crypto' ? t('preferences.crypto') : t('preferences.forex')}
-                  </span>
-                </label>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              {[
+                { id: 'stocks', name: 'Stocks', icon: '📈', description: 'US & International equities' },
+                { id: 'crypto', name: 'Crypto', icon: '₿', description: 'Digital currencies & tokens' },
+                { id: 'forex', name: 'Forex', icon: '💱', description: 'Currency pairs' },
+                { id: 'commodities', name: 'Commodities', icon: '🛢️', description: 'Gold, oil, agriculture' },
+                { id: 'etfs', name: 'ETFs', icon: '📊', description: 'Exchange-traded funds' },
+                { id: 'indices', name: 'Indices', icon: '📉', description: 'Market indices' },
+                { id: 'bonds', name: 'Bonds', icon: '📜', description: 'Fixed income securities' },
+                { id: 'reits', name: 'REITs', icon: '🏢', description: 'Real estate trusts' }
+              ].map((market) => (
+                <div
+                  key={market.id}
+                  onClick={() => toggleMarketType(market.id)}
+                  className={`cursor-pointer rounded-lg border-2 p-3 transition-all duration-200 ${
+                    interests.marketTypes.includes(market.id)
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-2xl">{market.icon}</span>
+                    {interests.marketTypes.includes(market.id) && (
+                      <Check className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    )}
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {market.name}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {market.description}
+                  </div>
+                </div>
               ))}
             </div>
-            
+
+            <div className="flex items-center gap-2 mb-4">
+              <button
+                onClick={() => setInterests(prev => ({
+                  ...prev,
+                  marketTypes: ['stocks', 'crypto', 'forex', 'commodities', 'etfs', 'indices', 'bonds', 'reits']
+                }))}
+                className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Select All
+              </button>
+              <span className="text-gray-400">•</span>
+              <button
+                onClick={() => setInterests(prev => ({
+                  ...prev,
+                  marketTypes: []
+                }))}
+                className="text-sm text-gray-600 dark:text-gray-400 hover:underline"
+              >
+                Clear All
+              </button>
+              <span className="text-gray-400">•</span>
+              <button
+                onClick={() => setInterests(prev => ({
+                  ...prev,
+                  marketTypes: ['stocks', 'crypto', 'etfs', 'indices'] // Popular markets
+                }))}
+                className="text-sm text-orange-600 dark:text-orange-400 hover:underline"
+              >
+                Quick Add Popular
+              </button>
+            </div>
+
             <button
               onClick={handleSaveInterests}
               disabled={isSaving}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <Save className="w-4 h-4" />
               {isSaving ? t('common.saving') : t('common.saveChanges')}

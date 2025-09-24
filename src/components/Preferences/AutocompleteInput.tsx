@@ -1,3 +1,11 @@
+/**
+ * @component AutocompleteInput
+ * @tags AUTOCOMPLETE, SEARCH_INPUT, PREFERENCES_COMPONENT, TICKER_SELECTION
+ * @search AUTOCOMPLETE_INPUT, TICKER_SEARCH, SYMBOL_PICKER, PREFERENCE_INPUT
+ * @keywords autocomplete, search, ticker, financial, selection, input
+ * @description Smart autocomplete input component for financial ticker selection with fuzzy search
+ */
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Check, TrendingUp, Plus, X } from 'lucide-react';

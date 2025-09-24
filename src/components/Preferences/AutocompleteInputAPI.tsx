@@ -1,3 +1,11 @@
+/**
+ * @component AutocompleteInputAPI
+ * @tags API_AUTOCOMPLETE, MARKET_DATA_SEARCH, PREFERENCES_API_COMPONENT
+ * @search API_AUTOCOMPLETE, MARKET_DATA_INPUT, TICKER_API_SEARCH, FINANCIAL_API_INPUT
+ * @keywords api-autocomplete, market-data-search, ticker-api, financial-search-api
+ * @description API-powered autocomplete with real-time financial data fetching and debounced search
+ */
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Check, TrendingUp, Plus, X, Loader } from 'lucide-react';
